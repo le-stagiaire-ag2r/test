@@ -4,170 +4,377 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi des Ventes - Assurance</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .lucide { display: inline-block; vertical-align: middle; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        .btn-success {
+            background: #059669;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #047857;
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        
+        .btn.active {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input,
+        .form-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        
+        .table tr:hover {
+            background: #f9fafb;
+        }
+        
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .login-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+        }
+        
+        .form-space {
+            margin-bottom: 1rem;
+        }
+        
+        .test-accounts {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+        }
+        
+        .test-accounts h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+        
+        .test-accounts div {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: #e5e7eb;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 0.25rem;
+            transition: width 0.3s ease;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .badge-blue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-green {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-gray {
+            color: #6b7280;
+        }
+        
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+        
+        .icon {
+            width: 1rem;
+            height: 1rem;
+            display: inline-block;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .nav-buttons {
+                justify-content: center;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="app">
+        <!-- L'application sera injectée ici -->
+    </div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <script>
+        // Données par défaut
+        const defaultUsers = {
+            "admin": { 
+                password: "admin123", 
+                type: "admin", 
+                name: "Administrateur"
+            },
+            "sarah": { 
+                password: "sarah123", 
+                type: "commercial", 
+                name: "Sarah",
+                agence: "Lille", 
+                permanences: ["Armentières", "Bousbecques", "Lesquin", "Carvin"] 
+            },
+            "caroline": { 
+                password: "caroline123", 
+                type: "commercial", 
+                name: "Caroline",
+                agence: "Lille", 
+                permanences: ["Arras", "Béthune", "Valenciennes", "La Bassée"] 
+            }
+        };
 
-        // Composants Lucide simplifiés
-        const LucideIcon = ({ d, ...props }) => (
-            React.createElement('svg', {
-                ...props,
-                width: props.size || 20,
-                height: props.size || 20,
-                viewBox: '0 0 24 24',
-                fill: 'none',
-                stroke: 'currentColor',
-                strokeWidth: 2,
-                strokeLinecap: 'round',
-                strokeLinejoin: 'round',
-                className: `lucide ${props.className || ''}`
-            }, React.createElement('path', { d }))
-        );
+        const typesVente = ["Face à face", "Tél"];
+        const origines = ["Prcad", "Rebond Crc", "Client", "Campagne", "Reco", "Visite", "Santé sortie de groupe"];
+        const defaultContrats = [
+            "Santé sortie de groupe", "Prévoyance individuelle", "Protectvia", "Vivépargne",
+            "Prima Cap obsq Pu", "Prima Cap obsq PP", "Prima Vol obsq Pu", "Prima vol obsq Pu",
+            "Certificats Mutualistes", "Viaplus", "Protec territorial", "HPJ", "Terre de vie"
+        ];
 
-        const Plus = (props) => LucideIcon({ d: 'M5 12h14m-7-7v14', ...props });
-        const Download = (props) => LucideIcon({ d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m7-10v12m-4-4l4 4 4-4', ...props });
-        const Eye = (props) => LucideIcon({ d: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z', ...props });
-        const Trash2 = (props) => LucideIcon({ d: 'M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6', ...props });
-        const Edit3 = (props) => LucideIcon({ d: 'M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z', ...props });
-        const LogOut = (props) => LucideIcon({ d: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5-5-5m5 5H9', ...props });
-        const BarChart3 = (props) => LucideIcon({ d: 'M3 3v18h18M8 17V9m4 8V5m4 12v-7', ...props });
-        const Users = (props) => LucideIcon({ d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m8-10a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm8 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8z', ...props });
-        const TrendingUp = (props) => LucideIcon({ d: 'M22 7l-8.5 8.5L9 11l-7 7m20-14h-6m6 0v6', ...props });
-        const Calendar = (props) => LucideIcon({ d: 'M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', ...props });
-        const UserPlus = (props) => LucideIcon({ d: 'M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2m11-11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6 0v6m3-3h-6', ...props });
-        const Settings = (props) => LucideIcon({ d: 'M12.22 2h-.44a2 2 0 0 0-2 2.18l.07 1.68c-.42.3-.83.63-1.21.98l-1.65-.36a2 2 0 0 0-2.45 1.32l-.22.86a2 2 0 0 0 .8 2.39l1.44 1.02c-.09.43-.09.87 0 1.3l-1.44 1.02a2 2 0 0 0-.8 2.39l.22.86a2 2 0 0 0 2.45 1.32l1.65-.36c.38.35.79.68 1.21.98l-.07 1.68a2 2 0 0 0 2 2.18h.44a2 2 0 0 0 2-2.18l-.07-1.68c.42-.3.83-.63 1.21-.98l1.65.36a2 2 0 0 0 2.45-1.32l.22-.86a2 2 0 0 0-.8-2.39l-1.44-1.02c.09-.43.09-.87 0-1.3l1.44-1.02a2 2 0 0 0 .8-2.39l-.22-.86a2 2 0 0 0-2.45-1.32l-1.65.36c-.38-.35-.79-.68-1.21-.98l.07-1.68A2 2 0 0 0 12.22 2z M12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z', ...props });
-        const X = (props) => LucideIcon({ d: 'M18 6L6 18M6 6l12 12', ...props });
-
-        const SalesTracker = () => {
-            // Structure des commerciaux avec leurs zones et mots de passe
-            const defaultUsers = {
-                "admin": { 
-                    password: "admin123", 
-                    type: "admin", 
-                    name: "Administrateur"
-                },
-                "sarah": { 
-                    password: "sarah123", 
-                    type: "commercial", 
-                    name: "Sarah",
-                    agence: "Lille", 
-                    permanences: ["Armentières", "Bousbecques", "Lesquin", "Carvin"] 
-                },
-                "caroline": { 
-                    password: "caroline123", 
-                    type: "commercial", 
-                    name: "Caroline",
-                    agence: "Lille", 
-                    permanences: ["Arras", "Béthune", "Valenciennes", "La Bassée"] 
-                },
-                "laurence": { 
-                    password: "laurence123", 
-                    type: "commercial", 
-                    name: "Laurence",
-                    agence: "Lille", 
-                    permanences: ["Cambrai", "Feignies", "Flers en Escrebieux"] 
-                },
-                "sophie": { 
-                    password: "sophie123", 
-                    type: "commercial", 
-                    name: "Sophie",
-                    agence: "Compiègne", 
-                    permanences: ["Chauny", "Laon", "Saint Quentin", "Soissons"] 
-                },
-                "christelle": { 
-                    password: "christelle123", 
-                    type: "commercial", 
-                    name: "Christelle",
-                    agence: "Compiègne", 
-                    permanences: ["Beauvais", "Gouvieux", "Mouy", "St Just en chaussée"] 
-                },
-                "aldo": { 
-                    password: "aldo123", 
-                    type: "commercial", 
-                    name: "Aldo",
-                    agence: "Boves", 
-                    permanences: [] 
-                },
-                "celine": { 
-                    password: "celine123", 
-                    type: "commercial", 
-                    name: "Céline",
-                    agence: "Boves", 
-                    permanences: ["Doullens", "Saint Valery", "Albert", "Péronne", "Poix de Picardie", "Abbeville"] 
-                },
-                "july": { 
-                    password: "july123", 
-                    type: "commercial", 
-                    name: "July",
-                    agence: "Caen", 
-                    permanences: [] 
-                },
-                "cedric": { 
-                    password: "cedric123", 
-                    type: "commercial", 
-                    name: "Cédric",
-                    agence: "Caen", 
-                    permanences: ["Cherbourg", "Granville", "Saint Lô", "Alençon", "Argentan", "Flers"] 
-                },
-                "messa": { 
-                    password: "messa123", 
-                    type: "commercial", 
-                    name: "Messa",
-                    agence: "Rouen", 
-                    permanences: ["Évreux", "Vernon", "Louviers"] 
-                },
-                "amandine": { 
-                    password: "amandine123", 
-                    type: "commercial", 
-                    name: "Amandine",
-                    agence: "Calais", 
-                    permanences: ["Saint Omer", "Saint Leonard", "Hesdin", "Hazebrouck", "Étaples"] 
-                },
-                "annabelle": { 
-                    password: "annabelle123", 
-                    type: "commercial", 
-                    name: "Annabelle",
-                    agence: "Le Havre", 
-                    permanences: ["Lisieux", "Yvetot", "Pont Audemer"] 
-                }
-            };
-
-            const typesVente = ["Face à face", "Tél"];
-            const origines = ["Prcad", "Rebond Crc", "Client", "Campagne", "Reco", "Visite", "Santé sortie de groupe"];
-            
-            const defaultContrats = [
-                "Santé sortie de groupe", "Prévoyance individuelle", "Protectvia", "Vivépargne",
-                "Prima Cap obsq Pu", "Prima Cap obsq PP", "Prima Vol obsq Pu", "Prima vol obsq Pu",
-                "Certificats Mutualistes", "Viaplus", "Protec territorial", "HPJ", "Terre de vie",
-                "Gpa", "Multiprima", "Mutame", "Perte autonomie", "Patrimoine sélection"
-            ];
-
-            // États
-            const [users, setUsers] = useState(defaultUsers);
-            const [contrats, setContrats] = useState(defaultContrats);
-            const [currentUser, setCurrentUser] = useState(null);
-            const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-            const [currentView, setCurrentView] = useState('dashboard');
-            const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-            const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-            const [ventes, setVentes] = useState([]);
-            const [editingId, setEditingId] = useState(null);
-            const [showUserForm, setShowUserForm] = useState(false);
-            const [showContractForm, setShowContractForm] = useState(false);
-            const [editingUser, setEditingUser] = useState(null);
-            const [newContract, setNewContract] = useState('');
-            
-            const [formData, setFormData] = useState({
+        // État de l'application
+        let appState = {
+            users: {...defaultUsers},
+            contrats: [...defaultContrats],
+            currentUser: null,
+            currentView: 'dashboard',
+            selectedMonth: new Date().getMonth() + 1,
+            selectedYear: new Date().getFullYear(),
+            ventes: [],
+            editingId: null,
+            formData: {
                 commercial: '',
                 nom: '',
                 prenom: '',
@@ -181,110 +388,605 @@
                 chiffreAffaires: '',
                 pna: '',
                 jourRdv: ''
-            });
+            }
+        };
 
-            const [newUserForm, setNewUserForm] = useState({
-                username: '',
-                name: '',
-                password: '',
-                agence: '',
-                permanences: ''
-            });
-
-            const [editUserForm, setEditUserForm] = useState({
-                permanences: ''
-            });
-
-            // Chargement des données au démarrage
-            useEffect(() => {
-                loadData();
-            }, []);
-
-            // Sauvegarde automatique en localStorage
-            useEffect(() => {
-                saveData();
-            }, [ventes, users, contrats]);
-
-            const saveData = () => {
-                try {
-                    const data = {
-                        ventes,
-                        users,
-                        contrats,
-                        version: '1.1',
-                        lastSaved: new Date().toISOString()
-                    };
-                    localStorage.setItem('salesTrackerData', JSON.stringify(data));
-                    console.log('Données sauvegardées automatiquement');
-                } catch (error) {
-                    console.error('Erreur lors de la sauvegarde:', error);
-                }
-            };
-
-            const loadData = () => {
-                try {
-                    const savedData = localStorage.getItem('salesTrackerData');
-                    if (savedData) {
-                        const data = JSON.parse(savedData);
-                        if (data.ventes) {
-                            setVentes(data.ventes);
-                        }
-                        if (data.users) {
-                            setUsers(data.users);
-                        }
-                        if (data.contrats) {
-                            setContrats(data.contrats);
-                        }
-                        console.log('Données chargées depuis localStorage');
-                    } else {
-                        console.log('Aucune sauvegarde trouvée, utilisation des données par défaut');
-                    }
-                } catch (error) {
-                    console.error('Erreur lors du chargement:', error);
-                    console.log('Utilisation des données par défaut');
-                }
-            };
-
-            const exportAllData = () => {
-                const dataToExport = {
-                    ventes,
-                    users,
-                    contrats,
-                    exportDate: new Date().toISOString(),
-                    version: '1.1'
+        // Fonctions utilitaires
+        function saveData() {
+            try {
+                const data = {
+                    ventes: appState.ventes,
+                    users: appState.users,
+                    contrats: appState.contrats
                 };
-                
-                const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { 
-                    type: 'application/json' 
-                });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', `backup_sales_tracker_${new Date().toISOString().split('T')[0]}.json`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            };
+                localStorage.setItem('salesTrackerData', JSON.stringify(data));
+            } catch (error) {
+                console.error('Erreur de sauvegarde:', error);
+            }
+        }
 
-            const importData = (event) => {
-                const file = event.target.files[0];
+        function loadData() {
+            try {
+                const savedData = localStorage.getItem('salesTrackerData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    if (data.ventes) appState.ventes = data.ventes;
+                    if (data.users) appState.users = data.users;
+                    if (data.contrats) appState.contrats = data.contrats;
+                }
+            } catch (error) {
+                console.error('Erreur de chargement:', error);
+            }
+        }
+
+        function getRattachementOptions() {
+            if (appState.currentUser?.type === 'commercial') {
+                return [appState.currentUser.agence, ...appState.currentUser.permanences];
+            }
+            if (!appState.formData.commercial) return [];
+            const user = Object.values(appState.users).find(u => u.name === appState.formData.commercial);
+            if (!user || user.type !== 'commercial') return [];
+            return [user.agence, ...user.permanences];
+        }
+
+        function getFilteredVentes() {
+            let filtered = appState.ventes;
+            
+            if (appState.currentUser?.type === 'commercial') {
+                filtered = filtered.filter(v => v.commercial === appState.currentUser.name);
+            }
+            
+            filtered = filtered.filter(v => {
+                if (!v.dateEffet) return false;
+                const date = new Date(v.dateEffet);
+                return date.getMonth() + 1 === appState.selectedMonth && date.getFullYear() === appState.selectedYear;
+            });
+            
+            return filtered;
+        }
+
+        function getStats() {
+            const ventesFiltered = getFilteredVentes();
+            const totalVentes = ventesFiltered.length;
+            const totalCA = ventesFiltered.reduce((sum, v) => sum + (parseFloat(v.chiffreAffaires) || 0), 0);
+            const totalPNA = ventesFiltered.reduce((sum, v) => sum + (parseFloat(v.pna) || 0), 0);
+            
+            const telVsFaceAFace = { "Tél": 0, "Face à face": 0 };
+            ventesFiltered.forEach(v => {
+                if (v.vente) telVsFaceAFace[v.vente]++;
+            });
+            
+            return { totalVentes, totalCA, totalPNA, telVsFaceAFace };
+        }
+
+        // Fonctions d'action
+        function handleLogin() {
+            const username = document.getElementById('username').value.toLowerCase();
+            const password = document.getElementById('password').value;
+            
+            const user = appState.users[username];
+            if (user && user.password === password) {
+                appState.currentUser = { ...user, username };
+                render();
+            } else {
+                alert('Nom d\'utilisateur ou mot de passe incorrect');
+            }
+        }
+
+        function handleLogout() {
+            appState.currentUser = null;
+            appState.currentView = 'dashboard';
+            resetForm();
+            render();
+        }
+
+        function resetForm() {
+            appState.formData = {
+                commercial: '',
+                nom: '',
+                prenom: '',
+                age: '',
+                numeroPersonne: '',
+                vente: '',
+                rattachement: '',
+                origine: '',
+                contrat: '',
+                dateEffet: '',
+                chiffreAffaires: '',
+                pna: '',
+                jourRdv: ''
+            };
+            appState.editingId = null;
+        }
+
+        function handleSubmit() {
+            const commercial = appState.currentUser.type === 'commercial' ? appState.currentUser.name : appState.formData.commercial;
+            
+            if (!commercial || !appState.formData.nom || !appState.formData.prenom || !appState.formData.vente || 
+                !appState.formData.rattachement || !appState.formData.origine || !appState.formData.contrat || 
+                !appState.formData.dateEffet || !appState.formData.chiffreAffaires || !appState.formData.pna) {
+                alert('Veuillez remplir tous les champs obligatoires (*)');
+                return;
+            }
+            
+            const venteFinal = { ...appState.formData, commercial };
+            
+            if (appState.editingId) {
+                appState.ventes = appState.ventes.map(v => 
+                    v.id === appState.editingId ? { ...venteFinal, id: appState.editingId, dateCreation: v.dateCreation } : v
+                );
+            } else {
+                const newVente = {
+                    ...venteFinal,
+                    id: Date.now(),
+                    dateCreation: new Date().toLocaleString('fr-FR')
+                };
+                appState.ventes.push(newVente);
+            }
+            
+            resetForm();
+            saveData();
+            alert(appState.editingId ? 'Vente modifiée !' : 'Vente ajoutée !');
+            render();
+        }
+
+        function handleEdit(vente) {
+            appState.formData = { ...vente };
+            appState.editingId = vente.id;
+            appState.currentView = 'saisie';
+            render();
+        }
+
+        function handleDelete(id) {
+            if (confirm('Supprimer cette vente ?')) {
+                appState.ventes = appState.ventes.filter(v => v.id !== id);
+                saveData();
+                alert('Vente supprimée !');
+                render();
+            }
+        }
+
+        function setView(view) {
+            appState.currentView = view;
+            if (view !== 'saisie') {
+                resetForm();
+            }
+            render();
+        }
+
+        function updateFormField(field, value) {
+            appState.formData[field] = value;
+            if (field === 'commercial') {
+                appState.formData.rattachement = '';
+            }
+        }
+
+        // Fonction de rendu
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (!appState.currentUser) {
+                app.innerHTML = renderLogin();
+                return;
+            }
+            
+            app.innerHTML = `
+                ${renderHeader()}
+                <div class="container" style="padding-top: 1.5rem;">
+                    ${appState.currentView === 'dashboard' ? renderDashboard() : ''}
+                    ${appState.currentView === 'saisie' ? renderSaisie() : ''}
+                    ${appState.currentView === 'liste' ? renderListe() : ''}
+                    ${appState.currentView === 'gestion' ? renderGestion() : ''}
+                </div>
+            `;
+        }
+
+        function renderLogin() {
+            return `
+                <div class="login-container">
+                    <div class="login-card">
+                        <h1 class="login-title">Suivi des Ventes - Connexion</h1>
+                        <form onsubmit="event.preventDefault(); handleLogin();">
+                            <div class="form-space">
+                                <label class="form-label">Nom d'utilisateur</label>
+                                <input type="text" id="username" class="form-input" placeholder="Votre nom d'utilisateur" required>
+                            </div>
+                            <div class="form-space">
+                                <label class="form-label">Mot de passe</label>
+                                <input type="password" id="password" class="form-input" placeholder="Votre mot de passe" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>
+                        </form>
+                        
+                        <div class="test-accounts">
+                            <h3>Comptes de test :</h3>
+                            <div><strong>Admin:</strong> admin / admin123</div>
+                            <div><strong>Commercial:</strong> sarah / sarah123</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderHeader() {
+            const filteredVentes = getFilteredVentes();
+            
+            return `
+                <div class="header">
+                    <div class="container">
+                        <div class="header-content">
+                            <div>
+                                <h1>Suivi des Ventes - Assurance</h1>
+                                <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">
+                                    Connecté : <strong>${appState.currentUser.name}</strong>
+                                    ${appState.currentUser.type === 'commercial' ? ` (${appState.currentUser.agence})` : ''}
+                                </p>
+                            </div>
+                            
+                            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                                <!-- Sélecteur période -->
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 0.875rem;">📅</span>
+                                    <select onchange="appState.selectedMonth = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">
+                                        ${Array.from({length: 12}, (_, i) => `
+                                            <option value="${i+1}" ${appState.selectedMonth === i+1 ? 'selected' : ''}>
+                                                ${new Date(0, i).toLocaleDateString('fr-FR', { month: 'long' })}
+                                            </option>
+                                        `).join('')}
+                                    </select>
+                                    <select onchange="appState.selectedYear = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">
+                                        ${[2023, 2024, 2025].map(year => `
+                                            <option value="${year}" ${appState.selectedYear === year ? 'selected' : ''}>${year}</option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                                
+                                <div class="nav-buttons">
+                                    <button onclick="setView('dashboard')" class="btn ${appState.currentView === 'dashboard' ? 'btn-primary' : 'btn-secondary'}">
+                                        📊 Dashboard
+                                    </button>
+                                    
+                                    ${appState.currentUser.type === 'commercial' ? `
+                                        <button onclick="setView('saisie')" class="btn ${appState.currentView === 'saisie' ? 'btn-primary' : 'btn-secondary'}">
+                                            ➕ Nouvelle vente
+                                        </button>
+                                        <button onclick="setView('liste')" class="btn ${appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary'}">
+                                            👁️ Mes ventes (${filteredVentes.length})
+                                        </button>
+                                    ` : ''}
+                                    
+                                    ${appState.currentUser.type === 'admin' ? `
+                                        <button onclick="setView('liste')" class="btn ${appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary'}">
+                                            👁️ Toutes les ventes (${filteredVentes.length})
+                                        </button>
+                                        <button onclick="setView('gestion')" class="btn ${appState.currentView === 'gestion' ? 'btn-primary' : 'btn-secondary'}">
+                                            ⚙️ Gestion
+                                        </button>
+                                    ` : ''}
+                                    
+                                    <button onclick="handleLogout()" class="btn btn-danger">
+                                        🚪 Déconnexion
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDashboard() {
+            const stats = getStats();
+            
+            return `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total ventes</div>
+                        <div class="stat-value" style="color: #2563eb;">${stats.totalVentes}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">CA Total</div>
+                        <div class="stat-value" style="color: #059669;">${stats.totalCA.toFixed(2)}€</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">PNA Total</div>
+                        <div class="stat-value" style="color: #7c3aed;">${stats.totalPNA.toFixed(2)}€</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">CA Moyen</div>
+                        <div class="stat-value" style="color: #ea580c;">
+                            ${stats.totalVentes > 0 ? (stats.totalCA / stats.totalVentes).toFixed(2) : '0'}€
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Répartition Tél vs Face à face</h3>
+                    <div style="display: grid; gap: 1rem;">
+                        ${Object.entries(stats.telVsFaceAFace).map(([type, count]) => {
+                            const percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
+                            return `
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                                        <span>${type}</span>
+                                        <span>${count} ventes (${percentage}%)</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${percentage}%; background-color: ${type === 'Tél' ? '#3b82f6' : '#10b981'};"></div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSaisie() {
+            if (appState.currentUser.type !== 'commercial') {
+                return '<div class="card"><p>Accès non autorisé</p></div>';
+            }
+            
+            return `
+                <div class="card">
+                    <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">
+                        ${appState.editingId ? 'Modifier la vente' : 'Nouvelle vente'}
+                    </h2>
+                    
+                    <form onsubmit="event.preventDefault(); handleSubmit();">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Nom *</label>
+                                <input type="text" class="form-input" value="${appState.formData.nom}" 
+                                    onchange="updateFormField('nom', this.value)" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Prénom *</label>
+                                <input type="text" class="form-input" value="${appState.formData.prenom}" 
+                                    onchange="updateFormField('prenom', this.value)" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Type de vente *</label>
+                                <select class="form-select" onchange="updateFormField('vente', this.value)" required>
+                                    <option value="">Sélectionner</option>
+                                    ${typesVente.map(type => `
+                                        <option value="${type}" ${appState.formData.vente === type ? 'selected' : ''}>${type}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Rattachement *</label>
+                                <select class="form-select" onchange="updateFormField('rattachement', this.value)" required>
+                                    <option value="">Sélectionner</option>
+                                    ${getRattachementOptions().map(option => `
+                                        <option value="${option}" ${appState.formData.rattachement === option ? 'selected' : ''}>${option}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Origine *</label>
+                                <select class="form-select" onchange="updateFormField('origine', this.value)" required>
+                                    <option value="">Sélectionner</option>
+                                    ${origines.map(origine => `
+                                        <option value="${origine}" ${appState.formData.origine === origine ? 'selected' : ''}>${origine}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Contrat *</label>
+                                <select class="form-select" onchange="updateFormField('contrat', this.value)" required>
+                                    <option value="">Sélectionner</option>
+                                    ${appState.contrats.map(contrat => `
+                                        <option value="${contrat}" ${appState.formData.contrat === contrat ? 'selected' : ''}>${contrat}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Date effet *</label>
+                                <input type="date" class="form-input" value="${appState.formData.dateEffet}" 
+                                    onchange="updateFormField('dateEffet', this.value)" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Chiffre d'affaires (€) *</label>
+                                <input type="number" step="0.01" class="form-input" value="${appState.formData.chiffreAffaires}" 
+                                    onchange="updateFormField('chiffreAffaires', this.value)" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">PNA (€) *</label>
+                                <input type="number" step="0.01" class="form-input" value="${appState.formData.pna}" 
+                                    onchange="updateFormField('pna', this.value)" required>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                            <button type="submit" class="btn btn-primary">
+                                ${appState.editingId ? 'Modifier la vente' : 'Enregistrer la vente'}
+                            </button>
+                            ${appState.editingId ? `
+                                <button type="button" onclick="resetForm(); render();" class="btn btn-secondary">
+                                    Annuler
+                                </button>
+                            ` : ''}
+                        </div>
+                    </form>
+                </div>
+            `;
+        }
+
+        function renderListe() {
+            const filteredVentes = getFilteredVentes();
+            
+            return `
+                <div class="card">
+                    <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 600;">
+                            ${appState.currentUser.type === 'commercial' ? 'Mes ventes' : 'Liste des ventes'} 
+                            (${filteredVentes.length})
+                        </h2>
+                        <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">
+                            Période : ${new Date(0, appState.selectedMonth - 1).toLocaleDateString('fr-FR', { month: 'long' })} ${appState.selectedYear}
+                        </p>
+                    </div>
+                    
+                    ${filteredVentes.length === 0 ? `
+                        <div style="padding: 2rem; text-align: center; color: #6b7280;">
+                            <div style="font-size: 1.125rem; margin-bottom: 0.5rem;">Aucune vente pour cette période</div>
+                            <div style="font-size: 0.875rem;">Cliquez sur "Nouvelle vente" pour commencer</div>
+                        </div>
+                    ` : `
+                        <div style="overflow-x: auto;">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        ${appState.currentUser.type === 'admin' ? '<th>Commercial</th>' : ''}
+                                        <th>Client</th>
+                                        <th>Contrat</th>
+                                        <th>Type</th>
+                                        <th>Rattachement</th>
+                                        <th>CA (€)</th>
+                                        <th>PNA (€)</th>
+                                        <th>Date effet</th>
+                                        <th style="text-align: right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${filteredVentes.map(vente => `
+                                        <tr>
+                                            ${appState.currentUser.type === 'admin' ? `<td style="font-weight: 500;">${vente.commercial}</td>` : ''}
+                                            <td>${vente.nom} ${vente.prenom}</td>
+                                            <td>${vente.contrat}</td>
+                                            <td>
+                                                <span class="badge ${vente.vente === 'Tél' ? 'badge-blue' : 'badge-green'}">
+                                                    ${vente.vente}
+                                                </span>
+                                            </td>
+                                            <td>${vente.rattachement}</td>
+                                            <td style="font-weight: 500; color: #059669;">
+                                                ${parseFloat(vente.chiffreAffaires || 0).toFixed(2)}
+                                            </td>
+                                            <td style="font-weight: 500; color: #7c3aed;">
+                                                ${parseFloat(vente.pna || 0).toFixed(2)}
+                                            </td>
+                                            <td>${vente.dateEffet}</td>
+                                            <td style="text-align: right;">
+                                                ${(appState.currentUser.type === 'admin' || vente.commercial === appState.currentUser.name) ? `
+                                                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                                                        <button onclick="handleEdit(${JSON.stringify(vente).replace(/"/g, '&quot;')})" 
+                                                            class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"
+                                                            title="Modifier">
+                                                            ✏️
+                                                        </button>
+                                                        <button onclick="handleDelete(${vente.id})" 
+                                                            class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"
+                                                            title="Supprimer">
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                ` : ''}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function renderGestion() {
+            if (appState.currentUser.type !== 'admin') {
+                return '<div class="card"><p>Accès non autorisé</p></div>';
+            }
+            
+            return `
+                <div class="card">
+                    <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">Gestion - Fonctionnalités avancées</h2>
+                    <div style="color: #6b7280;">
+                        <p style="margin-bottom: 1rem;">Section de gestion pour l'administrateur.</p>
+                        <p style="margin-bottom: 1rem;">Fonctionnalités disponibles :</p>
+                        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                            <li>Gestion des commerciaux</li>
+                            <li>Configuration des contrats</li>
+                            <li>Export/Import des données</li>
+                            <li>Statistiques avancées</li>
+                        </ul>
+                        
+                        <div style="margin-top: 2rem;">
+                            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #1f2937;">Actions rapides :</h3>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <button onclick="exportData()" class="btn btn-success">
+                                    💾 Exporter les données
+                                </button>
+                                <button onclick="showImportDialog()" class="btn btn-secondary">
+                                    📁 Importer des données
+                                </button>
+                                <button onclick="resetAllData()" class="btn btn-danger">
+                                    ⚠️ Réinitialiser
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Fonctions supplémentaires pour la gestion
+        function exportData() {
+            const dataToExport = {
+                ventes: appState.ventes,
+                users: appState.users,
+                contrats: appState.contrats,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { 
+                type: 'application/json' 
+            });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = `backup_sales_tracker_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('Données exportées avec succès !');
+        }
+
+        function showImportDialog() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
                 if (!file) return;
 
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = (event) => {
                     try {
-                        const importedData = JSON.parse(e.target.result);
+                        const importedData = JSON.parse(event.target.result);
                         
                         if (importedData.ventes) {
-                            setVentes(importedData.ventes);
+                            appState.ventes = importedData.ventes;
                         }
                         if (importedData.users) {
-                            setUsers(importedData.users);
+                            appState.users = importedData.users;
                         }
                         if (importedData.contrats) {
-                            setContrats(importedData.contrats);
+                            appState.contrats = importedData.contrats;
                         }
                         
+                        saveData();
+                        render();
                         alert('Données importées avec succès !');
                     } catch (error) {
                         alert('Erreur lors de l\'import. Vérifiez le format du fichier.');
@@ -292,586 +994,42 @@
                     }
                 };
                 reader.readAsText(file);
-                event.target.value = '';
             };
+            input.click();
+        }
 
-            // Gestion de la connexion
-            const handleLogin = () => {
-                const user = users[loginForm.username.toLowerCase()];
-                if (user && user.password === loginForm.password) {
-                    setCurrentUser({ ...user, username: loginForm.username.toLowerCase() });
-                    setLoginForm({ username: '', password: '' });
-                } else {
-                    alert('Nom d\'utilisateur ou mot de passe incorrect');
+        function resetAllData() {
+            if (confirm('⚠️ ATTENTION ! Cette action va supprimer toutes les données (ventes, utilisateurs personnalisés, contrats). Êtes-vous sûr ?')) {
+                if (confirm('Dernière confirmation : Toutes les données seront perdues définitivement !')) {
+                    appState.ventes = [];
+                    appState.users = {...defaultUsers};
+                    appState.contrats = [...defaultContrats];
+                    localStorage.removeItem('salesTrackerData');
+                    render();
+                    alert('Toutes les données ont été réinitialisées !');
                 }
-            };
-
-            const handleLogout = () => {
-                setCurrentUser(null);
-                setCurrentView('dashboard');
-                resetForm();
-            };
-
-            const resetForm = () => {
-                setFormData({
-                    commercial: '',
-                    nom: '',
-                    prenom: '',
-                    age: '',
-                    numeroPersonne: '',
-                    vente: '',
-                    rattachement: '',
-                    origine: '',
-                    contrat: '',
-                    dateEffet: '',
-                    chiffreAffaires: '',
-                    pna: '',
-                    jourRdv: ''
-                });
-                setEditingId(null);
-            };
-
-            const handleSubmit = () => {
-                // Pour les commerciaux, définir automatiquement leur nom
-                const commercial = currentUser.type === 'commercial' ? currentUser.name : formData.commercial;
-                
-                // Validation des champs obligatoires
-                if (!commercial || !formData.nom || !formData.prenom || !formData.vente || 
-                    !formData.rattachement || !formData.origine || !formData.contrat || 
-                    !formData.dateEffet || !formData.chiffreAffaires || !formData.pna) {
-                    alert('Veuillez remplir tous les champs obligatoires (*)');
-                    return;
-                }
-                
-                const venteFinal = { ...formData, commercial };
-                
-                if (editingId) {
-                    setVentes(prevVentes => prevVentes.map(vente => 
-                        vente.id === editingId 
-                            ? { ...venteFinal, id: editingId, dateCreation: vente.dateCreation }
-                            : vente
-                    ));
-                    setEditingId(null);
-                } else {
-                    const newVente = {
-                        ...venteFinal,
-                        id: Date.now(),
-                        dateCreation: new Date().toLocaleString('fr-FR')
-                    };
-                    setVentes(prevVentes => [...prevVentes, newVente]);
-                }
-                
-                resetForm();
-                alert(editingId ? 'Vente modifiée avec succès !' : 'Vente ajoutée avec succès !');
-            };
-
-            const handleEdit = (vente) => {
-                setFormData({ ...vente });
-                setEditingId(vente.id);
-                setCurrentView('saisie');
-            };
-
-            const handleDelete = (id) => {
-                console.log('Tentative de suppression de la vente ID:', id);
-                if (window.confirm('Êtes-vous sûr de vouloir supprimer cette vente ?')) {
-                    setVentes(prevVentes => {
-                        const newVentes = prevVentes.filter(vente => vente.id !== id);
-                        console.log('Vente supprimée, nouvelles ventes:', newVentes.length);
-                        return newVentes;
-                    });
-                    alert('Vente supprimée avec succès !');
-                }
-            };
-
-            const addNewUser = () => {
-                if (!newUserForm.username || !newUserForm.name || !newUserForm.password || !newUserForm.agence) {
-                    alert('Veuillez remplir tous les champs obligatoires');
-                    return;
-                }
-
-                if (users[newUserForm.username.toLowerCase()]) {
-                    alert('Cet utilisateur existe déjà');
-                    return;
-                }
-
-                const permanencesArray = newUserForm.permanences 
-                    ? newUserForm.permanences.split(',').map(p => p.trim()).filter(p => p)
-                    : [];
-
-                const newUser = {
-                    password: newUserForm.password,
-                    type: 'commercial',
-                    name: newUserForm.name,
-                    agence: newUserForm.agence,
-                    permanences: permanencesArray
-                };
-
-                setUsers(prevUsers => ({
-                    ...prevUsers,
-                    [newUserForm.username.toLowerCase()]: newUser
-                }));
-
-                setNewUserForm({
-                    username: '',
-                    name: '',
-                    password: '',
-                    agence: '',
-                    permanences: ''
-                });
-
-                setShowUserForm(false);
-                alert('Commercial ajouté avec succès !');
-            };
-
-            // Gestion des contrats
-            const addContract = () => {
-                if (!newContract.trim()) {
-                    alert('Veuillez saisir un nom de contrat');
-                    return;
-                }
-
-                if (contrats.includes(newContract.trim())) {
-                    alert('Ce contrat existe déjà');
-                    return;
-                }
-
-                setContrats(prev => [...prev, newContract.trim()]);
-                setNewContract('');
-                alert('Contrat ajouté avec succès !');
-            };
-
-            const deleteContract = (contractToDelete) => {
-                if (window.confirm(`Êtes-vous sûr de vouloir supprimer le contrat "${contractToDelete}" ?`)) {
-                    setContrats(prevContrats => {
-                        const newContrats = prevContrats.filter(c => c !== contractToDelete);
-                        console.log('Contrat supprimé:', contractToDelete);
-                        console.log('Nouveaux contrats:', newContrats);
-                        return newContrats;
-                    });
-                    alert('Contrat supprimé avec succès !');
-                }
-            };
-
-            // Gestion des permanences
-            const startEditingUser = (username) => {
-                const user = users[username];
-                setEditingUser(username);
-                setEditUserForm({
-                    permanences: user.permanences.join(', ')
-                });
-            };
-
-            const saveUserPermanences = () => {
-                if (!editingUser) return;
-
-                const permanencesArray = editUserForm.permanences 
-                    ? editUserForm.permanences.split(',').map(p => p.trim()).filter(p => p)
-                    : [];
-
-                setUsers(prevUsers => ({
-                    ...prevUsers,
-                    [editingUser]: {
-                        ...prevUsers[editingUser],
-                        permanences: permanencesArray
-                    }
-                }));
-
-                setEditingUser(null);
-                setEditUserForm({ permanences: '' });
-                alert('Permanences mises à jour avec succès !');
-            };
-
-            const cancelEditingUser = () => {
-                setEditingUser(null);
-                setEditUserForm({ permanences: '' });
-            };
-
-            const exportToCSV = () => {
-                const ventesToExport = getFilteredVentes();
-                if (ventesToExport.length === 0) {
-                    alert('Aucune vente à exporter !');
-                    return;
-                }
-
-                const headers = [
-                    'Commercial', 'Nom', 'Prénom', 'Âge', 'Numéro personne', 'Vente', 'Rattachement',
-                    'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv'
-                ];
-                
-                const csvContent = [
-                    headers.join(','),
-                    ...ventesToExport.map(vente => [
-                        vente.commercial, vente.nom, vente.prenom, vente.age, vente.numeroPersonne,
-                        vente.vente, vente.rattachement, vente.origine, vente.contrat, vente.dateEffet,
-                        vente.chiffreAffaires, vente.pna, vente.jourRdv
-                    ].join(','))
-                ].join('\n');
-
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', `ventes_${currentUser?.name || 'toutes'}_${selectedMonth}-${selectedYear}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            };
-
-            const getRattachementOptions = () => {
-                if (currentUser?.type === 'commercial') {
-                    const options = [currentUser.agence];
-                    return [...options, ...currentUser.permanences];
-                }
-                if (!formData.commercial) return [];
-                const user = Object.values(users).find(u => u.name === formData.commercial);
-                if (!user || user.type !== 'commercial') return [];
-                
-                const options = [user.agence];
-                return [...options, ...user.permanences];
-            };
-
-            const getFilteredVentes = () => {
-                let filtered = ventes;
-                
-                // Filtrer par commercial si pas admin
-                if (currentUser?.type === 'commercial') {
-                    filtered = filtered.filter(vente => vente.commercial === currentUser.name);
-                }
-                
-                // Filtrer par mois/année
-                filtered = filtered.filter(vente => {
-                    if (!vente.dateEffet) return false;
-                    const date = new Date(vente.dateEffet);
-                    return date.getMonth() + 1 === selectedMonth && date.getFullYear() === selectedYear;
-                });
-                
-                return filtered;
-            };
-
-            const getStats = () => {
-                const ventesFiltered = getFilteredVentes();
-                const totalVentes = ventesFiltered.length;
-                const totalCA = ventesFiltered.reduce((sum, vente) => sum + (parseFloat(vente.chiffreAffaires) || 0), 0);
-                const totalPNA = ventesFiltered.reduce((sum, vente) => sum + (parseFloat(vente.pna) || 0), 0);
-                
-                const ventesParCommercial = {};
-                const telVsFaceAFace = { "Tél": 0, "Face à face": 0 };
-                const ventesParProduit = {};
-                const ventesParOrigine = {};
-                const ventesParLieu = {};
-                
-                ventesFiltered.forEach(vente => {
-                    // Par commercial
-                    if (!ventesParCommercial[vente.commercial]) {
-                        ventesParCommercial[vente.commercial] = { ventes: 0, ca: 0, pna: 0 };
-                    }
-                    ventesParCommercial[vente.commercial].ventes++;
-                    ventesParCommercial[vente.commercial].ca += parseFloat(vente.chiffreAffaires) || 0;
-                    ventesParCommercial[vente.commercial].pna += parseFloat(vente.pna) || 0;
-                    
-                    // Tél vs Face à face
-                    if (vente.vente) {
-                        telVsFaceAFace[vente.vente]++;
-                    }
-                    
-                    // Par produit
-                    if (vente.contrat && vente.contrat.trim()) {
-                        if (!ventesParProduit[vente.contrat]) {
-                            ventesParProduit[vente.contrat] = 0;
-                        }
-                        ventesParProduit[vente.contrat]++;
-                    }
-                    
-                    // Par origine
-                    if (vente.origine && vente.origine.trim()) {
-                        if (!ventesParOrigine[vente.origine]) {
-                            ventesParOrigine[vente.origine] = 0;
-                        }
-                        ventesParOrigine[vente.origine]++;
-                    }
-                    
-                    // Par lieu (avec noms des permanences)
-                    if (vente.rattachement && vente.rattachement.trim()) {
-                        if (!ventesParLieu[vente.rattachement]) {
-                            ventesParLieu[vente.rattachement] = 0;
-                        }
-                        ventesParLieu[vente.rattachement]++;
-                    }
-                });
-
-                return { 
-                    totalVentes, 
-                    totalCA, 
-                    totalPNA, 
-                    ventesParCommercial, 
-                    telVsFaceAFace, 
-                    ventesParProduit,
-                    ventesParOrigine,
-                    ventesParLieu
-                };
-            };
-
-            const stats = getStats();
-
-            // Page de connexion
-            if (!currentUser) {
-                return React.createElement('div', { className: "min-h-screen bg-gray-50 flex items-center justify-center" },
-                    React.createElement('div', { className: "bg-white p-8 rounded-lg shadow-lg w-full max-w-md" },
-                        React.createElement('h1', { className: "text-2xl font-bold text-center mb-6 text-gray-900" },
-                            "Suivi des Ventes - Connexion"
-                        ),
-                        React.createElement('div', { className: "space-y-4" },
-                            React.createElement('div', null,
-                                React.createElement('label', { className: "block text-sm font-medium text-gray-700 mb-2" },
-                                    "Nom d'utilisateur"
-                                ),
-                                React.createElement('input', {
-                                    type: "text",
-                                    value: loginForm.username,
-                                    onChange: (e) => setLoginForm({...loginForm, username: e.target.value}),
-                                    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-                                    placeholder: "Votre nom d'utilisateur",
-                                    onKeyPress: (e) => e.key === 'Enter' && handleLogin()
-                                })
-                            ),
-                            React.createElement('div', null,
-                                React.createElement('label', { className: "block text-sm font-medium text-gray-700 mb-2" },
-                                    "Mot de passe"
-                                ),
-                                React.createElement('input', {
-                                    type: "password",
-                                    value: loginForm.password,
-                                    onChange: (e) => setLoginForm({...loginForm, password: e.target.value}),
-                                    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-                                    placeholder: "Votre mot de passe",
-                                    onKeyPress: (e) => e.key === 'Enter' && handleLogin()
-                                })
-                            ),
-                            React.createElement('button', {
-                                onClick: handleLogin,
-                                className: "w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                            }, "Se connecter")
-                        ),
-                        
-                        React.createElement('div', { className: "mt-8 p-4 bg-gray-50 rounded-lg" },
-                            React.createElement('h3', { className: "font-medium text-gray-900 mb-2" }, "Comptes de test :"),
-                            React.createElement('div', { className: "text-sm text-gray-600 space-y-1" },
-                                React.createElement('div', null, React.createElement('strong', null, "Admin:"), " admin / admin123"),
-                                React.createElement('div', null, React.createElement('strong', null, "Commercial:"), " sarah / sarah123"),
-                                React.createElement('div', { className: "text-xs text-gray-500 mt-2" },
-                                    "(Remplacez sarah par le prénom en minuscules + 123)"
-                                )
-                            )
-                        )
-                    )
-                );
             }
+        }
 
-            return React.createElement('div', { className: "min-h-screen bg-gray-50" },
-                // Header
-                React.createElement('div', { className: "bg-white shadow-sm border-b" },
-                    React.createElement('div', { className: "max-w-7xl mx-auto px-4 py-4" },
-                        React.createElement('div', { className: "flex justify-between items-center" },
-                            React.createElement('div', null,
-                                React.createElement('h1', { className: "text-2xl font-bold text-gray-900" }, "Suivi des Ventes - Assurance"),
-                                React.createElement('p', { className: "text-sm text-gray-600" },
-                                    "Connecté en tant que : ",
-                                    React.createElement('span', { className: "font-medium" }, currentUser.name),
-                                    currentUser.type === 'commercial' && ` (${currentUser.agence})`,
-                                    React.createElement('span', { className: "text-green-600 ml-2" }, "✓ Sauvegarde automatique")
-                                )
-                            ),
-                            
-                            React.createElement('div', { className: "flex items-center gap-4" },
-                                // Sélecteur de période
-                                React.createElement('div', { className: "flex items-center gap-2" },
-                                    React.createElement(Calendar, { className: "w-4 h-4 text-gray-500" }),
-                                    React.createElement('select', {
-                                        value: selectedMonth,
-                                        onChange: (e) => setSelectedMonth(parseInt(e.target.value)),
-                                        className: "px-2 py-1 border border-gray-300 rounded text-sm"
-                                    },
-                                        Array.from({length: 12}, (_, i) => 
-                                            React.createElement('option', { key: i+1, value: i+1 },
-                                                new Date(0, i).toLocaleDateString('fr-FR', { month: 'long' })
-                                            )
-                                        )
-                                    ),
-                                    React.createElement('select', {
-                                        value: selectedYear,
-                                        onChange: (e) => setSelectedYear(parseInt(e.target.value)),
-                                        className: "px-2 py-1 border border-gray-300 rounded text-sm"
-                                    },
-                                        Array.from({length: 5}, (_, i) => 
-                                            React.createElement('option', { key: 2023+i, value: 2023+i }, 2023+i)
-                                        )
-                                    )
-                                ),
-                                
-                                React.createElement('div', { className: "flex gap-2" },
-                                    React.createElement('button', {
-                                        onClick: () => setCurrentView('dashboard'),
-                                        className: `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                            currentView === 'dashboard' 
-                                                ? 'bg-blue-600 text-white' 
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                        }`
-                                    },
-                                        React.createElement(BarChart3, { className: "w-4 h-4 inline mr-2" }),
-                                        "Dashboard"
-                                    ),
-                                    currentUser.type === 'commercial' && [
-                                        React.createElement('button', {
-                                            key: 'saisie',
-                                            onClick: () => setCurrentView('saisie'),
-                                            className: `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                currentView === 'saisie' 
-                                                    ? 'bg-blue-600 text-white' 
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`
-                                        },
-                                            React.createElement(Plus, { className: "w-4 h-4 inline mr-2" }),
-                                            "Nouvelle vente"
-                                        ),
-                                        React.createElement('button', {
-                                            key: 'liste',
-                                            onClick: () => setCurrentView('liste'),
-                                            className: `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                currentView === 'liste' 
-                                                    ? 'bg-blue-600 text-white' 
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`
-                                        },
-                                            React.createElement(Eye, { className: "w-4 h-4 inline mr-2" }),
-                                            `Mes ventes (${getFilteredVentes().length})`
-                                        )
-                                    ],
-                                    currentUser.type === 'admin' && [
-                                        React.createElement('button', {
-                                            key: 'liste-admin',
-                                            onClick: () => setCurrentView('liste'),
-                                            className: `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                currentView === 'liste' 
-                                                    ? 'bg-blue-600 text-white' 
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`
-                                        },
-                                            React.createElement(Eye, { className: "w-4 h-4 inline mr-2" }),
-                                            `Toutes les ventes (${getFilteredVentes().length})`
-                                        ),
-                                        React.createElement('button', {
-                                            key: 'gestion',
-                                            onClick: () => setCurrentView('gestion'),
-                                            className: `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                currentView === 'gestion' 
-                                                    ? 'bg-blue-600 text-white' 
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`
-                                        },
-                                            React.createElement(Settings, { className: "w-4 h-4 inline mr-2" }),
-                                            "Gestion"
-                                        )
-                                    ],
-                                    React.createElement('button', {
-                                        onClick: exportToCSV,
-                                        className: "px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                                    },
-                                        React.createElement(Download, { className: "w-4 h-4 inline mr-2" }),
-                                        "Export CSV"
-                                    ),
-                                    React.createElement('button', {
-                                        onClick: handleLogout,
-                                        className: "px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
-                                    },
-                                        React.createElement(LogOut, { className: "w-4 h-4 inline mr-2" }),
-                                        "Déconnexion"
-                                    )
-                                )
-                            )
-                        )
-                    )
-                ),
+        // Initialisation de l'application
+        function init() {
+            loadData();
+            render();
+        }
 
-                React.createElement('div', { className: "max-w-7xl mx-auto px-4 py-6" },
-                    // Dashboard
-                    currentView === 'dashboard' && React.createElement('div', { className: "space-y-6" },
-                        // Statistiques principales
-                        React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-4 gap-4" },
-                            React.createElement('div', { className: "bg-white p-4 rounded-lg shadow-sm" },
-                                React.createElement('div', { className: "text-sm text-gray-600" }, "Total ventes"),
-                                React.createElement('div', { className: "text-2xl font-bold text-blue-600" }, stats.totalVentes)
-                            ),
-                            React.createElement('div', { className: "bg-white p-4 rounded-lg shadow-sm" },
-                                React.createElement('div', { className: "text-sm text-gray-600" }, "CA Total"),
-                                React.createElement('div', { className: "text-2xl font-bold text-green-600" }, `${stats.totalCA.toFixed(2)}€`)
-                            ),
-                            React.createElement('div', { className: "bg-white p-4 rounded-lg shadow-sm" },
-                                React.createElement('div', { className: "text-sm text-gray-600" }, "PNA Total"),
-                                React.createElement('div', { className: "text-2xl font-bold text-purple-600" }, `${stats.totalPNA.toFixed(2)}€`)
-                            ),
-                            React.createElement('div', { className: "bg-white p-4 rounded-lg shadow-sm" },
-                                React.createElement('div', { className: "text-sm text-gray-600" }, "CA Moyen"),
-                                React.createElement('div', { className: "text-2xl font-bold text-orange-600" },
-                                    `${stats.totalVentes > 0 ? (stats.totalCA / stats.totalVentes).toFixed(2) : '0'}€`
-                                )
-                            )
-                        ),
+        // Gestion des événements clavier pour le login
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !appState.currentUser) {
+                const usernameField = document.getElementById('username');
+                const passwordField = document.getElementById('password');
+                if (usernameField && passwordField && (document.activeElement === usernameField || document.activeElement === passwordField)) {
+                    handleLogin();
+                }
+            }
+        });
 
-                        // Stats détaillées
-                        React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-2 gap-6" },
-                            // Tél vs Face à face
-                            React.createElement('div', { className: "bg-white p-6 rounded-lg shadow-sm" },
-                                React.createElement('h3', { className: "text-lg font-semibold mb-4" }, "Répartition Tél vs Face à face"),
-                                React.createElement('div', { className: "space-y-3" },
-                                    Object.entries(stats.telVsFaceAFace).map(([type, count]) => {
-                                        const percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
-                                        return React.createElement('div', { key: type },
-                                            React.createElement('div', { className: "flex justify-between text-sm" },
-                                                React.createElement('span', null, type),
-                                                React.createElement('span', null, `${count} ventes (${percentage}%)`)
-                                            ),
-                                            React.createElement('div', { className: "w-full bg-gray-200 rounded-full h-2" },
-                                                React.createElement('div', { 
-                                                    className: `h-2 rounded-full ${type === 'Tél' ? 'bg-blue-500' : 'bg-green-500'}`,
-                                                    style: { width: `${percentage}%` }
-                                                })
-                                            )
-                                        );
-                                    })
-                                )
-                            ),
-                            
-                            // Performance par Origine
-                            React.createElement('div', { className: "bg-white p-6 rounded-lg shadow-sm" },
-                                React.createElement('h3', { className: "text-lg font-semibold mb-4" }, "Répartition par Origine"),
-                                React.createElement('div', { className: "space-y-3" },
-                                    Object.entries(stats.ventesParOrigine)
-                                        .sort(([,a], [,b]) => b - a)
-                                        .slice(0, 5)
-                                        .map(([origine, count]) => {
-                                        const percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
-                                        return React.createElement('div', { key: origine },
-                                            React.createElement('div', { className: "flex justify-between text-sm" },
-                                                React.createElement('span', null, origine),
-                                                React.createElement('span', null, `${count} ventes (${percentage}%)`)
-                                            ),
-                                            React.createElement('div', { className: "w-full bg-gray-200 rounded-full h-2" },
-                                                React.createElement('div', { 
-                                                    className: "h-2 rounded-full bg-purple-500",
-                                                    style: { width: `${percentage}%` }
-                                                })
-                                            )
-                                        );
-                                    })
-                                )
-                            )
-                        )
-                    )
-                )
-            );
-        };
-
-        ReactDOM.render(React.createElement(SalesTracker), document.getElementById('root'));
+        // Lancement de l'application
+        init();
     </script>
 </body>
 </html>
