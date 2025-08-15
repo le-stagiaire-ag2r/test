@@ -125,6 +125,9 @@
         var appState = {
             users: JSON.parse(JSON.stringify(defaultUsers)),
             contrats: defaultContrats.slice(),
+            typesVente: typesVente.slice(),
+            origines: origines.slice(),
+            rattachements: [], // Rattachements personnalisés
             currentUser: null,
             currentView: 'dashboard',
             selectedMonth: new Date().getMonth() + 1,
@@ -132,9 +135,15 @@
             ventes: [],
             editingId: null,
             showContractForm: false,
+            showTypeVenteForm: false,
+            showOrigineForm: false,
+            showRattachementForm: false,
             showUserForm: false,
             editingUser: null,
             newContract: '',
+            newTypeVente: '',
+            newOrigine: '',
+            newRattachement: '',
             newUserForm: { username: '', name: '', password: '', agence: '', permanences: '' },
             editUserForm: { permanences: '' },
             formData: {
@@ -150,7 +159,10 @@
                 var data = {
                     ventes: appState.ventes,
                     users: appState.users,
-                    contrats: appState.contrats
+                    contrats: appState.contrats,
+                    typesVente: appState.typesVente,
+                    origines: appState.origines,
+                    rattachements: appState.rattachements
                 };
                 localStorage.setItem('salesTrackerData', JSON.stringify(data));
             } catch (error) {
@@ -166,6 +178,9 @@
                     if (data.ventes) appState.ventes = data.ventes;
                     if (data.users) appState.users = data.users;
                     if (data.contrats) appState.contrats = data.contrats;
+                    if (data.typesVente) appState.typesVente = data.typesVente;
+                    if (data.origines) appState.origines = data.origines;
+                    if (data.rattachements) appState.rattachements = data.rattachements;
                 }
             } catch (error) {
                 console.error('Erreur de chargement:', error);
@@ -173,22 +188,41 @@
         }
 
         function getRattachementOptions() {
+            var options = [];
+            
             if (appState.currentUser && appState.currentUser.type === 'commercial') {
-                var options = [appState.currentUser.agence];
-                return options.concat(appState.currentUser.permanences);
-            }
-            if (!appState.formData.commercial) return [];
-            var users = Object.values(appState.users);
-            var user = null;
-            for (var i = 0; i < users.length; i++) {
-                if (users[i].name === appState.formData.commercial) {
-                    user = users[i];
-                    break;
+                // Ajouter l'agence du commercial
+                options.push(appState.currentUser.agence);
+                // Ajouter ses permanences
+                options = options.concat(appState.currentUser.permanences);
+            } else if (appState.formData.commercial) {
+                // Mode admin - trouver le commercial sélectionné
+                var users = Object.values(appState.users);
+                var user = null;
+                for (var i = 0; i < users.length; i++) {
+                    if (users[i].name === appState.formData.commercial) {
+                        user = users[i];
+                        break;
+                    }
+                }
+                if (user && user.type === 'commercial') {
+                    options.push(user.agence);
+                    options = options.concat(user.permanences);
                 }
             }
-            if (!user || user.type !== 'commercial') return [];
-            var options = [user.agence];
-            return options.concat(user.permanences);
+            
+            // Ajouter les rattachements personnalisés de l'admin
+            options = options.concat(appState.rattachements);
+            
+            // Supprimer les doublons
+            var uniqueOptions = [];
+            for (var i = 0; i < options.length; i++) {
+                if (uniqueOptions.indexOf(options[i]) === -1) {
+                    uniqueOptions.push(options[i]);
+                }
+            }
+            
+            return uniqueOptions;
         }
 
         function getFilteredVentes() {
@@ -503,6 +537,7 @@
 
         function renderDashboard(container) {
             var stats = getStats();
+            var filteredVentes = getFilteredVentes();
             
             // Stats principales
             var statsGrid = document.createElement('div');
@@ -553,6 +588,69 @@
             telContent += '</div>';
             telCard.innerHTML = telContent;
             container.appendChild(telCard);
+            
+            // Stats des Permanences (pour commerciaux et admin)
+            var permanencesCard = document.createElement('div');
+            permanencesCard.className = 'card';
+            var permanencesContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Permanence</h3>';
+            permanencesContent += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">';
+            
+            var permanencesStats = {};
+            var totalVentesPermanences = 0;
+            
+            // Calculer les stats par permanence
+            for (var i = 0; i < filteredVentes.length; i++) {
+                var vente = filteredVentes[i];
+                if (vente.rattachement && vente.rattachement.trim()) {
+                    // Vérifier si c'est une permanence (pas une agence)
+                    var isAgence = false;
+                    var usersList = Object.values(appState.users);
+                    for (var j = 0; j < usersList.length; j++) {
+                        if (usersList[j].type === 'commercial' && usersList[j].agence === vente.rattachement) {
+                            isAgence = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!isAgence) { // C'est une permanence
+                        if (!permanencesStats[vente.rattachement]) {
+                            permanencesStats[vente.rattachement] = 0;
+                        }
+                        permanencesStats[vente.rattachement]++;
+                        totalVentesPermanences++;
+                    }
+                }
+            }
+            
+            var permanencesList = Object.keys(permanencesStats);
+            permanencesList.sort(function(a, b) {
+                return permanencesStats[b] - permanencesStats[a];
+            });
+            
+            if (permanencesList.length > 0) {
+                for (var i = 0; i < permanencesList.length; i++) {
+                    var permanence = permanencesList[i];
+                    var count = permanencesStats[permanence];
+                    var percentage = totalVentesPermanences > 0 ? (count / totalVentesPermanences * 100).toFixed(1) : 0;
+                    
+                    permanencesContent += '<div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                        '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">' +
+                            permanence +
+                            '<span class="badge badge-yellow" style="margin-left: 0.5rem;">Permanence</span>' +
+                        '</div>' +
+                        '<div style="font-size: 1.125rem; font-weight: 700; color: #1f2937;">' + count + ' ventes</div>' +
+                        '<div style="font-size: 0.875rem; color: #6b7280;">' + percentage + '% des permanences</div>' +
+                    '</div>';
+                }
+            } else {
+                permanencesContent += '<div style="grid-column: 1 / -1; text-align: center; color: #6b7280; padding: 2rem;">' +
+                    'Aucune vente en permanence pour cette période' +
+                '</div>';
+            }
+            
+            permanencesContent += '</div>';
+            permanencesCard.innerHTML = permanencesContent;
+            container.appendChild(permanencesCard);
             
             // Performance par Commercial (Admin seulement)
             if (appState.currentUser.type === 'admin') {
@@ -659,9 +757,9 @@
                 '<select class="form-select" onchange="updateFormField(\'vente\', this.value)" required>' +
                     '<option value="">Sélectionner</option>';
             
-            for (var i = 0; i < typesVente.length; i++) {
-                var selected = appState.formData.vente === typesVente[i] ? 'selected' : '';
-                html += '<option value="' + typesVente[i] + '" ' + selected + '>' + typesVente[i] + '</option>';
+            for (var i = 0; i < appState.typesVente.length; i++) {
+                var selected = appState.formData.vente === appState.typesVente[i] ? 'selected' : '';
+                html += '<option value="' + appState.typesVente[i] + '" ' + selected + '>' + appState.typesVente[i] + '</option>';
             }
             
             html += '</select></div>';
@@ -686,9 +784,9 @@
                 '<select class="form-select" onchange="updateFormField(\'origine\', this.value)" required>' +
                     '<option value="">Sélectionner</option>';
             
-            for (var i = 0; i < origines.length; i++) {
-                var selected = appState.formData.origine === origines[i] ? 'selected' : '';
-                html += '<option value="' + origines[i] + '" ' + selected + '>' + origines[i] + '</option>';
+            for (var i = 0; i < appState.origines.length; i++) {
+                var selected = appState.formData.origine === appState.origines[i] ? 'selected' : '';
+                html += '<option value="' + appState.origines[i] + '" ' + selected + '>' + appState.origines[i] + '</option>';
             }
             
             html += '</select></div>';
@@ -874,6 +972,125 @@
             
             contractCard.innerHTML = contractHtml;
             container.appendChild(contractCard);
+            
+            // Gestion des Types de Vente
+            var typeVenteCard = document.createElement('div');
+            typeVenteCard.className = 'card';
+            var typeVenteHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
+                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Types de Vente</h3>' +
+                '<button onclick="toggleTypeVenteForm()" class="btn btn-primary">➕ Ajouter un type</button>' +
+            '</div>';
+            
+            if (appState.showTypeVenteForm) {
+                typeVenteHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<div style="display: flex; gap: 0.75rem;">' +
+                        '<input type="text" placeholder="Nom du nouveau type de vente" class="form-input" style="flex: 1;" ' +
+                            'value="' + appState.newTypeVente + '" onchange="appState.newTypeVente = this.value" ' +
+                            'onkeypress="if(event.key===\'Enter\') addTypeVente()">' +
+                        '<button onclick="addTypeVente()" class="btn btn-success">Ajouter</button>' +
+                        '<button onclick="cancelTypeVenteForm()" class="btn btn-secondary">Annuler</button>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            typeVenteHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
+            
+            for (var i = 0; i < appState.typesVente.length; i++) {
+                var typeVente = appState.typesVente[i];
+                typeVenteHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<span style="font-size: 0.875rem; flex: 1;">' + typeVente + '</span>' +
+                    '<button onclick="deleteTypeVente(\'' + typeVente.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer ce type">🗑️</button>' +
+                '</div>';
+            }
+            
+            typeVenteHtml += '</div>';
+            
+            if (appState.typesVente.length === 0) {
+                typeVenteHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun type de vente configuré</p>';
+            }
+            
+            typeVenteCard.innerHTML = typeVenteHtml;
+            container.appendChild(typeVenteCard);
+            
+            // Gestion des Origines
+            var origineCard = document.createElement('div');
+            origineCard.className = 'card';
+            var origineHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
+                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Origines</h3>' +
+                '<button onclick="toggleOrigineForm()" class="btn btn-primary">➕ Ajouter une origine</button>' +
+            '</div>';
+            
+            if (appState.showOrigineForm) {
+                origineHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<div style="display: flex; gap: 0.75rem;">' +
+                        '<input type="text" placeholder="Nom de la nouvelle origine" class="form-input" style="flex: 1;" ' +
+                            'value="' + appState.newOrigine + '" onchange="appState.newOrigine = this.value" ' +
+                            'onkeypress="if(event.key===\'Enter\') addOrigine()">' +
+                        '<button onclick="addOrigine()" class="btn btn-success">Ajouter</button>' +
+                        '<button onclick="cancelOrigineForm()" class="btn btn-secondary">Annuler</button>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            origineHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
+            
+            for (var i = 0; i < appState.origines.length; i++) {
+                var origine = appState.origines[i];
+                origineHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<span style="font-size: 0.875rem; flex: 1;">' + origine + '</span>' +
+                    '<button onclick="deleteOrigine(\'' + origine.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer cette origine">🗑️</button>' +
+                '</div>';
+            }
+            
+            origineHtml += '</div>';
+            
+            if (appState.origines.length === 0) {
+                origineHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucune origine configurée</p>';
+            }
+            
+            origineCard.innerHTML = origineHtml;
+            container.appendChild(origineCard);
+            
+            // Gestion des Rattachements
+            var rattachementCard = document.createElement('div');
+            rattachementCard.className = 'card';
+            var rattachementHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
+                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Rattachements</h3>' +
+                '<button onclick="toggleRattachementForm()" class="btn btn-primary">➕ Ajouter un rattachement</button>' +
+            '</div>';
+            
+            rattachementHtml += '<p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">Les agences et permanences des commerciaux sont automatiquement disponibles. Ajoutez ici des rattachements supplémentaires.</p>';
+            
+            if (appState.showRattachementForm) {
+                rattachementHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<div style="display: flex; gap: 0.75rem;">' +
+                        '<input type="text" placeholder="Nom du nouveau rattachement" class="form-input" style="flex: 1;" ' +
+                            'value="' + appState.newRattachement + '" onchange="appState.newRattachement = this.value" ' +
+                            'onkeypress="if(event.key===\'Enter\') addRattachement()">' +
+                        '<button onclick="addRattachement()" class="btn btn-success">Ajouter</button>' +
+                        '<button onclick="cancelRattachementForm()" class="btn btn-secondary">Annuler</button>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            rattachementHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
+            
+            for (var i = 0; i < appState.rattachements.length; i++) {
+                var rattachement = appState.rattachements[i];
+                rattachementHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<span style="font-size: 0.875rem; flex: 1;">' + rattachement + '</span>' +
+                    '<button onclick="deleteRattachement(\'' + rattachement.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer ce rattachement">🗑️</button>' +
+                '</div>';
+            }
+            
+            rattachementHtml += '</div>';
+            
+            if (appState.rattachements.length === 0) {
+                rattachementHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun rattachement personnalisé configuré</p>';
+            }
+            
+            rattachementCard.innerHTML = rattachementHtml;
+            container.appendChild(rattachementCard);
         }
 
         // Fonctions helper pour la liste
@@ -897,6 +1114,21 @@
             render();
         }
 
+        function toggleTypeVenteForm() {
+            appState.showTypeVenteForm = !appState.showTypeVenteForm;
+            render();
+        }
+
+        function toggleOrigineForm() {
+            appState.showOrigineForm = !appState.showOrigineForm;
+            render();
+        }
+
+        function toggleRattachementForm() {
+            appState.showRattachementForm = !appState.showRattachementForm;
+            render();
+        }
+
         function cancelUserForm() {
             appState.showUserForm = false;
             appState.newUserForm = { username: '', name: '', password: '', agence: '', permanences: '' };
@@ -906,6 +1138,24 @@
         function cancelContractForm() {
             appState.showContractForm = false;
             appState.newContract = '';
+            render();
+        }
+
+        function cancelTypeVenteForm() {
+            appState.showTypeVenteForm = false;
+            appState.newTypeVente = '';
+            render();
+        }
+
+        function cancelOrigineForm() {
+            appState.showOrigineForm = false;
+            appState.newOrigine = '';
+            render();
+        }
+
+        function cancelRattachementForm() {
+            appState.showRattachementForm = false;
+            appState.newRattachement = '';
             render();
         }
 
@@ -927,6 +1177,60 @@
             render();
         }
 
+        function addTypeVente() {
+            if (!appState.newTypeVente.trim()) {
+                alert('Veuillez saisir un nom de type de vente');
+                return;
+            }
+
+            if (appState.typesVente.indexOf(appState.newTypeVente.trim()) !== -1) {
+                alert('Ce type de vente existe déjà');
+                return;
+            }
+
+            appState.typesVente.push(appState.newTypeVente.trim());
+            appState.newTypeVente = '';
+            saveData();
+            alert('Type de vente ajouté avec succès !');
+            render();
+        }
+
+        function addOrigine() {
+            if (!appState.newOrigine.trim()) {
+                alert('Veuillez saisir un nom d\'origine');
+                return;
+            }
+
+            if (appState.origines.indexOf(appState.newOrigine.trim()) !== -1) {
+                alert('Cette origine existe déjà');
+                return;
+            }
+
+            appState.origines.push(appState.newOrigine.trim());
+            appState.newOrigine = '';
+            saveData();
+            alert('Origine ajoutée avec succès !');
+            render();
+        }
+
+        function addRattachement() {
+            if (!appState.newRattachement.trim()) {
+                alert('Veuillez saisir un nom de rattachement');
+                return;
+            }
+
+            if (appState.rattachements.indexOf(appState.newRattachement.trim()) !== -1) {
+                alert('Ce rattachement existe déjà');
+                return;
+            }
+
+            appState.rattachements.push(appState.newRattachement.trim());
+            appState.newRattachement = '';
+            saveData();
+            alert('Rattachement ajouté avec succès !');
+            render();
+        }
+
         function deleteContract(contractToDelete) {
             if (confirm('Êtes-vous sûr de vouloir supprimer le contrat "' + contractToDelete + '" ?')) {
                 appState.contrats = appState.contrats.filter(function(c) {
@@ -934,6 +1238,39 @@
                 });
                 saveData();
                 alert('Contrat supprimé avec succès !');
+                render();
+            }
+        }
+
+        function deleteTypeVente(typeToDelete) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer le type de vente "' + typeToDelete + '" ?')) {
+                appState.typesVente = appState.typesVente.filter(function(t) {
+                    return t !== typeToDelete;
+                });
+                saveData();
+                alert('Type de vente supprimé avec succès !');
+                render();
+            }
+        }
+
+        function deleteOrigine(origineToDelete) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer l\'origine "' + origineToDelete + '" ?')) {
+                appState.origines = appState.origines.filter(function(o) {
+                    return o !== origineToDelete;
+                });
+                saveData();
+                alert('Origine supprimée avec succès !');
+                render();
+            }
+        }
+
+        function deleteRattachement(rattachementToDelete) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer le rattachement "' + rattachementToDelete + '" ?')) {
+                appState.rattachements = appState.rattachements.filter(function(r) {
+                    return r !== rattachementToDelete;
+                });
+                saveData();
+                alert('Rattachement supprimé avec succès !');
                 render();
             }
         }
@@ -1000,7 +1337,8 @@
                 'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv'
             ];
             
-            var csvContent = headers.join(',') + '\n';
+            // Utiliser le point-virgule pour Excel français
+            var csvContent = headers.join(';') + '\n';
             
             for (var i = 0; i < ventesToExport.length; i++) {
                 var vente = ventesToExport[i];
@@ -1009,7 +1347,7 @@
                     vente.vente || '', vente.rattachement || '', vente.origine || '', vente.contrat || '', vente.dateEffet || '',
                     vente.chiffreAffaires || '', vente.pna || '', vente.jourRdv || ''
                 ];
-                csvContent += row.join(',') + '\n';
+                csvContent += row.join(';') + '\n';
             }
 
             var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
