@@ -212,7 +212,7 @@
                 }
 
                 appState.ventes = allVentes;
-                saveDataLocal();
+                saveData();
                 
             } catch (error) {
                 console.error('Erreur de synchronisation:', error);
@@ -230,7 +230,7 @@
                 });
                 
                 appState.ventes = firebaseVentes;
-                saveDataLocal();
+                saveData();
                 
                 // Re-render si l'utilisateur est connecté
                 if (appState.currentUser) {
@@ -252,7 +252,7 @@
             }
         }
 
-        // Données par défaut (votre code original)
+        // Données par défaut
         var defaultUsers = {
             "admin": { password: "admin123", type: "admin", name: "Administrateur" },
             "sarah": { password: "sarah123", type: "commercial", name: "Sarah", agence: "Lille", permanences: ["Armentières", "Bousbecques", "Lesquin", "Carvin"] },
@@ -278,13 +278,13 @@
             "Gpa", "Multiprima", "Mutame", "Perte autonomie", "Patrimoine sélection"
         ];
 
-        // État de l'application (votre code original)
+        // État de l'application
         var appState = {
             users: JSON.parse(JSON.stringify(defaultUsers)),
             contrats: defaultContrats.slice(),
             typesVente: typesVente.slice(),
             origines: origines.slice(),
-            rattachements: [],
+            rattachements: [], // Rattachements personnalisés
             currentUser: null,
             currentView: 'dashboard',
             selectedMonth: new Date().getMonth() + 1,
@@ -310,8 +310,8 @@
             }
         };
 
-        // Fonctions utilitaires modifiées
-        function saveDataLocal() {
+        // Fonctions utilitaires
+        function saveData() {
             try {
                 var data = {
                     ventes: appState.ventes,
@@ -323,7 +323,7 @@
                 };
                 localStorage.setItem('salesTrackerData', JSON.stringify(data));
             } catch (error) {
-                console.error('Erreur de sauvegarde locale:', error);
+                console.error('Erreur de sauvegarde:', error);
             }
         }
 
@@ -344,61 +344,16 @@
             }
         }
 
-        // Fonction de soumission modifiée pour Firebase
-        async function handleSubmit() {
-            var commercial = appState.currentUser.type === 'commercial' ? appState.currentUser.name : appState.formData.commercial;
-            
-            if (!commercial || !appState.formData.nom || !appState.formData.prenom || !appState.formData.vente || 
-                !appState.formData.rattachement || !appState.formData.origine || !appState.formData.contrat || 
-                !appState.formData.dateEffet || !appState.formData.chiffreAffaires || !appState.formData.pna) {
-                alert('Veuillez remplir tous les champs obligatoires (*)');
-                return;
-            }
-            
-            var venteFinal = JSON.parse(JSON.stringify(appState.formData));
-            venteFinal.commercial = commercial;
-            
-            if (appState.editingId) {
-                // Modification existante
-                for (var i = 0; i < appState.ventes.length; i++) {
-                    if (appState.ventes[i].id === appState.editingId) {
-                        venteFinal.id = appState.editingId;
-                        venteFinal.dateCreation = appState.ventes[i].dateCreation;
-                        appState.ventes[i] = venteFinal;
-                        break;
-                    }
-                }
-            } else {
-                // Nouvelle vente
-                venteFinal.id = Date.now();
-                venteFinal.dateCreation = new Date().toLocaleString('fr-FR');
-                appState.ventes.push(venteFinal);
-                
-                // Tenter de sauvegarder dans Firebase
-                if (db) {
-                    try {
-                        await saveToFirebase(venteFinal);
-                        console.log('✅ Vente sauvegardée dans Firebase');
-                    } catch (error) {
-                        console.log('⚠️ Sauvegarde Firebase échouée, mode local activé');
-                    }
-                }
-            }
-            
-            resetForm();
-            saveDataLocal();
-            alert(appState.editingId ? 'Vente modifiée !' : 'Vente ajoutée !');
-            render();
-        }
-
-        // Toutes vos autres fonctions restent identiques...
         function getRattachementOptions() {
             var options = [];
             
             if (appState.currentUser && appState.currentUser.type === 'commercial') {
+                // Ajouter l'agence du commercial
                 options.push(appState.currentUser.agence);
+                // Ajouter ses permanences
                 options = options.concat(appState.currentUser.permanences);
             } else if (appState.formData.commercial) {
+                // Mode admin - trouver le commercial sélectionné
                 var users = Object.values(appState.users);
                 var user = null;
                 for (var i = 0; i < users.length; i++) {
@@ -413,8 +368,10 @@
                 }
             }
             
+            // Ajouter les rattachements personnalisés de l'admin
             options = options.concat(appState.rattachements);
             
+            // Supprimer les doublons
             var uniqueOptions = [];
             for (var i = 0; i < options.length; i++) {
                 if (uniqueOptions.indexOf(options[i]) === -1) {
@@ -500,7 +457,7 @@
             };
         }
 
-        // Fonctions d'action (votre code original)
+        // Fonctions d'action
         function handleLogin() {
             var username = document.getElementById('username').value.toLowerCase();
             var password = document.getElementById('password').value;
@@ -531,6 +488,51 @@
             appState.editingId = null;
         }
 
+        // Fonction de soumission modifiée pour Firebase
+        async function handleSubmit() {
+            var commercial = appState.currentUser.type === 'commercial' ? appState.currentUser.name : appState.formData.commercial;
+            
+            if (!commercial || !appState.formData.nom || !appState.formData.prenom || !appState.formData.vente || 
+                !appState.formData.rattachement || !appState.formData.origine || !appState.formData.contrat || 
+                !appState.formData.dateEffet || !appState.formData.chiffreAffaires || !appState.formData.pna) {
+                alert('Veuillez remplir tous les champs obligatoires (*)');
+                return;
+            }
+            
+            var venteFinal = JSON.parse(JSON.stringify(appState.formData));
+            venteFinal.commercial = commercial;
+            
+            if (appState.editingId) {
+                for (var i = 0; i < appState.ventes.length; i++) {
+                    if (appState.ventes[i].id === appState.editingId) {
+                        venteFinal.id = appState.editingId;
+                        venteFinal.dateCreation = appState.ventes[i].dateCreation;
+                        appState.ventes[i] = venteFinal;
+                        break;
+                    }
+                }
+            } else {
+                venteFinal.id = Date.now();
+                venteFinal.dateCreation = new Date().toLocaleString('fr-FR');
+                appState.ventes.push(venteFinal);
+                
+                // Tenter de sauvegarder dans Firebase
+                if (db) {
+                    try {
+                        await saveToFirebase(venteFinal);
+                        console.log('✅ Vente sauvegardée dans Firebase');
+                    } catch (error) {
+                        console.log('⚠️ Sauvegarde Firebase échouée, mode local activé');
+                    }
+                }
+            }
+            
+            resetForm();
+            saveData();
+            alert(appState.editingId ? 'Vente modifiée !' : 'Vente ajoutée !');
+            render();
+        }
+
         function handleEdit(vente) {
             appState.formData = JSON.parse(JSON.stringify(vente));
             appState.editingId = vente.id;
@@ -543,7 +545,7 @@
                 appState.ventes = appState.ventes.filter(function(v) {
                     return v.id !== id;
                 });
-                saveDataLocal();
+                saveData();
                 alert('Vente supprimée !');
                 render();
             }
@@ -560,7 +562,7 @@
             if (field === 'commercial') appState.formData.rattachement = '';
         }
 
-        // Fonctions de rendu modifiées pour inclure le statut Firebase
+        // Fonctions de rendu avec DOM
         function render() {
             var app = document.getElementById('app');
             
@@ -569,9 +571,13 @@
                 return;
             }
             
+            // Clear le contenu
             app.innerHTML = '';
+            
+            // Ajouter le header
             renderHeader();
             
+            // Ajouter le contenu principal
             var container = document.createElement('div');
             container.className = 'container';
             container.style.paddingTop = '1.5rem';
@@ -757,7 +763,7 @@
             telCard.innerHTML = telContent;
             container.appendChild(telCard);
             
-            // Stats des Permanences
+            // Stats des Permanences (pour commerciaux et admin)
             var permanencesCard = document.createElement('div');
             permanencesCard.className = 'card';
             var permanencesContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Permanence</h3>';
@@ -766,9 +772,11 @@
             var permanencesStats = {};
             var totalVentesPermanences = 0;
             
+            // Calculer les stats par permanence
             for (var i = 0; i < filteredVentes.length; i++) {
                 var vente = filteredVentes[i];
                 if (vente.rattachement && vente.rattachement.trim()) {
+                    // Vérifier si c'est une permanence (pas une agence)
                     var isAgence = false;
                     var usersList = Object.values(appState.users);
                     for (var j = 0; j < usersList.length; j++) {
@@ -778,7 +786,7 @@
                         }
                     }
                     
-                    if (!isAgence) {
+                    if (!isAgence) { // C'est une permanence
                         if (!permanencesStats[vente.rattachement]) {
                             permanencesStats[vente.rattachement] = 0;
                         }
@@ -900,6 +908,7 @@
             html += '<form onsubmit="event.preventDefault(); handleSubmit();">';
             html += '<div class="form-grid">';
             
+            // Champs du formulaire
             var fields = [
                 { name: 'nom', label: 'Nom *', type: 'text', required: true },
                 { name: 'prenom', label: 'Prénom *', type: 'text', required: true },
@@ -1099,11 +1108,274 @@
             dataCard.innerHTML = dataHtml;
             container.appendChild(dataCard);
             
-            // Reste de la gestion - code trop long pour les commentaires
-            // (garder tout votre code de gestion original ici)
+            // Formulaire ajout utilisateur
+            if (appState.showUserForm) {
+                var userFormCard = document.createElement('div');
+                userFormCard.className = 'card';
+                var userFormHtml = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Ajouter un nouveau commercial</h3>';
+                userFormHtml += '<div class="form-grid">';
+                userFormHtml += '<div class="form-group">' +
+                    '<label class="form-label">Nom d\'utilisateur *</label>' +
+                    '<input type="text" class="form-input" placeholder="Ex: marie" ' +
+                        'value="' + appState.newUserForm.username + '" ' +
+                        'onchange="appState.newUserForm.username = this.value">' +
+                '</div>';
+                userFormHtml += '<div class="form-group">' +
+                    '<label class="form-label">Nom complet *</label>' +
+                    '<input type="text" class="form-input" placeholder="Ex: Marie Dupont" ' +
+                        'value="' + appState.newUserForm.name + '" ' +
+                        'onchange="appState.newUserForm.name = this.value">' +
+                '</div>';
+                userFormHtml += '<div class="form-group">' +
+                    '<label class="form-label">Mot de passe *</label>' +
+                    '<input type="text" class="form-input" placeholder="Ex: marie123" ' +
+                        'value="' + appState.newUserForm.password + '" ' +
+                        'onchange="appState.newUserForm.password = this.value">' +
+                '</div>';
+                userFormHtml += '<div class="form-group">' +
+                    '<label class="form-label">Agence *</label>' +
+                    '<input type="text" class="form-input" placeholder="Ex: Lille" ' +
+                        'value="' + appState.newUserForm.agence + '" ' +
+                        'onchange="appState.newUserForm.agence = this.value">' +
+                '</div>';
+                userFormHtml += '<div class="form-group" style="grid-column: 1 / -1;">' +
+                    '<label class="form-label">Permanences (séparées par des virgules)</label>' +
+                    '<input type="text" class="form-input" placeholder="Ex: Arras, Béthune, Valenciennes" ' +
+                        'value="' + appState.newUserForm.permanences + '" ' +
+                        'onchange="appState.newUserForm.permanences = this.value">' +
+                '</div>';
+                userFormHtml += '</div>';
+                userFormHtml += '<div style="display: flex; gap: 0.75rem; margin-top: 1rem;">' +
+                    '<button onclick="addNewUser()" class="btn btn-success">Ajouter le commercial</button>' +
+                    '<button onclick="cancelUserForm()" class="btn btn-secondary">Annuler</button>' +
+                '</div>';
+                userFormCard.innerHTML = userFormHtml;
+                container.appendChild(userFormCard);
+            }
+            
+            // Gestion des contrats
+            var contractCard = document.createElement('div');
+            contractCard.className = 'card';
+            var contractHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
+                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Types de Contrats</h3>' +
+                '<button onclick="toggleContractForm()" class="btn btn-primary">➕ Ajouter un contrat</button>' +
+            '</div>';
+            
+            if (appState.showContractForm) {
+                contractHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<div style="display: flex; gap: 0.75rem;">' +
+                        '<input type="text" placeholder="Nom du nouveau contrat" class="form-input" style="flex: 1;" ' +
+                            'value="' + appState.newContract + '" onchange="appState.newContract = this.value" ' +
+                            'onkeypress="if(event.key===\'Enter\') addContract()">' +
+                        '<button onclick="addContract()" class="btn btn-success">Ajouter</button>' +
+                        '<button onclick="cancelContractForm()" class="btn btn-secondary">Annuler</button>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            contractHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
+            
+            for (var i = 0; i < appState.contrats.length; i++) {
+                var contrat = appState.contrats[i];
+                contractHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<span style="font-size: 0.875rem; flex: 1;">' + contrat + '</span>' +
+                    '<button onclick="deleteContract(\'' + contrat.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer ce contrat">🗑️</button>' +
+                '</div>';
+            }
+            
+            contractHtml += '</div>';
+            
+            if (appState.contrats.length === 0) {
+                contractHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun contrat configuré</p>';
+            }
+            
+            contractCard.innerHTML = contractHtml;
+            container.appendChild(contractCard);
+            
+            // Gestion des Types de Vente
+            var typeVenteCard = document.createElement('div');
+            typeVenteCard.className = 'card';
+            var typeVenteHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
+                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Types de Vente</h3>' +
+                '<button onclick="toggleTypeVenteForm()" class="btn btn-primary">➕ Ajouter un type</button>' +
+            '</div>';
+            
+            if (appState.showTypeVenteForm) {
+                typeVenteHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<div style="display: flex; gap: 0.75rem;">' +
+                        '<input type="text" placeholder="Nom du nouveau type de vente" class="form-input" style="flex: 1;" ' +
+                            'value="' + appState.newTypeVente + '" onchange="appState.newTypeVente = this.value" ' +
+                            'onkeypress="if(event.key===\'Enter\') addTypeVente()">' +
+                        '<button onclick="addTypeVente()" class="btn btn-success">Ajouter</button>' +
+                        '<button onclick="cancelTypeVenteForm()" class="btn btn-secondary">Annuler</button>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            typeVenteHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
+            
+            for (var i = 0; i < appState.typesVente.length; i++) {
+                var typeVente = appState.typesVente[i];
+                typeVenteHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<span style="font-size: 0.875rem; flex: 1;">' + typeVente + '</span>' +
+                    '<button onclick="deleteTypeVente(\'' + typeVente.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer ce type">🗑️</button>' +
+                '</div>';
+            }
+            
+            typeVenteHtml += '</div>';
+            
+            if (appState.typesVente.length === 0) {
+                typeVenteHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun type de vente configuré</p>';
+            }
+            
+            typeVenteCard.innerHTML = typeVenteHtml;
+            container.appendChild(typeVenteCard);
+            
+            // Gestion des Origines
+            var origineCard = document.createElement('div');
+            origineCard.className = 'card';
+            var origineHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
+                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Origines</h3>' +
+                '<button onclick="toggleOrigineForm()" class="btn btn-primary">➕ Ajouter une origine</button>' +
+            '</div>';
+            
+            if (appState.showOrigineForm) {
+                origineHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<div style="display: flex; gap: 0.75rem;">' +
+                        '<input type="text" placeholder="Nom de la nouvelle origine" class="form-input" style="flex: 1;" ' +
+                            'value="' + appState.newOrigine + '" onchange="appState.newOrigine = this.value" ' +
+                            'onkeypress="if(event.key===\'Enter\') addOrigine()">' +
+                        '<button onclick="addOrigine()" class="btn btn-success">Ajouter</button>' +
+                        '<button onclick="cancelOrigineForm()" class="btn btn-secondary">Annuler</button>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            origineHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
+            
+            for (var i = 0; i < appState.origines.length; i++) {
+                var origine = appState.origines[i];
+                origineHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<span style="font-size: 0.875rem; flex: 1;">' + origine + '</span>' +
+                    '<button onclick="deleteOrigine(\'' + origine.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer cette origine">🗑️</button>' +
+                '</div>';
+            }
+            
+            origineHtml += '</div>';
+            
+            if (appState.origines.length === 0) {
+                origineHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucune origine configurée</p>';
+            }
+            
+            origineCard.innerHTML = origineHtml;
+            container.appendChild(origineCard);
+            
+            // Gestion des Rattachements
+            var rattachementCard = document.createElement('div');
+            rattachementCard.className = 'card';
+            var rattachementHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
+                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Rattachements</h3>' +
+                '<button onclick="toggleRattachementForm()" class="btn btn-primary">➕ Ajouter un rattachement</button>' +
+            '</div>';
+            
+            rattachementHtml += '<p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">Les agences et permanences des commerciaux sont automatiquement disponibles. Ajoutez ici des rattachements supplémentaires.</p>';
+            
+            if (appState.showRattachementForm) {
+                rattachementHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<div style="display: flex; gap: 0.75rem;">' +
+                        '<input type="text" placeholder="Nom du nouveau rattachement" class="form-input" style="flex: 1;" ' +
+                            'value="' + appState.newRattachement + '" onchange="appState.newRattachement = this.value" ' +
+                            'onkeypress="if(event.key===\'Enter\') addRattachement()">' +
+                        '<button onclick="addRattachement()" class="btn btn-success">Ajouter</button>' +
+                        '<button onclick="cancelRattachementForm()" class="btn btn-secondary">Annuler</button>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            rattachementHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
+            
+            for (var i = 0; i < appState.rattachements.length; i++) {
+                var rattachement = appState.rattachements[i];
+                rattachementHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<span style="font-size: 0.875rem; flex: 1;">' + rattachement + '</span>' +
+                    '<button onclick="deleteRattachement(\'' + rattachement.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer ce rattachement">🗑️</button>' +
+                '</div>';
+            }
+            
+            rattachementHtml += '</div>';
+            
+            if (appState.rattachements.length === 0) {
+                rattachementHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun rattachement personnalisé configuré</p>';
+            }
+            
+            rattachementCard.innerHTML = rattachementHtml;
+            container.appendChild(rattachementCard);
+            
+            // Gestion des commerciaux et permanences
+            var commerciauxCard = document.createElement('div');
+            commerciauxCard.className = 'card';
+            var commerciauxHtml = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem;">Gestion des Commerciaux et Permanences</h3>';
+            commerciauxHtml += '<div style="overflow-x: auto;">';
+            commerciauxHtml += '<table class="table">';
+            commerciauxHtml += '<thead><tr><th>Nom</th><th>Username</th><th>Agence</th><th>Permanences</th><th>Ventes Total</th><th style="text-align: center;">Actions</th></tr></thead>';
+            commerciauxHtml += '<tbody>';
+            
+            var commerciaux = Object.keys(appState.users).filter(function(username) {
+                return appState.users[username].type === 'commercial';
+            });
+            
+            for (var i = 0; i < commerciaux.length; i++) {
+                var username = commerciaux[i];
+                var user = appState.users[username];
+                var userVentes = appState.ventes.filter(function(v) {
+                    return v.commercial === user.name;
+                });
+                var isEditing = appState.editingUser === username;
+                
+                commerciauxHtml += '<tr>';
+                commerciauxHtml += '<td style="font-weight: 500;">' + user.name + '</td>';
+                commerciauxHtml += '<td style="color: #6b7280;">' + username + '</td>';
+                commerciauxHtml += '<td>' + user.agence + '</td>';
+                commerciauxHtml += '<td>';
+                
+                if (isEditing) {
+                    commerciauxHtml += '<div style="display: flex; gap: 0.5rem; align-items: center;">' +
+                        '<input type="text" class="form-input" style="flex: 1; padding: 0.25rem 0.5rem; font-size: 0.875rem;" ' +
+                            'placeholder="Séparez par des virgules" ' +
+                            'value="' + appState.editUserForm.permanences + '" ' +
+                            'onchange="appState.editUserForm.permanences = this.value">' +
+                        '<button onclick="saveUserPermanences()" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">✓</button>' +
+                        '<button onclick="cancelEditingUser()" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">✕</button>' +
+                    '</div>';
+                } else {
+                    var permanencesText = user.permanences.length > 0 ? user.permanences.join(', ') : 'Aucune';
+                    commerciauxHtml += '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+                        '<span style="font-size: 0.875rem;">' + permanencesText + '</span>' +
+                        '<button onclick="startEditingUser(\'' + username + '\')" ' +
+                            'class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin-left: 0.5rem;" ' +
+                            'title="Modifier les permanences">✏️</button>' +
+                    '</div>';
+                }
+                
+                commerciauxHtml += '</td>';
+                commerciauxHtml += '<td style="font-weight: 500; color: #2563eb;">' + userVentes.length + '</td>';
+                commerciauxHtml += '<td style="text-align: center;">';
+                
+                if (!isEditing) {
+                    commerciauxHtml += '<button onclick="startEditingUser(\'' + username + '\')" ' +
+                        'class="btn btn-primary" style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">' +
+                        'Modifier permanences</button>';
+                }
+                
+                commerciauxHtml += '</td></tr>';
+            }
+            
+            commerciauxHtml += '</tbody></table></div>';
+            commerciauxCard.innerHTML = commerciauxHtml;
+            container.appendChild(commerciauxCard);
         }
 
-        // Helper functions
+        // Fonctions helper pour la liste
         function editVente(id) {
             for (var i = 0; i < appState.ventes.length; i++) {
                 if (appState.ventes[i].id === id) {
@@ -1113,64 +1385,245 @@
             }
         }
 
-        function exportToCSV() {
-            var ventesToExport = getFilteredVentes();
-            if (ventesToExport.length === 0) {
-                alert('Aucune vente à exporter !');
+        // Fonctions de gestion
+        function toggleUserForm() {
+            appState.showUserForm = !appState.showUserForm;
+            render();
+        }
+
+        function toggleContractForm() {
+            appState.showContractForm = !appState.showContractForm;
+            render();
+        }
+
+        function toggleTypeVenteForm() {
+            appState.showTypeVenteForm = !appState.showTypeVenteForm;
+            render();
+        }
+
+        function toggleOrigineForm() {
+            appState.showOrigineForm = !appState.showOrigineForm;
+            render();
+        }
+
+        function toggleRattachementForm() {
+            appState.showRattachementForm = !appState.showRattachementForm;
+            render();
+        }
+
+        function cancelUserForm() {
+            appState.showUserForm = false;
+            appState.newUserForm = { username: '', name: '', password: '', agence: '', permanences: '' };
+            render();
+        }
+
+        function cancelContractForm() {
+            appState.showContractForm = false;
+            appState.newContract = '';
+            render();
+        }
+
+        function cancelTypeVenteForm() {
+            appState.showTypeVenteForm = false;
+            appState.newTypeVente = '';
+            render();
+        }
+
+        function cancelOrigineForm() {
+            appState.showOrigineForm = false;
+            appState.newOrigine = '';
+            render();
+        }
+
+        function cancelRattachementForm() {
+            appState.showRattachementForm = false;
+            appState.newRattachement = '';
+            render();
+        }
+
+        function addContract() {
+            if (!appState.newContract.trim()) {
+                alert('Veuillez saisir un nom de contrat');
                 return;
             }
 
-            var headers = [
-                'Commercial', 'Nom', 'Prénom', 'Âge', 'Numéro personne', 'Vente', 'Rattachement',
-                'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv'
-            ];
-            
-            var csvContent = headers.join(';') + '\n';
-            
-            for (var i = 0; i < ventesToExport.length; i++) {
-                var vente = ventesToExport[i];
-                var row = [
-                    vente.commercial || '', vente.nom || '', vente.prenom || '', vente.age || '', vente.numeroPersonne || '',
-                    vente.vente || '', vente.rattachement || '', vente.origine || '', vente.contrat || '', vente.dateEffet || '',
-                    vente.chiffreAffaires || '', vente.pna || '', vente.jourRdv || ''
-                ];
-                csvContent += row.join(';') + '\n';
+            if (appState.contrats.indexOf(appState.newContract.trim()) !== -1) {
+                alert('Ce contrat existe déjà');
+                return;
             }
 
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            var url = URL.createObjectURL(blob);
-            link.href = url;
-            link.download = 'ventes_' + (appState.currentUser ? appState.currentUser.name : 'toutes') + '_' + appState.selectedMonth + '-' + appState.selectedYear + '.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Fonctions de gestion (placeholders - garder votre code original)
-        function toggleUserForm() { appState.showUserForm = !appState.showUserForm; render(); }
-        function toggleContractForm() { appState.showContractForm = !appState.showContractForm; render(); }
-        function toggleTypeVenteForm() { appState.showTypeVenteForm = !appState.showTypeVenteForm; render(); }
-        function toggleOrigineForm() { appState.showOrigineForm = !appState.showOrigineForm; render(); }
-        function toggleRattachementForm() { appState.showRattachementForm = !appState.showRattachementForm; render(); }
-        
-        function addContract() {
-            if (!appState.newContract.trim()) { alert('Veuillez saisir un nom de contrat'); return; }
-            if (appState.contrats.indexOf(appState.newContract.trim()) !== -1) { alert('Ce contrat existe déjà'); return; }
             appState.contrats.push(appState.newContract.trim());
             appState.newContract = '';
-            saveDataLocal();
+            saveData();
             alert('Contrat ajouté avec succès !');
+            render();
+        }
+
+        function addTypeVente() {
+            if (!appState.newTypeVente.trim()) {
+                alert('Veuillez saisir un nom de type de vente');
+                return;
+            }
+
+            if (appState.typesVente.indexOf(appState.newTypeVente.trim()) !== -1) {
+                alert('Ce type de vente existe déjà');
+                return;
+            }
+
+            appState.typesVente.push(appState.newTypeVente.trim());
+            appState.newTypeVente = '';
+            saveData();
+            alert('Type de vente ajouté avec succès !');
+            render();
+        }
+
+        function addOrigine() {
+            if (!appState.newOrigine.trim()) {
+                alert('Veuillez saisir un nom d\'origine');
+                return;
+            }
+
+            if (appState.origines.indexOf(appState.newOrigine.trim()) !== -1) {
+                alert('Cette origine existe déjà');
+                return;
+            }
+
+            appState.origines.push(appState.newOrigine.trim());
+            appState.newOrigine = '';
+            saveData();
+            alert('Origine ajoutée avec succès !');
+            render();
+        }
+
+        function addRattachement() {
+            if (!appState.newRattachement.trim()) {
+                alert('Veuillez saisir un nom de rattachement');
+                return;
+            }
+
+            if (appState.rattachements.indexOf(appState.newRattachement.trim()) !== -1) {
+                alert('Ce rattachement existe déjà');
+                return;
+            }
+
+            appState.rattachements.push(appState.newRattachement.trim());
+            appState.newRattachement = '';
+            saveData();
+            alert('Rattachement ajouté avec succès !');
             render();
         }
 
         function deleteContract(contractToDelete) {
             if (confirm('Êtes-vous sûr de vouloir supprimer le contrat "' + contractToDelete + '" ?')) {
-                appState.contrats = appState.contrats.filter(function(c) { return c !== contractToDelete; });
-                saveDataLocal();
+                appState.contrats = appState.contrats.filter(function(c) {
+                    return c !== contractToDelete;
+                });
+                saveData();
                 alert('Contrat supprimé avec succès !');
                 render();
             }
+        }
+
+        function deleteTypeVente(typeToDelete) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer le type de vente "' + typeToDelete + '" ?')) {
+                appState.typesVente = appState.typesVente.filter(function(t) {
+                    return t !== typeToDelete;
+                });
+                saveData();
+                alert('Type de vente supprimé avec succès !');
+                render();
+            }
+        }
+
+        function deleteOrigine(origineToDelete) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer l\'origine "' + origineToDelete + '" ?')) {
+                appState.origines = appState.origines.filter(function(o) {
+                    return o !== origineToDelete;
+                });
+                saveData();
+                alert('Origine supprimée avec succès !');
+                render();
+            }
+        }
+
+        function deleteRattachement(rattachementToDelete) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer le rattachement "' + rattachementToDelete + '" ?')) {
+                appState.rattachements = appState.rattachements.filter(function(r) {
+                    return r !== rattachementToDelete;
+                });
+                saveData();
+                alert('Rattachement supprimé avec succès !');
+                render();
+            }
+        }
+
+        function addNewUser() {
+            if (!appState.newUserForm.username || !appState.newUserForm.name || !appState.newUserForm.password || !appState.newUserForm.agence) {
+                alert('Veuillez remplir tous les champs obligatoires');
+                return;
+            }
+
+            if (appState.users[appState.newUserForm.username.toLowerCase()]) {
+                alert('Cet utilisateur existe déjà');
+                return;
+            }
+
+            var permanencesArray = [];
+            if (appState.newUserForm.permanences) {
+                var permanencesList = appState.newUserForm.permanences.split(',');
+                for (var i = 0; i < permanencesList.length; i++) {
+                    var permanence = permanencesList[i].trim();
+                    if (permanence) {
+                        permanencesArray.push(permanence);
+                    }
+                }
+            }
+
+            appState.users[appState.newUserForm.username.toLowerCase()] = {
+                password: appState.newUserForm.password,
+                type: 'commercial',
+                name: appState.newUserForm.name,
+                agence: appState.newUserForm.agence,
+                permanences: permanencesArray
+            };
+            
+            cancelUserForm();
+            saveData();
+            alert('Commercial ajouté avec succès !');
+        }
+
+        function startEditingUser(username) {
+            var user = appState.users[username];
+            appState.editingUser = username;
+            appState.editUserForm.permanences = user.permanences.join(', ');
+            render();
+        }
+
+        function saveUserPermanences() {
+            if (!appState.editingUser) return;
+
+            var permanencesArray = [];
+            if (appState.editUserForm.permanences) {
+                var permanencesList = appState.editUserForm.permanences.split(',');
+                for (var i = 0; i < permanencesList.length; i++) {
+                    var permanence = permanencesList[i].trim();
+                    if (permanence) {
+                        permanencesArray.push(permanence);
+                    }
+                }
+            }
+
+            appState.users[appState.editingUser].permanences = permanencesArray;
+            
+            cancelEditingUser();
+            saveData();
+            alert('Permanences mises à jour avec succès !');
+        }
+
+        function cancelEditingUser() {
+            appState.editingUser = null;
+            appState.editUserForm.permanences = '';
+            render();
         }
 
         function exportData() {
@@ -1178,6 +1631,9 @@
                 ventes: appState.ventes,
                 users: appState.users,
                 contrats: appState.contrats,
+                typesVente: appState.typesVente,
+                origines: appState.origines,
+                rattachements: appState.rattachements,
                 exportDate: new Date().toISOString()
             };
             
@@ -1209,8 +1665,11 @@
                         if (importedData.ventes) appState.ventes = importedData.ventes;
                         if (importedData.users) appState.users = importedData.users;
                         if (importedData.contrats) appState.contrats = importedData.contrats;
+                        if (importedData.typesVente) appState.typesVente = importedData.typesVente;
+                        if (importedData.origines) appState.origines = importedData.origines;
+                        if (importedData.rattachements) appState.rattachements = importedData.rattachements;
                         
-                        saveDataLocal();
+                        saveData();
                         render();
                         alert('Données importées avec succès !');
                     } catch (error) {
@@ -1221,6 +1680,41 @@
                 reader.readAsText(file);
             };
             input.click();
+        }
+
+        function exportToCSV() {
+            var ventesToExport = getFilteredVentes();
+            if (ventesToExport.length === 0) {
+                alert('Aucune vente à exporter !');
+                return;
+            }
+
+            var headers = [
+                'Commercial', 'Nom', 'Prénom', 'Âge', 'Numéro personne', 'Vente', 'Rattachement',
+                'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv'
+            ];
+            
+            // Utiliser le point-virgule pour Excel français
+            var csvContent = headers.join(';') + '\n';
+            
+            for (var i = 0; i < ventesToExport.length; i++) {
+                var vente = ventesToExport[i];
+                var row = [
+                    vente.commercial || '', vente.nom || '', vente.prenom || '', vente.age || '', vente.numeroPersonne || '',
+                    vente.vente || '', vente.rattachement || '', vente.origine || '', vente.contrat || '', vente.dateEffet || '',
+                    vente.chiffreAffaires || '', vente.pna || '', vente.jourRdv || ''
+                ];
+                csvContent += row.join(';') + '\n';
+            }
+
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            var url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = 'ventes_' + (appState.currentUser ? appState.currentUser.name : 'toutes') + '_' + appState.selectedMonth + '-' + appState.selectedYear + '.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // Initialisation
@@ -1259,8 +1753,26 @@
         window.showImportDialog = showImportDialog;
         window.toggleUserForm = toggleUserForm;
         window.toggleContractForm = toggleContractForm;
+        window.toggleTypeVenteForm = toggleTypeVenteForm;
+        window.toggleOrigineForm = toggleOrigineForm;
+        window.toggleRattachementForm = toggleRattachementForm;
+        window.cancelUserForm = cancelUserForm;
+        window.cancelContractForm = cancelContractForm;
+        window.cancelTypeVenteForm = cancelTypeVenteForm;
+        window.cancelOrigineForm = cancelOrigineForm;
+        window.cancelRattachementForm = cancelRattachementForm;
         window.addContract = addContract;
+        window.addTypeVente = addTypeVente;
+        window.addOrigine = addOrigine;
+        window.addRattachement = addRattachement;
         window.deleteContract = deleteContract;
+        window.deleteTypeVente = deleteTypeVente;
+        window.deleteOrigine = deleteOrigine;
+        window.deleteRattachement = deleteRattachement;
+        window.addNewUser = addNewUser;
+        window.startEditingUser = startEditingUser;
+        window.saveUserPermanences = saveUserPermanences;
+        window.cancelEditingUser = cancelEditingUser;
         window.appState = appState;
         window.render = render;
 
