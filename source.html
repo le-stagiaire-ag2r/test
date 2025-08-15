@@ -1,1518 +1,877 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Download, Eye, Trash2, Edit3, LogOut, BarChart3, Users, TrendingUp, Calendar, UserPlus, Settings, X } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi des Ventes - Assurance</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .lucide { display: inline-block; vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-const SalesTracker = () => {
-  // Structure des commerciaux avec leurs zones et mots de passe
-  const defaultUsers = {
-    "admin": { 
-      password: "admin123", 
-      type: "admin", 
-      name: "Administrateur"
-    },
-    "sarah": { 
-      password: "sarah123", 
-      type: "commercial", 
-      name: "Sarah",
-      agence: "Lille", 
-      permanences: ["Armentières", "Bousbecques", "Lesquin", "Carvin"] 
-    },
-    "caroline": { 
-      password: "caroline123", 
-      type: "commercial", 
-      name: "Caroline",
-      agence: "Lille", 
-      permanences: ["Arras", "Béthune", "Valenciennes", "La Bassée"] 
-    },
-    "laurence": { 
-      password: "laurence123", 
-      type: "commercial", 
-      name: "Laurence",
-      agence: "Lille", 
-      permanences: ["Cambrai", "Feignies", "Flers en Escrebieux"] 
-    },
-    "sophie": { 
-      password: "sophie123", 
-      type: "commercial", 
-      name: "Sophie",
-      agence: "Compiègne", 
-      permanences: ["Chauny", "Laon", "Saint Quentin", "Soissons"] 
-    },
-    "christelle": { 
-      password: "christelle123", 
-      type: "commercial", 
-      name: "Christelle",
-      agence: "Compiègne", 
-      permanences: ["Beauvais", "Gouvieux", "Mouy", "St Just en chaussée"] 
-    },
-    "aldo": { 
-      password: "aldo123", 
-      type: "commercial", 
-      name: "Aldo",
-      agence: "Boves", 
-      permanences: [] 
-    },
-    "celine": { 
-      password: "celine123", 
-      type: "commercial", 
-      name: "Céline",
-      agence: "Boves", 
-      permanences: ["Doullens", "Saint Valery", "Albert", "Péronne", "Poix de Picardie", "Abbeville"] 
-    },
-    "july": { 
-      password: "july123", 
-      type: "commercial", 
-      name: "July",
-      agence: "Caen", 
-      permanences: [] 
-    },
-    "cedric": { 
-      password: "cedric123", 
-      type: "commercial", 
-      name: "Cédric",
-      agence: "Caen", 
-      permanences: ["Cherbourg", "Granville", "Saint Lô", "Alençon", "Argentan", "Flers"] 
-    },
-    "messa": { 
-      password: "messa123", 
-      type: "commercial", 
-      name: "Messa",
-      agence: "Rouen", 
-      permanences: ["Évreux", "Vernon", "Louviers"] 
-    },
-    "amandine": { 
-      password: "amandine123", 
-      type: "commercial", 
-      name: "Amandine",
-      agence: "Calais", 
-      permanences: ["Saint Omer", "Saint Leonard", "Hesdin", "Hazebrouck", "Étaples"] 
-    },
-    "annabelle": { 
-      password: "annabelle123", 
-      type: "commercial", 
-      name: "Annabelle",
-      agence: "Le Havre", 
-      permanences: ["Lisieux", "Yvetot", "Pont Audemer"] 
-    }
-  };
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-  const typesVente = ["Face à face", "Tél"];
-  const origines = ["Prcad", "Rebond Crc", "Client", "Campagne", "Reco", "Visite", "Santé sortie de groupe"];
-  
-  const defaultContrats = [
-    "Santé sortie de groupe", "Prévoyance individuelle", "Protectvia", "Vivépargne",
-    "Prima Cap obsq Pu", "Prima Cap obsq PP", "Prima Vol obsq Pu", "Prima vol obsq Pu",
-    "Certificats Mutualistes", "Viaplus", "Protec territorial", "HPJ", "Terre de vie",
-    "Gpa", "Multiprima", "Mutame", "Perte autonomie", "Patrimoine sélection"
-  ];
+        // Composants Lucide simplifiés
+        const LucideIcon = ({ d, ...props }) => (
+            React.createElement('svg', {
+                ...props,
+                width: props.size || 20,
+                height: props.size || 20,
+                viewBox: '0 0 24 24',
+                fill: 'none',
+                stroke: 'currentColor',
+                strokeWidth: 2,
+                strokeLinecap: 'round',
+                strokeLinejoin: 'round',
+                className: `lucide ${props.className || ''}`
+            }, React.createElement('path', { d }))
+        );
 
-  // États
-  const [users, setUsers] = useState(defaultUsers);
-  const [contrats, setContrats] = useState(defaultContrats);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  const [currentView, setCurrentView] = useState('dashboard');
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [ventes, setVentes] = useState([]);
-  const [editingId, setEditingId] = useState(null);
-  const [showUserForm, setShowUserForm] = useState(false);
-  const [showContractForm, setShowContractForm] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-  const [newContract, setNewContract] = useState('');
-  
-  const [formData, setFormData] = useState({
-    commercial: '',
-    nom: '',
-    prenom: '',
-    age: '',
-    numeroPersonne: '',
-    vente: '',
-    rattachement: '',
-    origine: '',
-    contrat: '',
-    dateEffet: '',
-    chiffreAffaires: '',
-    pna: '',
-    jourRdv: ''
-  });
+        const Plus = (props) => LucideIcon({ d: 'M5 12h14m-7-7v14', ...props });
+        const Download = (props) => LucideIcon({ d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m7-10v12m-4-4l4 4 4-4', ...props });
+        const Eye = (props) => LucideIcon({ d: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z', ...props });
+        const Trash2 = (props) => LucideIcon({ d: 'M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 5v6m4-6v6', ...props });
+        const Edit3 = (props) => LucideIcon({ d: 'M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z', ...props });
+        const LogOut = (props) => LucideIcon({ d: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5-5-5m5 5H9', ...props });
+        const BarChart3 = (props) => LucideIcon({ d: 'M3 3v18h18M8 17V9m4 8V5m4 12v-7', ...props });
+        const Users = (props) => LucideIcon({ d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m8-10a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm8 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8z', ...props });
+        const TrendingUp = (props) => LucideIcon({ d: 'M22 7l-8.5 8.5L9 11l-7 7m20-14h-6m6 0v6', ...props });
+        const Calendar = (props) => LucideIcon({ d: 'M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', ...props });
+        const UserPlus = (props) => LucideIcon({ d: 'M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2m11-11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6 0v6m3-3h-6', ...props });
+        const Settings = (props) => LucideIcon({ d: 'M12.22 2h-.44a2 2 0 0 0-2 2.18l.07 1.68c-.42.3-.83.63-1.21.98l-1.65-.36a2 2 0 0 0-2.45 1.32l-.22.86a2 2 0 0 0 .8 2.39l1.44 1.02c-.09.43-.09.87 0 1.3l-1.44 1.02a2 2 0 0 0-.8 2.39l.22.86a2 2 0 0 0 2.45 1.32l1.65-.36c.38.35.79.68 1.21.98l-.07 1.68a2 2 0 0 0 2 2.18h.44a2 2 0 0 0 2-2.18l-.07-1.68c.42-.3.83-.63 1.21-.98l1.65.36a2 2 0 0 0 2.45-1.32l.22-.86a2 2 0 0 0-.8-2.39l-1.44-1.02c.09-.43.09-.87 0-1.3l1.44-1.02a2 2 0 0 0 .8-2.39l-.22-.86a2 2 0 0 0-2.45-1.32l-1.65.36c-.38-.35-.79-.68-1.21-.98l.07-1.68A2 2 0 0 0 12.22 2z M12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z', ...props });
+        const X = (props) => LucideIcon({ d: 'M18 6L6 18M6 6l12 12', ...props });
 
-  const [newUserForm, setNewUserForm] = useState({
-    username: '',
-    name: '',
-    password: '',
-    agence: '',
-    permanences: ''
-  });
+        const SalesTracker = () => {
+            // Structure des commerciaux avec leurs zones et mots de passe
+            const defaultUsers = {
+                "admin": { 
+                    password: "admin123", 
+                    type: "admin", 
+                    name: "Administrateur"
+                },
+                "sarah": { 
+                    password: "sarah123", 
+                    type: "commercial", 
+                    name: "Sarah",
+                    agence: "Lille", 
+                    permanences: ["Armentières", "Bousbecques", "Lesquin", "Carvin"] 
+                },
+                "caroline": { 
+                    password: "caroline123", 
+                    type: "commercial", 
+                    name: "Caroline",
+                    agence: "Lille", 
+                    permanences: ["Arras", "Béthune", "Valenciennes", "La Bassée"] 
+                },
+                "laurence": { 
+                    password: "laurence123", 
+                    type: "commercial", 
+                    name: "Laurence",
+                    agence: "Lille", 
+                    permanences: ["Cambrai", "Feignies", "Flers en Escrebieux"] 
+                },
+                "sophie": { 
+                    password: "sophie123", 
+                    type: "commercial", 
+                    name: "Sophie",
+                    agence: "Compiègne", 
+                    permanences: ["Chauny", "Laon", "Saint Quentin", "Soissons"] 
+                },
+                "christelle": { 
+                    password: "christelle123", 
+                    type: "commercial", 
+                    name: "Christelle",
+                    agence: "Compiègne", 
+                    permanences: ["Beauvais", "Gouvieux", "Mouy", "St Just en chaussée"] 
+                },
+                "aldo": { 
+                    password: "aldo123", 
+                    type: "commercial", 
+                    name: "Aldo",
+                    agence: "Boves", 
+                    permanences: [] 
+                },
+                "celine": { 
+                    password: "celine123", 
+                    type: "commercial", 
+                    name: "Céline",
+                    agence: "Boves", 
+                    permanences: ["Doullens", "Saint Valery", "Albert", "Péronne", "Poix de Picardie", "Abbeville"] 
+                },
+                "july": { 
+                    password: "july123", 
+                    type: "commercial", 
+                    name: "July",
+                    agence: "Caen", 
+                    permanences: [] 
+                },
+                "cedric": { 
+                    password: "cedric123", 
+                    type: "commercial", 
+                    name: "Cédric",
+                    agence: "Caen", 
+                    permanences: ["Cherbourg", "Granville", "Saint Lô", "Alençon", "Argentan", "Flers"] 
+                },
+                "messa": { 
+                    password: "messa123", 
+                    type: "commercial", 
+                    name: "Messa",
+                    agence: "Rouen", 
+                    permanences: ["Évreux", "Vernon", "Louviers"] 
+                },
+                "amandine": { 
+                    password: "amandine123", 
+                    type: "commercial", 
+                    name: "Amandine",
+                    agence: "Calais", 
+                    permanences: ["Saint Omer", "Saint Leonard", "Hesdin", "Hazebrouck", "Étaples"] 
+                },
+                "annabelle": { 
+                    password: "annabelle123", 
+                    type: "commercial", 
+                    name: "Annabelle",
+                    agence: "Le Havre", 
+                    permanences: ["Lisieux", "Yvetot", "Pont Audemer"] 
+                }
+            };
 
-  const [editUserForm, setEditUserForm] = useState({
-    permanences: ''
-  });
-
-  // Chargement des données au démarrage
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  // Sauvegarde automatique
-  useEffect(() => {
-    saveData();
-  }, [ventes, users, contrats]);
-
-  const saveData = () => {
-    try {
-      const data = {
-        ventes,
-        users,
-        contrats,
-        version: '1.1',
-        lastSaved: new Date().toISOString()
-      };
-      const dataStr = JSON.stringify(data);
-      window.salesTrackerData = dataStr;
-      console.log('Données sauvegardées automatiquement');
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-    }
-  };
-
-  const loadData = () => {
-    try {
-      const savedData = window.salesTrackerData;
-      if (savedData) {
-        const data = JSON.parse(savedData);
-        if (data.ventes) {
-          setVentes(data.ventes);
-        }
-        if (data.users) {
-          setUsers(data.users);
-        }
-        if (data.contrats) {
-          setContrats(data.contrats);
-        }
-        console.log('Données chargées depuis la sauvegarde');
-      } else {
-        console.log('Aucune sauvegarde trouvée, utilisation des données par défaut');
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement:', error);
-      console.log('Utilisation des données par défaut');
-    }
-  };
-
-  const exportAllData = () => {
-    const dataToExport = {
-      ventes,
-      users,
-      contrats,
-      exportDate: new Date().toISOString(),
-      version: '1.1'
-    };
-    
-    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { 
-      type: 'application/json' 
-    });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `backup_sales_tracker_${new Date().toISOString().split('T')[0]}.json`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const importData = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const importedData = JSON.parse(e.target.result);
-        
-        if (importedData.ventes) {
-          setVentes(importedData.ventes);
-        }
-        if (importedData.users) {
-          setUsers(importedData.users);
-        }
-        if (importedData.contrats) {
-          setContrats(importedData.contrats);
-        }
-        
-        alert('Données importées avec succès !');
-      } catch (error) {
-        alert('Erreur lors de l\'import. Vérifiez le format du fichier.');
-        console.error('Erreur import:', error);
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
-  };
-
-  // Gestion de la connexion
-  const handleLogin = () => {
-    const user = users[loginForm.username.toLowerCase()];
-    if (user && user.password === loginForm.password) {
-      setCurrentUser({ ...user, username: loginForm.username.toLowerCase() });
-      setLoginForm({ username: '', password: '' });
-    } else {
-      alert('Nom d\'utilisateur ou mot de passe incorrect');
-    }
-  };
-
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setCurrentView('dashboard');
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setFormData({
-      commercial: '',
-      nom: '',
-      prenom: '',
-      age: '',
-      numeroPersonne: '',
-      vente: '',
-      rattachement: '',
-      origine: '',
-      contrat: '',
-      dateEffet: '',
-      chiffreAffaires: '',
-      pna: '',
-      jourRdv: ''
-    });
-    setEditingId(null);
-  };
-
-  const handleSubmit = () => {
-    // Pour les commerciaux, définir automatiquement leur nom
-    const commercial = currentUser.type === 'commercial' ? currentUser.name : formData.commercial;
-    
-    // Validation des champs obligatoires
-    if (!commercial || !formData.nom || !formData.prenom || !formData.vente || 
-        !formData.rattachement || !formData.origine || !formData.contrat || 
-        !formData.dateEffet || !formData.chiffreAffaires || !formData.pna) {
-      alert('Veuillez remplir tous les champs obligatoires (*)');
-      return;
-    }
-    
-    const venteFinal = { ...formData, commercial };
-    
-    if (editingId) {
-      setVentes(prevVentes => prevVentes.map(vente => 
-        vente.id === editingId 
-          ? { ...venteFinal, id: editingId, dateCreation: vente.dateCreation }
-          : vente
-      ));
-      setEditingId(null);
-    } else {
-      const newVente = {
-        ...venteFinal,
-        id: Date.now(),
-        dateCreation: new Date().toLocaleString('fr-FR')
-      };
-      setVentes(prevVentes => [...prevVentes, newVente]);
-    }
-    
-    resetForm();
-    alert(editingId ? 'Vente modifiée avec succès !' : 'Vente ajoutée avec succès !');
-  };
-
-  const handleEdit = (vente) => {
-    setFormData({ ...vente });
-    setEditingId(vente.id);
-    setCurrentView('saisie');
-  };
-
-  const handleDelete = (id) => {
-    console.log('Tentative de suppression de la vente ID:', id);
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette vente ?')) {
-      setVentes(prevVentes => {
-        const newVentes = prevVentes.filter(vente => vente.id !== id);
-        console.log('Vente supprimée, nouvelles ventes:', newVentes.length);
-        return newVentes;
-      });
-      alert('Vente supprimée avec succès !');
-    }
-  };
-
-  const addNewUser = () => {
-    if (!newUserForm.username || !newUserForm.name || !newUserForm.password || !newUserForm.agence) {
-      alert('Veuillez remplir tous les champs obligatoires');
-      return;
-    }
-
-    if (users[newUserForm.username.toLowerCase()]) {
-      alert('Cet utilisateur existe déjà');
-      return;
-    }
-
-    const permanencesArray = newUserForm.permanences 
-      ? newUserForm.permanences.split(',').map(p => p.trim()).filter(p => p)
-      : [];
-
-    const newUser = {
-      password: newUserForm.password,
-      type: 'commercial',
-      name: newUserForm.name,
-      agence: newUserForm.agence,
-      permanences: permanencesArray
-    };
-
-    setUsers(prevUsers => ({
-      ...prevUsers,
-      [newUserForm.username.toLowerCase()]: newUser
-    }));
-
-    setNewUserForm({
-      username: '',
-      name: '',
-      password: '',
-      agence: '',
-      permanences: ''
-    });
-
-    setShowUserForm(false);
-    alert('Commercial ajouté avec succès !');
-  };
-
-  // Gestion des contrats
-  const addContract = () => {
-    if (!newContract.trim()) {
-      alert('Veuillez saisir un nom de contrat');
-      return;
-    }
-
-    if (contrats.includes(newContract.trim())) {
-      alert('Ce contrat existe déjà');
-      return;
-    }
-
-    setContrats(prev => [...prev, newContract.trim()]);
-    setNewContract('');
-    alert('Contrat ajouté avec succès !');
-  };
-
-  const deleteContract = (contractToDelete) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le contrat "${contractToDelete}" ?`)) {
-      // Forcer la mise à jour en créant un nouveau tableau
-      setContrats(prevContrats => {
-        const newContrats = prevContrats.filter(c => c !== contractToDelete);
-        console.log('Contrat supprimé:', contractToDelete);
-        console.log('Nouveaux contrats:', newContrats);
-        return newContrats;
-      });
-      alert('Contrat supprimé avec succès !');
-    }
-  };
-
-  // Gestion des permanences
-  const startEditingUser = (username) => {
-    const user = users[username];
-    setEditingUser(username);
-    setEditUserForm({
-      permanences: user.permanences.join(', ')
-    });
-  };
-
-  const saveUserPermanences = () => {
-    if (!editingUser) return;
-
-    const permanencesArray = editUserForm.permanences 
-      ? editUserForm.permanences.split(',').map(p => p.trim()).filter(p => p)
-      : [];
-
-    setUsers(prevUsers => ({
-      ...prevUsers,
-      [editingUser]: {
-        ...prevUsers[editingUser],
-        permanences: permanencesArray
-      }
-    }));
-
-    setEditingUser(null);
-    setEditUserForm({ permanences: '' });
-    alert('Permanences mises à jour avec succès !');
-  };
-
-  const cancelEditingUser = () => {
-    setEditingUser(null);
-    setEditUserForm({ permanences: '' });
-  };
-
-  const exportToCSV = () => {
-    const ventesToExport = getFilteredVentes();
-    if (ventesToExport.length === 0) {
-      alert('Aucune vente à exporter !');
-      return;
-    }
-
-    const headers = [
-      'Commercial', 'Nom', 'Prénom', 'Âge', 'Numéro personne', 'Vente', 'Rattachement',
-      'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv'
-    ];
-    
-    const csvContent = [
-      headers.join(','),
-      ...ventesToExport.map(vente => [
-        vente.commercial, vente.nom, vente.prenom, vente.age, vente.numeroPersonne,
-        vente.vente, vente.rattachement, vente.origine, vente.contrat, vente.dateEffet,
-        vente.chiffreAffaires, vente.pna, vente.jourRdv
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `ventes_${currentUser?.name || 'toutes'}_${selectedMonth}-${selectedYear}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const getRattachementOptions = () => {
-    if (currentUser?.type === 'commercial') {
-      const options = [currentUser.agence];
-      return [...options, ...currentUser.permanences];
-    }
-    if (!formData.commercial) return [];
-    const user = Object.values(users).find(u => u.name === formData.commercial);
-    if (!user || user.type !== 'commercial') return [];
-    
-    const options = [user.agence];
-    return [...options, ...user.permanences];
-  };
-
-  const getFilteredVentes = () => {
-    let filtered = ventes;
-    
-    // Filtrer par commercial si pas admin
-    if (currentUser?.type === 'commercial') {
-      filtered = filtered.filter(vente => vente.commercial === currentUser.name);
-    }
-    
-    // Filtrer par mois/année
-    filtered = filtered.filter(vente => {
-      if (!vente.dateEffet) return false;
-      const date = new Date(vente.dateEffet);
-      return date.getMonth() + 1 === selectedMonth && date.getFullYear() === selectedYear;
-    });
-    
-    return filtered;
-  };
-
-  const getStats = () => {
-    const ventesFiltered = getFilteredVentes();
-    const totalVentes = ventesFiltered.length;
-    const totalCA = ventesFiltered.reduce((sum, vente) => sum + (parseFloat(vente.chiffreAffaires) || 0), 0);
-    const totalPNA = ventesFiltered.reduce((sum, vente) => sum + (parseFloat(vente.pna) || 0), 0);
-    
-    const ventesParCommercial = {};
-    const telVsFaceAFace = { "Tél": 0, "Face à face": 0 };
-    const ventesParProduit = {};
-    const ventesParOrigine = {};
-    const ventesParLieu = {};
-    
-    ventesFiltered.forEach(vente => {
-      // Par commercial
-      if (!ventesParCommercial[vente.commercial]) {
-        ventesParCommercial[vente.commercial] = { ventes: 0, ca: 0, pna: 0 };
-      }
-      ventesParCommercial[vente.commercial].ventes++;
-      ventesParCommercial[vente.commercial].ca += parseFloat(vente.chiffreAffaires) || 0;
-      ventesParCommercial[vente.commercial].pna += parseFloat(vente.pna) || 0;
-      
-      // Tél vs Face à face
-      if (vente.vente) {
-        telVsFaceAFace[vente.vente]++;
-      }
-      
-      // Par produit
-      if (vente.contrat && vente.contrat.trim()) {
-        if (!ventesParProduit[vente.contrat]) {
-          ventesParProduit[vente.contrat] = 0;
-        }
-        ventesParProduit[vente.contrat]++;
-      }
-      
-      // Par origine
-      if (vente.origine && vente.origine.trim()) {
-        if (!ventesParOrigine[vente.origine]) {
-          ventesParOrigine[vente.origine] = 0;
-        }
-        ventesParOrigine[vente.origine]++;
-      }
-      
-      // Par lieu (avec noms des permanences)
-      if (vente.rattachement && vente.rattachement.trim()) {
-        if (!ventesParLieu[vente.rattachement]) {
-          ventesParLieu[vente.rattachement] = 0;
-        }
-        ventesParLieu[vente.rattachement]++;
-      }
-    });
-
-    return { 
-      totalVentes, 
-      totalCA, 
-      totalPNA, 
-      ventesParCommercial, 
-      telVsFaceAFace, 
-      ventesParProduit,
-      ventesParOrigine,
-      ventesParLieu
-    };
-  };
-
-  const stats = getStats();
-
-  // Page de connexion
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-          <h1 className="text-2xl font-bold text-center mb-6 text-gray-900">
-            Suivi des Ventes - Connexion
-          </h1>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nom d'utilisateur
-              </label>
-              <input
-                type="text"
-                value={loginForm.username}
-                onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Votre nom d'utilisateur"
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mot de passe
-              </label>
-              <input
-                type="password"
-                value={loginForm.password}
-                onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Votre mot de passe"
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-              />
-            </div>
-            <button
-              onClick={handleLogin}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Se connecter
-            </button>
-          </div>
-          
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium text-gray-900 mb-2">Comptes de test :</h3>
-            <div className="text-sm text-gray-600 space-y-1">
-              <div><strong>Admin:</strong> admin / admin123</div>
-              <div><strong>Commercial:</strong> sarah / sarah123</div>
-              <div className="text-xs text-gray-500 mt-2">
-                (Remplacez sarah par le prénom en minuscules + 123)
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Suivi des Ventes - Assurance</h1>
-              <p className="text-sm text-gray-600">
-                Connecté en tant que : <span className="font-medium">{currentUser.name}</span>
-                {currentUser.type === 'commercial' && ` (${currentUser.agence})`}
-                <span className="text-green-600 ml-2">✓ Sauvegarde automatique</span>
-              </p>
-            </div>
+            const typesVente = ["Face à face", "Tél"];
+            const origines = ["Prcad", "Rebond Crc", "Client", "Campagne", "Reco", "Visite", "Santé sortie de groupe"];
             
-            <div className="flex items-center gap-4">
-              {/* Sélecteur de période */}
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-500" />
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                  className="px-2 py-1 border border-gray-300 rounded text-sm"
-                >
-                  {Array.from({length: 12}, (_, i) => (
-                    <option key={i+1} value={i+1}>
-                      {new Date(0, i).toLocaleDateString('fr-FR', { month: 'long' })}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                  className="px-2 py-1 border border-gray-300 rounded text-sm"
-                >
-                  {Array.from({length: 5}, (_, i) => (
-                    <option key={2023+i} value={2023+i}>{2023+i}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentView('dashboard')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentView === 'dashboard' 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <BarChart3 className="w-4 h-4 inline mr-2" />
-                  Dashboard
-                </button>
-                {currentUser.type === 'commercial' && (
-                  <>
-                    <button
-                      onClick={() => setCurrentView('saisie')}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        currentView === 'saisie' 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <Plus className="w-4 h-4 inline mr-2" />
-                      Nouvelle vente
-                    </button>
-                    <button
-                      onClick={() => setCurrentView('liste')}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        currentView === 'liste' 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <Eye className="w-4 h-4 inline mr-2" />
-                      Mes ventes ({getFilteredVentes().length})
-                    </button>
-                  </>
-                )}
-                {currentUser.type === 'admin' && (
-                  <>
-                    <button
-                      onClick={() => setCurrentView('liste')}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        currentView === 'liste' 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <Eye className="w-4 h-4 inline mr-2" />
-                      Toutes les ventes ({getFilteredVentes().length})
-                    </button>
-                    <button
-                      onClick={() => setCurrentView('gestion')}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        currentView === 'gestion' 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <Settings className="w-4 h-4 inline mr-2" />
-                      Gestion
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={exportToCSV}
-                  className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                >
-                  <Download className="w-4 h-4 inline mr-2" />
-                  Export CSV
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
-                >
-                  <LogOut className="w-4 h-4 inline mr-2" />
-                  Déconnexion
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+            const defaultContrats = [
+                "Santé sortie de groupe", "Prévoyance individuelle", "Protectvia", "Vivépargne",
+                "Prima Cap obsq Pu", "Prima Cap obsq PP", "Prima Vol obsq Pu", "Prima vol obsq Pu",
+                "Certificats Mutualistes", "Viaplus", "Protec territorial", "HPJ", "Terre de vie",
+                "Gpa", "Multiprima", "Mutame", "Perte autonomie", "Patrimoine sélection"
+            ];
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Gestion des utilisateurs et paramètres (Admin seulement) */}
-        {currentView === 'gestion' && currentUser.type === 'admin' && (
-          <div className="space-y-6">
-            {/* Gestion des données */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4">Gestion des Données</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button
-                  onClick={exportAllData}
-                  className="px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  <Download className="w-4 h-4 inline mr-2" />
-                  Backup Complet
-                </button>
-                <label className="px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors cursor-pointer text-center">
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={importData}
-                    className="hidden"
-                  />
-                  📁 Importer Backup
-                </label>
-                <button
-                  onClick={() => setShowUserForm(!showUserForm)}
-                  className="px-4 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
-                >
-                  <UserPlus className="w-4 h-4 inline mr-2" />
-                  Ajouter Commercial
-                </button>
-              </div>
-            </div>
+            // États
+            const [users, setUsers] = useState(defaultUsers);
+            const [contrats, setContrats] = useState(defaultContrats);
+            const [currentUser, setCurrentUser] = useState(null);
+            const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+            const [currentView, setCurrentView] = useState('dashboard');
+            const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+            const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+            const [ventes, setVentes] = useState([]);
+            const [editingId, setEditingId] = useState(null);
+            const [showUserForm, setShowUserForm] = useState(false);
+            const [showContractForm, setShowContractForm] = useState(false);
+            const [editingUser, setEditingUser] = useState(null);
+            const [newContract, setNewContract] = useState('');
+            
+            const [formData, setFormData] = useState({
+                commercial: '',
+                nom: '',
+                prenom: '',
+                age: '',
+                numeroPersonne: '',
+                vente: '',
+                rattachement: '',
+                origine: '',
+                contrat: '',
+                dateEffet: '',
+                chiffreAffaires: '',
+                pna: '',
+                jourRdv: ''
+            });
 
-            {/* Gestion des contrats */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Gestion des Types de Contrats</h3>
-                <button
-                  onClick={() => setShowContractForm(!showContractForm)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-4 h-4 inline mr-2" />
-                  Ajouter un contrat
-                </button>
-              </div>
-              
-              {showContractForm && (
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex gap-3">
-                    <input
-                      type="text"
-                      value={newContract}
-                      onChange={(e) => setNewContract(e.target.value)}
-                      placeholder="Nom du nouveau contrat"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                      onKeyPress={(e) => e.key === 'Enter' && addContract()}
-                    />
-                    <button
-                      onClick={addContract}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                    >
-                      Ajouter
-                    </button>
-                    <button
-                      onClick={() => {setShowContractForm(false); setNewContract('');}}
-                      className="px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
-                    >
-                      Annuler
-                    </button>
-                  </div>
-                </div>
-              )}
+            const [newUserForm, setNewUserForm] = useState({
+                username: '',
+                name: '',
+                password: '',
+                agence: '',
+                permanences: ''
+            });
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {contrats.map((contrat, index) => (
-                  <div key={`contract-${index}-${contrat}`} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-900 flex-1">{contrat}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Tentative de suppression du contrat:', contrat);
-                        deleteContract(contrat);
-                      }}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors flex-shrink-0 ml-2"
-                      title="Supprimer ce contrat"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {contrats.length === 0 && (
-                <p className="text-gray-500 text-center py-8">Aucun contrat configuré</p>
-              )}
-            </div>
+            const [editUserForm, setEditUserForm] = useState({
+                permanences: ''
+            });
 
-            {showUserForm && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold mb-4">Ajouter un nouveau commercial</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom d'utilisateur *
-                    </label>
-                    <input
-                      type="text"
-                      value={newUserForm.username}
-                      onChange={(e) => setNewUserForm({...newUserForm, username: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      placeholder="Ex: marie"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom complet *
-                    </label>
-                    <input
-                      type="text"
-                      value={newUserForm.name}
-                      onChange={(e) => setNewUserForm({...newUserForm, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      placeholder="Ex: Marie Dupont"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Mot de passe *
-                    </label>
-                    <input
-                      type="text"
-                      value={newUserForm.password}
-                      onChange={(e) => setNewUserForm({...newUserForm, password: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      placeholder="Ex: marie123"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Agence *
-                    </label>
-                    <input
-                      type="text"
-                      value={newUserForm.agence}
-                      onChange={(e) => setNewUserForm({...newUserForm, agence: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      placeholder="Ex: Lille"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Permanences (séparées par des virgules)
-                    </label>
-                    <input
-                      type="text"
-                      value={newUserForm.permanences}
-                      onChange={(e) => setNewUserForm({...newUserForm, permanences: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      placeholder="Ex: Arras, Béthune, Valenciennes"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-3 mt-4">
-                  <button
-                    onClick={addNewUser}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                  >
-                    Ajouter le commercial
-                  </button>
-                  <button
-                    onClick={() => setShowUserForm(false)}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
-                  >
-                    Annuler
-                  </button>
-                </div>
-              </div>
-            )}
+            // Chargement des données au démarrage
+            useEffect(() => {
+                loadData();
+            }, []);
 
-            {/* Liste des commerciaux avec gestion des permanences */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4">Gestion des Commerciaux et Permanences</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Nom</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Username</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Agence</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Permanences</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Ventes Total</th>
-                      <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {Object.entries(users)
-                      .filter(([, user]) => user.type === 'commercial')
-                      .map(([username, user]) => {
-                        const userVentes = ventes.filter(v => v.commercial === user.name);
-                        const isEditing = editingUser === username;
+            // Sauvegarde automatique en localStorage
+            useEffect(() => {
+                saveData();
+            }, [ventes, users, contrats]);
+
+            const saveData = () => {
+                try {
+                    const data = {
+                        ventes,
+                        users,
+                        contrats,
+                        version: '1.1',
+                        lastSaved: new Date().toISOString()
+                    };
+                    localStorage.setItem('salesTrackerData', JSON.stringify(data));
+                    console.log('Données sauvegardées automatiquement');
+                } catch (error) {
+                    console.error('Erreur lors de la sauvegarde:', error);
+                }
+            };
+
+            const loadData = () => {
+                try {
+                    const savedData = localStorage.getItem('salesTrackerData');
+                    if (savedData) {
+                        const data = JSON.parse(savedData);
+                        if (data.ventes) {
+                            setVentes(data.ventes);
+                        }
+                        if (data.users) {
+                            setUsers(data.users);
+                        }
+                        if (data.contrats) {
+                            setContrats(data.contrats);
+                        }
+                        console.log('Données chargées depuis localStorage');
+                    } else {
+                        console.log('Aucune sauvegarde trouvée, utilisation des données par défaut');
+                    }
+                } catch (error) {
+                    console.error('Erreur lors du chargement:', error);
+                    console.log('Utilisation des données par défaut');
+                }
+            };
+
+            const exportAllData = () => {
+                const dataToExport = {
+                    ventes,
+                    users,
+                    contrats,
+                    exportDate: new Date().toISOString(),
+                    version: '1.1'
+                };
+                
+                const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { 
+                    type: 'application/json' 
+                });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `backup_sales_tracker_${new Date().toISOString().split('T')[0]}.json`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const importData = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
                         
-                        return (
-                          <tr key={username} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 text-sm text-gray-900">{user.name}</td>
-                            <td className="px-4 py-3 text-sm text-gray-600">{username}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900">{user.agence}</td>
-                            <td className="px-4 py-3 text-sm text-gray-600">
-                              {isEditing ? (
-                                <div className="flex gap-2">
-                                  <input
-                                    type="text"
-                                    value={editUserForm.permanences}
-                                    onChange={(e) => setEditUserForm({permanences: e.target.value})}
-                                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                                    placeholder="Séparez par des virgules"
-                                  />
-                                  <button
-                                    onClick={saveUserPermanences}
-                                    className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                                  >
-                                    ✓
-                                  </button>
-                                  <button
-                                    onClick={cancelEditingUser}
-                                    className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="flex justify-between items-center">
-                                  <span>
-                                    {user.permanences.length > 0 ? user.permanences.join(', ') : 'Aucune'}
-                                  </span>
-                                  <button
-                                    onClick={() => startEditingUser(username)}
-                                    className="ml-2 p-1 text-blue-600 hover:bg-blue-50 rounded"
-                                    title="Modifier les permanences"
-                                  >
-                                    <Edit3 className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-sm font-medium text-blue-600">{userVentes.length}</td>
-                            <td className="px-4 py-3 text-center">
-                              {!isEditing && (
-                                <button
-                                  onClick={() => startEditingUser(username)}
-                                  className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
-                                >
-                                  Modifier permanences
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+                        if (importedData.ventes) {
+                            setVentes(importedData.ventes);
+                        }
+                        if (importedData.users) {
+                            setUsers(importedData.users);
+                        }
+                        if (importedData.contrats) {
+                            setContrats(importedData.contrats);
+                        }
+                        
+                        alert('Données importées avec succès !');
+                    } catch (error) {
+                        alert('Erreur lors de l\'import. Vérifiez le format du fichier.');
+                        console.error('Erreur import:', error);
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            };
 
-        {/* Dashboard */}
-        {currentView === 'dashboard' && (
-          <div className="space-y-6">
-            {/* Statistiques principales */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <div className="text-sm text-gray-600">Total ventes</div>
-                <div className="text-2xl font-bold text-blue-600">{stats.totalVentes}</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <div className="text-sm text-gray-600">CA Total</div>
-                <div className="text-2xl font-bold text-green-600">{stats.totalCA.toFixed(2)}€</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <div className="text-sm text-gray-600">PNA Total</div>
-                <div className="text-2xl font-bold text-purple-600">{stats.totalPNA.toFixed(2)}€</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <div className="text-sm text-gray-600">CA Moyen</div>
-                <div className="text-2xl font-bold text-orange-600">
-                  {stats.totalVentes > 0 ? (stats.totalCA / stats.totalVentes).toFixed(2) : '0'}€
-                </div>
-              </div>
-            </div>
+            // Gestion de la connexion
+            const handleLogin = () => {
+                const user = users[loginForm.username.toLowerCase()];
+                if (user && user.password === loginForm.password) {
+                    setCurrentUser({ ...user, username: loginForm.username.toLowerCase() });
+                    setLoginForm({ username: '', password: '' });
+                } else {
+                    alert('Nom d\'utilisateur ou mot de passe incorrect');
+                }
+            };
 
-            {/* Stats détaillées */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Tél vs Face à face */}
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Répartition Tél vs Face à face</h3>
-                <div className="space-y-3">
-                  {Object.entries(stats.telVsFaceAFace).map(([type, count]) => {
-                    const percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
-                    return (
-                      <div key={type}>
-                        <div className="flex justify-between text-sm">
-                          <span>{type}</span>
-                          <span>{count} ventes ({percentage}%)</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full ${type === 'Tél' ? 'bg-blue-500' : 'bg-green-500'}`}
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+            const handleLogout = () => {
+                setCurrentUser(null);
+                setCurrentView('dashboard');
+                resetForm();
+            };
 
-              {/* Performance par Origine */}
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Répartition par Origine</h3>
-                <div className="space-y-3">
-                  {Object.entries(stats.ventesParOrigine)
-                    .sort(([,a], [,b]) => b - a)
-                    .slice(0, 5)
-                    .map(([origine, count]) => {
-                    const percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
-                    return (
-                      <div key={origine}>
-                        <div className="flex justify-between text-sm">
-                          <span>{origine}</span>
-                          <span>{count} ventes ({percentage}%)</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="h-2 rounded-full bg-purple-500"
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+            const resetForm = () => {
+                setFormData({
+                    commercial: '',
+                    nom: '',
+                    prenom: '',
+                    age: '',
+                    numeroPersonne: '',
+                    vente: '',
+                    rattachement: '',
+                    origine: '',
+                    contrat: '',
+                    dateEffet: '',
+                    chiffreAffaires: '',
+                    pna: '',
+                    jourRdv: ''
+                });
+                setEditingId(null);
+            };
 
-            {/* Répartition par lieux (Agences et Permanences) */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">Performance par Lieu (Agences & Permanences)</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(stats.ventesParLieu)
-                  .sort(([,a], [,b]) => b - a)
-                  .map(([lieu, count]) => {
-                  const percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
-                  // Déterminer si c'est une agence ou une permanence
-                  const isAgence = Object.values(users).some(user => 
-                    user.type === 'commercial' && user.agence === lieu
-                  );
-                  return (
-                    <div key={lieu} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="text-sm font-medium text-gray-900 mb-1">
-                        {lieu}
-                        <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                          isAgence ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {isAgence ? 'Agence' : 'Permanence'}
-                        </span>
-                      </div>
-                      <div className="text-lg font-bold text-gray-900">{count} ventes</div>
-                      <div className="text-sm text-gray-600">{percentage}% du total</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            const handleSubmit = () => {
+                // Pour les commerciaux, définir automatiquement leur nom
+                const commercial = currentUser.type === 'commercial' ? currentUser.name : formData.commercial;
+                
+                // Validation des champs obligatoires
+                if (!commercial || !formData.nom || !formData.prenom || !formData.vente || 
+                    !formData.rattachement || !formData.origine || !formData.contrat || 
+                    !formData.dateEffet || !formData.chiffreAffaires || !formData.pna) {
+                    alert('Veuillez remplir tous les champs obligatoires (*)');
+                    return;
+                }
+                
+                const venteFinal = { ...formData, commercial };
+                
+                if (editingId) {
+                    setVentes(prevVentes => prevVentes.map(vente => 
+                        vente.id === editingId 
+                            ? { ...venteFinal, id: editingId, dateCreation: vente.dateCreation }
+                            : vente
+                    ));
+                    setEditingId(null);
+                } else {
+                    const newVente = {
+                        ...venteFinal,
+                        id: Date.now(),
+                        dateCreation: new Date().toLocaleString('fr-FR')
+                    };
+                    setVentes(prevVentes => [...prevVentes, newVente]);
+                }
+                
+                resetForm();
+                alert(editingId ? 'Vente modifiée avec succès !' : 'Vente ajoutée avec succès !');
+            };
 
-            {/* Performance par commercial (Admin seulement) */}
-            {currentUser.type === 'admin' && (
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Performance par Commercial</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-2">Commercial</th>
-                        <th className="text-right py-2">Ventes</th>
-                        <th className="text-right py-2">CA Total</th>
-                        <th className="text-right py-2">PNA Total</th>
-                        <th className="text-right py-2">CA Moyen</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(stats.ventesParCommercial)
-                        .sort(([,a], [,b]) => b.ventes - a.ventes)
-                        .map(([commercial, data]) => (
-                        <tr key={commercial} className="border-b hover:bg-gray-50">
-                          <td className="py-2 font-medium">{commercial}</td>
-                          <td className="text-right py-2">{data.ventes}</td>
-                          <td className="text-right py-2 text-green-600">{data.ca.toFixed(2)}€</td>
-                          <td className="text-right py-2 text-purple-600">{data.pna.toFixed(2)}€</td>
-                          <td className="text-right py-2">{data.ventes > 0 ? (data.ca / data.ventes).toFixed(2) : '0'}€</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+            const handleEdit = (vente) => {
+                setFormData({ ...vente });
+                setEditingId(vente.id);
+                setCurrentView('saisie');
+            };
 
-            {/* Top produits */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">Performance par Produit</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(stats.ventesParProduit)
-                  .sort(([,a], [,b]) => b - a)
-                  .slice(0, 9)
-                  .map(([produit, count]) => {
-                  const percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
-                  return (
-                    <div key={produit} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="text-sm font-medium text-gray-900 mb-1">{produit}</div>
-                      <div className="text-lg font-bold text-blue-600">{count} ventes</div>
-                      <div className="text-sm text-gray-600">{percentage}% du total</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
+            const handleDelete = (id) => {
+                console.log('Tentative de suppression de la vente ID:', id);
+                if (window.confirm('Êtes-vous sûr de vouloir supprimer cette vente ?')) {
+                    setVentes(prevVentes => {
+                        const newVentes = prevVentes.filter(vente => vente.id !== id);
+                        console.log('Vente supprimée, nouvelles ventes:', newVentes.length);
+                        return newVentes;
+                    });
+                    alert('Vente supprimée avec succès !');
+                }
+            };
 
-        {/* Formulaire de saisie */}
-        {currentView === 'saisie' && currentUser.type === 'commercial' && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-6">
-              {editingId ? 'Modifier la vente' : 'Nouvelle vente'}
-            </h2>
-            
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Commercial (Admin seulement) */}
-                {currentUser.type === 'admin' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Commercial *
-                    </label>
-                    <select
-                      value={formData.commercial}
-                      onChange={(e) => setFormData({...formData, commercial: e.target.value, rattachement: ''})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">Sélectionner un commercial</option>
-                      {Object.values(users)
-                        .filter(user => user.type === 'commercial')
-                        .map(user => (
-                        <option key={user.name} value={user.name}>{user.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+            const addNewUser = () => {
+                if (!newUserForm.username || !newUserForm.name || !newUserForm.password || !newUserForm.agence) {
+                    alert('Veuillez remplir tous les champs obligatoires');
+                    return;
+                }
 
-                {/* Nom */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.nom}
-                    onChange={(e) => setFormData({...formData, nom: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+                if (users[newUserForm.username.toLowerCase()]) {
+                    alert('Cet utilisateur existe déjà');
+                    return;
+                }
 
-                {/* Prénom */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Prénom *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.prenom}
-                    onChange={(e) => setFormData({...formData, prenom: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+                const permanencesArray = newUserForm.permanences 
+                    ? newUserForm.permanences.split(',').map(p => p.trim()).filter(p => p)
+                    : [];
 
-                {/* Âge */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Âge
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.age}
-                    onChange={(e) => setFormData({...formData, age: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+                const newUser = {
+                    password: newUserForm.password,
+                    type: 'commercial',
+                    name: newUserForm.name,
+                    agence: newUserForm.agence,
+                    permanences: permanencesArray
+                };
 
-                {/* Numéro personne */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Numéro personne
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.numeroPersonne}
-                    onChange={(e) => setFormData({...formData, numeroPersonne: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+                setUsers(prevUsers => ({
+                    ...prevUsers,
+                    [newUserForm.username.toLowerCase()]: newUser
+                }));
 
-                {/* Type de vente */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type de vente *
-                  </label>
-                  <select
-                    value={formData.vente}
-                    onChange={(e) => setFormData({...formData, vente: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Sélectionner</option>
-                    {typesVente.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
+                setNewUserForm({
+                    username: '',
+                    name: '',
+                    password: '',
+                    agence: '',
+                    permanences: ''
+                });
 
-                {/* Rattachement */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Rattachement *
-                  </label>
-                  <select
-                    value={formData.rattachement}
-                    onChange={(e) => setFormData({...formData, rattachement: e.target.value})}
-                    disabled={currentUser.type === 'admin' && !formData.commercial}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-                  >
-                    <option value="">Sélectionner</option>
-                    {getRattachementOptions().map(option => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                </div>
+                setShowUserForm(false);
+                alert('Commercial ajouté avec succès !');
+            };
 
-                {/* Origine */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Origine *
-                  </label>
-                  <select
-                    value={formData.origine}
-                    onChange={(e) => setFormData({...formData, origine: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Sélectionner</option>
-                    {origines.map(origine => (
-                      <option key={origine} value={origine}>{origine}</option>
-                    ))}
-                  </select>
-                </div>
+            // Gestion des contrats
+            const addContract = () => {
+                if (!newContract.trim()) {
+                    alert('Veuillez saisir un nom de contrat');
+                    return;
+                }
 
-                {/* Contrat */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contrat *
-                  </label>
-                  <select
-                    value={formData.contrat}
-                    onChange={(e) => setFormData({...formData, contrat: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Sélectionner</option>
-                    {contrats.map(contrat => (
-                      <option key={contrat} value={contrat}>{contrat}</option>
-                    ))}
-                  </select>
-                </div>
+                if (contrats.includes(newContract.trim())) {
+                    alert('Ce contrat existe déjà');
+                    return;
+                }
 
-                {/* Date effet */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date effet *
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.dateEffet}
-                    onChange={(e) => setFormData({...formData, dateEffet: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+                setContrats(prev => [...prev, newContract.trim()]);
+                setNewContract('');
+                alert('Contrat ajouté avec succès !');
+            };
 
-                {/* Chiffre d'affaires */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Chiffre d'affaires (€) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.chiffreAffaires}
-                    onChange={(e) => setFormData({...formData, chiffreAffaires: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+            const deleteContract = (contractToDelete) => {
+                if (window.confirm(`Êtes-vous sûr de vouloir supprimer le contrat "${contractToDelete}" ?`)) {
+                    setContrats(prevContrats => {
+                        const newContrats = prevContrats.filter(c => c !== contractToDelete);
+                        console.log('Contrat supprimé:', contractToDelete);
+                        console.log('Nouveaux contrats:', newContrats);
+                        return newContrats;
+                    });
+                    alert('Contrat supprimé avec succès !');
+                }
+            };
 
-                {/* PNA */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    PNA (€) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.pna}
-                    onChange={(e) => setFormData({...formData, pna: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+            // Gestion des permanences
+            const startEditingUser = (username) => {
+                const user = users[username];
+                setEditingUser(username);
+                setEditUserForm({
+                    permanences: user.permanences.join(', ')
+                });
+            };
 
-                {/* Jour du RDV */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Jour du RDV
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.jourRdv}
-                    onChange={(e) => setFormData({...formData, jourRdv: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
+            const saveUserPermanences = () => {
+                if (!editingUser) return;
 
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  {editingId ? 'Modifier la vente' : 'Enregistrer la vente'}
-                </button>
-                {editingId && (
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="px-6 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
-                  >
-                    Annuler
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+                const permanencesArray = editUserForm.permanences 
+                    ? editUserForm.permanences.split(',').map(p => p.trim()).filter(p => p)
+                    : [];
 
-        {/* Liste des ventes */}
-        {currentView === 'liste' && (
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-semibold">
-                {currentUser.type === 'commercial' ? 'Mes ventes' : 'Liste des ventes'} 
-                ({getFilteredVentes().length})
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Période : {new Date(0, selectedMonth - 1).toLocaleDateString('fr-FR', { month: 'long' })} {selectedYear}
-              </p>
-            </div>
-            
-            {getFilteredVentes().length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <div className="text-lg mb-2">Aucune vente pour cette période</div>
-                <div className="text-sm">Cliquez sur "Nouvelle vente" pour commencer</div>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      {currentUser.type === 'admin' && (
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Commercial</th>
-                      )}
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Client</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Contrat</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Type</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Rattachement</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">CA (€)</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">PNA (€)</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Date effet</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {getFilteredVentes().map((vente) => (
-                      <tr key={`vente-${vente.id}`} className="hover:bg-gray-50">
-                        {currentUser.type === 'admin' && (
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{vente.commercial}</td>
-                        )}
-                        <td className="px-4 py-3 text-sm text-gray-900">{vente.nom} {vente.prenom}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{vente.contrat}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            vente.vente === 'Tél' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                          }`}>
-                            {vente.vente}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{vente.rattachement}</td>
-                        <td className="px-4 py-3 text-sm font-medium text-green-600">
-                          {parseFloat(vente.chiffreAffaires || 0).toFixed(2)}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-medium text-purple-600">
-                          {parseFloat(vente.pna || 0).toFixed(2)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{vente.dateEffet}</td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex justify-end gap-2">
-                            {(currentUser.type === 'admin' || vente.commercial === currentUser.name) && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleEdit(vente);
-                                  }}
-                                  className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                                  title="Modifier"
-                                >
-                                  <Edit3 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    console.log('Clic suppression vente:', vente.id);
-                                    handleDelete(vente.id);
-                                  }}
-                                  className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                  title="Supprimer"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+                setUsers(prevUsers => ({
+                    ...prevUsers,
+                    [editingUser]: {
+                        ...prevUsers[editingUser],
+                        permanences: permanencesArray
+                    }
+                }));
 
-export default SalesTracker;
+                setEditingUser(null);
+                setEditUserForm({ permanences: '' });
+                alert('Permanences mises à jour avec succès !');
+            };
+
+            const cancelEditingUser = () => {
+                setEditingUser(null);
+                setEditUserForm({ permanences: '' });
+            };
+
+            const exportToCSV = () => {
+                const ventesToExport = getFilteredVentes();
+                if (ventesToExport.length === 0) {
+                    alert('Aucune vente à exporter !');
+                    return;
+                }
+
+                const headers = [
+                    'Commercial', 'Nom', 'Prénom', 'Âge', 'Numéro personne', 'Vente', 'Rattachement',
+                    'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv'
+                ];
+                
+                const csvContent = [
+                    headers.join(','),
+                    ...ventesToExport.map(vente => [
+                        vente.commercial, vente.nom, vente.prenom, vente.age, vente.numeroPersonne,
+                        vente.vente, vente.rattachement, vente.origine, vente.contrat, vente.dateEffet,
+                        vente.chiffreAffaires, vente.pna, vente.jourRdv
+                    ].join(','))
+                ].join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `ventes_${currentUser?.name || 'toutes'}_${selectedMonth}-${selectedYear}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const getRattachementOptions = () => {
+                if (currentUser?.type === 'commercial') {
+                    const options = [currentUser.agence];
+                    return [...options, ...currentUser.permanences];
+                }
+                if (!formData.commercial) return [];
+                const user = Object.values(users).find(u => u.name === formData.commercial);
+                if (!user || user.type !== 'commercial') return [];
+                
+                const options = [user.agence];
+                return [...options, ...user.permanences];
+            };
+
+            const getFilteredVentes = () => {
+                let filtered = ventes;
+                
+                // Filtrer par commercial si pas admin
+                if (currentUser?.type === 'commercial') {
+                    filtered = filtered.filter(vente => vente.commercial === currentUser.name);
+                }
+                
+                // Filtrer par mois/année
+                filtered = filtered.filter(vente => {
+                    if (!vente.dateEffet) return false;
+                    const date = new Date(vente.dateEffet);
+                    return date.getMonth() + 1 === selectedMonth && date.getFullYear() === selectedYear;
+                });
+                
+                return filtered;
+            };
+
+            const getStats = () => {
+                const ventesFiltered = getFilteredVentes();
+                const totalVentes = ventesFiltered.length;
+                const totalCA = ventesFiltered.reduce((sum, vente) => sum + (parseFloat(vente.chiffreAffaires) || 0), 0);
+                const totalPNA = ventesFiltered.reduce((sum, vente) => sum + (parseFloat(vente.pna) || 0), 0);
+                
+                const ventesParCommercial = {};
+                const telVsFaceAFace = { "Tél": 0, "Face à face": 0 };
+                const ventesParProduit = {};
+                const ventesParOrigine = {};
+                const ventesParLieu = {};
+                
+                ventesFiltered.forEach(vente => {
+                    // Par commercial
+                    if (!ventesParCommercial[vente.commercial]) {
+                        ventesParCommercial[vente.commercial] = { ventes: 0, ca: 0, pna: 0 };
+                    }
+                    ventesParCommercial[vente.commercial].ventes++;
+                    ventesParCommercial[vente.commercial].ca += parseFloat(vente.chiffreAffaires) || 0;
+                    ventesParCommercial[vente.commercial].pna += parseFloat(vente.pna) || 0;
+                    
+                    // Tél vs Face à face
+                    if (vente.vente) {
+                        telVsFaceAFace[vente.vente]++;
+                    }
+                    
+                    // Par produit
+                    if (vente.contrat && vente.contrat.trim()) {
+                        if (!ventesParProduit[vente.contrat]) {
+                            ventesParProduit[vente.contrat] = 0;
+                        }
+                        ventesParProduit[vente.contrat]++;
+                    }
+                    
+                    // Par origine
+                    if (vente.origine && vente.origine.trim()) {
+                        if (!ventesParOrigine[vente.origine]) {
+                            ventesParOrigine[vente.origine] = 0;
+                        }
+                        ventesParOrigine[vente.origine]++;
+                    }
+                    
+                    // Par lieu (avec noms des permanences)
+                    if (vente.rattachement && vente.rattachement.trim()) {
+                        if (!ventesParLieu[vente.rattachement]) {
+                            ventesParLieu[vente.rattachement] = 0;
+                        }
+                        ventesParLieu[vente.rattachement]++;
+                    }
+                });
+
+                return { 
+                    totalVentes, 
+                    totalCA, 
+                    totalPNA, 
+                    ventesParCommercial, 
+                    telVsFaceAFace, 
+                    ventesParProduit,
+                    ventesParOrigine,
+                    ventesParLieu
+                };
+            };
+
+            const stats = getStats();
+
+            // Page de connexion
+            if (!currentUser) {
+                return React.createElement('div', { className: "min-h-screen bg-gray-50 flex items-center justify-center" },
+                    React.createElement('div', { className: "bg-white p-8 rounded-lg shadow-lg w-full max-w-md" },
+                        React.createElement('h1', { className: "text-2xl font-bold text-center mb-6 text-gray-900" },
+                            "Suivi des Ventes - Connexion"
+                        ),
+                        React.createElement('div', { className: "space-y-4" },
+                            React.createElement('div', null,
+                                React.createElement('label', { className: "block text-sm font-medium text-gray-700 mb-2" },
+                                    "Nom d'utilisateur"
+                                ),
+                                React.createElement('input', {
+                                    type: "text",
+                                    value: loginForm.username,
+                                    onChange: (e) => setLoginForm({...loginForm, username: e.target.value}),
+                                    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                                    placeholder: "Votre nom d'utilisateur",
+                                    onKeyPress: (e) => e.key === 'Enter' && handleLogin()
+                                })
+                            ),
+                            React.createElement('div', null,
+                                React.createElement('label', { className: "block text-sm font-medium text-gray-700 mb-2" },
+                                    "Mot de passe"
+                                ),
+                                React.createElement('input', {
+                                    type: "password",
+                                    value: loginForm.password,
+                                    onChange: (e) => setLoginForm({...loginForm, password: e.target.value}),
+                                    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                                    placeholder: "Votre mot de passe",
+                                    onKeyPress: (e) => e.key === 'Enter' && handleLogin()
+                                })
+                            ),
+                            React.createElement('button', {
+                                onClick: handleLogin,
+                                className: "w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                            }, "Se connecter")
+                        ),
+                        
+                        React.createElement('div', { className: "mt-8 p-4 bg-gray-50 rounded-lg" },
+                            React.createElement('h3', { className: "font-medium text-gray-900 mb-2" }, "Comptes de test :"),
+                            React.createElement('div', { className: "text-sm text-gray-600 space-y-1" },
+                                React.createElement('div', null, React.createElement('strong', null, "Admin:"), " admin / admin123"),
+                                React.createElement('div', null, React.createElement('strong', null, "Commercial:"), " sarah / sarah123"),
+                                React.createElement('div', { className: "text-xs text-gray-500 mt-2" },
+                                    "(Remplacez sarah par le prénom en minuscules + 123)"
+                                )
+                            )
+                        )
+                    )
+                );
+            }
+
+            return React.createElement('div', { className: "min-h-screen bg-gray-50" },
+                // Header
+                React.createElement('div', { className: "bg-white shadow-sm border-b" },
+                    React.createElement('div', { className: "max-w-7xl mx-auto px-4 py-4" },
+                        React.createElement('div', { className: "flex justify-between items-center" },
+                            React.createElement('div', null,
+                                React.createElement('h1', { className: "text-2xl font-bold text-gray-900" }, "Suivi des Ventes - Assurance"),
+                                React.createElement('p', { className: "text-sm text-gray-600" },
+                                    "Connecté en tant que : ",
+                                    React.createElement('span', { className: "font-medium" }, currentUser.name),
+                                    currentUser.type === 'commercial' && ` (${currentUser.agence})`,
+                                    React.createElement('span', { className: "text-green-600 ml-2" }, "✓ Sauvegarde automatique")
+                                )
+                            ),
+                            
+                            React.createElement('div', { className: "flex items-center gap-4" },
+                                // Sélecteur de période
+                                React.createElement('div', { className: "flex items-center gap-2" },
+                                    React.createElement(Calendar, { className: "w-4 h-4 text-gray-500" }),
+                                    React.createElement('select', {
+                                        value: selectedMonth,
+                                        onChange: (e) => setSelectedMonth(parseInt(e.target.value)),
+                                        className: "px-2 py-1 border border-gray-300 rounded text-sm"
+                                    },
+                                        Array.from({length: 12}, (_, i) => 
+                                            React.createElement('option', { key: i+1, value: i+1 },
+                                                new Date(0, i).toLocaleDateString('fr-FR', { month: 'long' })
+                                            )
+                                        )
+                                    ),
+                                    React.createElement('select', {
+                                        value: selectedYear,
+                                        onChange: (e) => setSelectedYear(parseInt(e.target.value)),
+                                        className: "px-2 py-1 border border-gray-300 rounded text-sm"
+                                    },
+                                        Array.from({length: 5}, (_, i) => 
+                                            React.createElement('option', { key: 2023+i, value: 2023+i }, 2023+i)
+                                        )
+                                    )
+                                ),
+                                
+                                React.createElement('div', { className: "flex gap-2" },
+                                    React.createElement('button', {
+                                        onClick: () => setCurrentView('dashboard'),
+                                        className: `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                            currentView === 'dashboard' 
+                                                ? 'bg-blue-600 text-white' 
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`
+                                    },
+                                        React.createElement(BarChart3, { className: "w-4 h-4 inline mr-2" }),
+                                        "Dashboard"
+                                    ),
+                                    currentUser.type === 'commercial' && [
+                                        React.createElement('button', {
+                                            key: 'saisie',
+                                            onClick: () => setCurrentView('saisie'),
+                                            className: `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                currentView === 'saisie' 
+                                                    ? 'bg-blue-600 text-white' 
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`
+                                        },
+                                            React.createElement(Plus, { className: "w-4 h-4 inline mr-2" }),
+                                            "Nouvelle vente"
+                                        ),
+                                        React.createElement('button', {
+                                            key: 'liste',
+                                            onClick: () => setCurrentView('liste'),
+                                            className: `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                currentView === 'liste' 
+                                                    ? 'bg-blue-600 text-white' 
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`
+                                        },
+                                            React.createElement(Eye, { className: "w-4 h-4 inline mr-2" }),
+                                            `Mes ventes (${getFilteredVentes().length})`
+                                        )
+                                    ],
+                                    currentUser.type === 'admin' && [
+                                        React.createElement('button', {
+                                            key: 'liste-admin',
+                                            onClick: () => setCurrentView('liste'),
+                                            className: `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                currentView === 'liste' 
+                                                    ? 'bg-blue-600 text-white' 
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`
+                                        },
+                                            React.createElement(Eye, { className: "w-4 h-4 inline mr-2" }),
+                                            `Toutes les ventes (${getFilteredVentes().length})`
+                                        ),
+                                        React.createElement('button', {
+                                            key: 'gestion',
+                                            onClick: () => setCurrentView('gestion'),
+                                            className: `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                currentView === 'gestion' 
+                                                    ? 'bg-blue-600 text-white' 
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`
+                                        },
+                                            React.createElement(Settings, { className: "w-4 h-4 inline mr-2" }),
+                                            "Gestion"
+                                        )
+                                    ],
+                                    React.createElement('button', {
+                                        onClick: exportToCSV,
+                                        className: "px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                                    },
+                                        React.createElement(Download, { className: "w-4 h-4 inline mr-2" }),
+                                        "Export CSV"
+                                    ),
+                                    React.createElement('button', {
+                                        onClick: handleLogout,
+                                        className: "px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                                    },
+                                        React.createElement(LogOut, { className: "w-4 h-4 inline mr-2" }),
+                                        "Déconnexion"
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ),
+
+                React.createElement('div', { className: "max-w-7xl mx-auto px-4 py-6" },
+                    // Dashboard
+                    currentView === 'dashboard' && React.createElement('div', { className: "space-y-6" },
+                        // Statistiques principales
+                        React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-4 gap-4" },
+                            React.createElement('div', { className: "bg-white p-4 rounded-lg shadow-sm" },
+                                React.createElement('div', { className: "text-sm text-gray-600" }, "Total ventes"),
+                                React.createElement('div', { className: "text-2xl font-bold text-blue-600" }, stats.totalVentes)
+                            ),
+                            React.createElement('div', { className: "bg-white p-4 rounded-lg shadow-sm" },
+                                React.createElement('div', { className: "text-sm text-gray-600" }, "CA Total"),
+                                React.createElement('div', { className: "text-2xl font-bold text-green-600" }, `${stats.totalCA.toFixed(2)}€`)
+                            ),
+                            React.createElement('div', { className: "bg-white p-4 rounded-lg shadow-sm" },
+                                React.createElement('div', { className: "text-sm text-gray-600" }, "PNA Total"),
+                                React.createElement('div', { className: "text-2xl font-bold text-purple-600" }, `${stats.totalPNA.toFixed(2)}€`)
+                            ),
+                            React.createElement('div', { className: "bg-white p-4 rounded-lg shadow-sm" },
+                                React.createElement('div', { className: "text-sm text-gray-600" }, "CA Moyen"),
+                                React.createElement('div', { className: "text-2xl font-bold text-orange-600" },
+                                    `${stats.totalVentes > 0 ? (stats.totalCA / stats.totalVentes).toFixed(2) : '0'}€`
+                                )
+                            )
+                        ),
+
+                        // Stats détaillées
+                        React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-2 gap-6" },
+                            // Tél vs Face à face
+                            React.createElement('div', { className: "bg-white p-6 rounded-lg shadow-sm" },
+                                React.createElement('h3', { className: "text-lg font-semibold mb-4" }, "Répartition Tél vs Face à face"),
+                                React.createElement('div', { className: "space-y-3" },
+                                    Object.entries(stats.telVsFaceAFace).map(([type, count]) => {
+                                        const percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
+                                        return React.createElement('div', { key: type },
+                                            React.createElement('div', { className: "flex justify-between text-sm" },
+                                                React.createElement('span', null, type),
+                                                React.createElement('span', null, `${count} ventes (${percentage}%)`)
+                                            ),
+                                            React.createElement('div', { className: "w-full bg-gray-200 rounded-full h-2" },
+                                                React.createElement('div', { 
+                                                    className: `h-2 rounded-full ${type === 'Tél' ? 'bg-blue-500' : 'bg-green-500'}`,
+                                                    style: { width: `${percentage}%` }
+                                                })
+                                            )
+                                        );
+                                    })
+                                )
+                            ),
+                            
+                            // Performance par Origine
+                            React.createElement('div', { className: "bg-white p-6 rounded-lg shadow-sm" },
+                                React.createElement('h3', { className: "text-lg font-semibold mb-4" }, "Répartition par Origine"),
+                                React.createElement('div', { className: "space-y-3" },
+                                    Object.entries(stats.ventesParOrigine)
+                                        .sort(([,a], [,b]) => b - a)
+                                        .slice(0, 5)
+                                        .map(([origine, count]) => {
+                                        const percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
+                                        return React.createElement('div', { key: origine },
+                                            React.createElement('div', { className: "flex justify-between text-sm" },
+                                                React.createElement('span', null, origine),
+                                                React.createElement('span', null, `${count} ventes (${percentage}%)`)
+                                            ),
+                                            React.createElement('div', { className: "w-full bg-gray-200 rounded-full h-2" },
+                                                React.createElement('div', { 
+                                                    className: "h-2 rounded-full bg-purple-500",
+                                                    style: { width: `${percentage}%` }
+                                                })
+                                            )
+                                        );
+                                    })
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        ReactDOM.render(React.createElement(SalesTracker), document.getElementById('root'));
+    </script>
+</body>
+</html>
