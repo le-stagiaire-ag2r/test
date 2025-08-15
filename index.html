@@ -5,396 +5,149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi des Ventes - Assurance</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f9fafb;
-            color: #111827;
+            background-color: #f9fafb; color: #111827;
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        .header { background: white; border-bottom: 1px solid #e5e7eb; padding: 1rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .header h1 { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
+        .nav-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .btn { 
+            padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer;
+            font-size: 0.875rem; font-weight: 500; transition: all 0.2s;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;
         }
-        
-        .header {
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 1rem 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: #f3f4f6; color: #374151; }
+        .btn-secondary:hover { background: #e5e7eb; }
+        .btn-success { background: #059669; color: white; }
+        .btn-success:hover { background: #047857; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        .card { 
+            background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 1.5rem; margin-bottom: 1.5rem;
         }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
+        .stats-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem; margin-bottom: 2rem;
         }
-        
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1f2937;
+        .stat-card { background: white; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-label { font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; }
+        .form-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem; margin-bottom: 1.5rem;
         }
-        
-        .nav-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+        .form-group { display: flex; flex-direction: column; }
+        .form-label { font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem; }
+        .form-input, .form-select { 
+            padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem;
+            font-size: 0.875rem; transition: border-color 0.2s;
         }
-        
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+        .form-input:focus, .form-select:focus { 
+            outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
-        
-        .btn-primary {
-            background: #2563eb;
-            color: white;
+        .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .table th, .table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        .table th { background: #f9fafb; font-weight: 600; font-size: 0.875rem; color: #374151; }
+        .table tr:hover { background: #f9fafb; }
+        .login-container { 
+            min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem;
         }
-        
-        .btn-primary:hover {
-            background: #1d4ed8;
+        .login-card { 
+            background: white; padding: 2rem; border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px;
         }
-        
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #374151;
+        .login-title { font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 1.5rem; color: #1f2937; }
+        .form-space { margin-bottom: 1rem; }
+        .test-accounts { margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem; }
+        .test-accounts h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: #1f2937; }
+        .test-accounts div { font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem; }
+        .progress-bar { 
+            width: 100%; height: 0.5rem; background: #e5e7eb; border-radius: 0.25rem;
+            margin-top: 0.5rem; overflow: hidden;
         }
-        
-        .btn-secondary:hover {
-            background: #e5e7eb;
+        .progress-fill { height: 100%; border-radius: 0.25rem; transition: width 0.3s ease; }
+        .badge { 
+            display: inline-block; padding: 0.25rem 0.5rem; border-radius: 9999px;
+            font-size: 0.75rem; font-weight: 500;
         }
-        
-        .btn-success {
-            background: #059669;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #047857;
-        }
-        
-        .btn-danger {
-            background: #dc2626;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #b91c1c;
-        }
-        
-        .btn.active {
-            background: #2563eb;
-            color: white;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .stat-label {
-            font-size: 0.875rem;
-            color: #6b7280;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .form-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-        
-        .form-input,
-        .form-select {
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            transition: border-color 0.2s;
-        }
-        
-        .form-input:focus,
-        .form-select:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        
-        .table th,
-        .table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .table th {
-            background: #f9fafb;
-            font-weight: 600;
-            font-size: 0.875rem;
-            color: #374151;
-        }
-        
-        .table tr:hover {
-            background: #f9fafb;
-        }
-        
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        
-        .login-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .login-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            color: #1f2937;
-        }
-        
-        .form-space {
-            margin-bottom: 1rem;
-        }
-        
-        .test-accounts {
-            margin-top: 2rem;
-            padding: 1rem;
-            background: #f9fafb;
-            border-radius: 0.5rem;
-        }
-        
-        .test-accounts h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #1f2937;
-        }
-        
-        .test-accounts div {
-            font-size: 0.875rem;
-            color: #6b7280;
-            margin-bottom: 0.25rem;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 0.5rem;
-            background: #e5e7eb;
-            border-radius: 0.25rem;
-            margin-top: 0.5rem;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            border-radius: 0.25rem;
-            transition: width 0.3s ease;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        
-        .badge-blue {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .badge-green {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .text-center {
-            text-align: center;
-        }
-        
-        .text-gray {
-            color: #6b7280;
-        }
-        
-        .mb-4 {
-            margin-bottom: 1rem;
-        }
-        
-        .icon {
-            width: 1rem;
-            height: 1rem;
-            display: inline-block;
-        }
-        
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-yellow { background: #fef3c7; color: #92400e; }
         @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .nav-buttons {
-                justify-content: center;
-            }
-            
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .header-content { flex-direction: column; align-items: stretch; }
+            .nav-buttons { justify-content: center; }
+            .form-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
-        
         @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div id="app">
-        <!-- L'application sera injectée ici -->
-    </div>
+    <div id="app"></div>
 
     <script>
         // Données par défaut
-        const defaultUsers = {
-            "admin": { 
-                password: "admin123", 
-                type: "admin", 
-                name: "Administrateur"
-            },
-            "sarah": { 
-                password: "sarah123", 
-                type: "commercial", 
-                name: "Sarah",
-                agence: "Lille", 
-                permanences: ["Armentières", "Bousbecques", "Lesquin", "Carvin"] 
-            },
-            "caroline": { 
-                password: "caroline123", 
-                type: "commercial", 
-                name: "Caroline",
-                agence: "Lille", 
-                permanences: ["Arras", "Béthune", "Valenciennes", "La Bassée"] 
-            }
+        var defaultUsers = {
+            "admin": { password: "admin123", type: "admin", name: "Administrateur" },
+            "sarah": { password: "sarah123", type: "commercial", name: "Sarah", agence: "Lille", permanences: ["Armentières", "Bousbecques", "Lesquin", "Carvin"] },
+            "caroline": { password: "caroline123", type: "commercial", name: "Caroline", agence: "Lille", permanences: ["Arras", "Béthune", "Valenciennes", "La Bassée"] },
+            "laurence": { password: "laurence123", type: "commercial", name: "Laurence", agence: "Lille", permanences: ["Cambrai", "Feignies", "Flers en Escrebieux"] },
+            "sophie": { password: "sophie123", type: "commercial", name: "Sophie", agence: "Compiègne", permanences: ["Chauny", "Laon", "Saint Quentin", "Soissons"] },
+            "christelle": { password: "christelle123", type: "commercial", name: "Christelle", agence: "Compiègne", permanences: ["Beauvais", "Gouvieux", "Mouy", "St Just en chaussée"] },
+            "aldo": { password: "aldo123", type: "commercial", name: "Aldo", agence: "Boves", permanences: [] },
+            "celine": { password: "celine123", type: "commercial", name: "Céline", agence: "Boves", permanences: ["Doullens", "Saint Valery", "Albert", "Péronne", "Poix de Picardie", "Abbeville"] },
+            "july": { password: "july123", type: "commercial", name: "July", agence: "Caen", permanences: [] },
+            "cedric": { password: "cedric123", type: "commercial", name: "Cédric", agence: "Caen", permanences: ["Cherbourg", "Granville", "Saint Lô", "Alençon", "Argentan", "Flers"] },
+            "messa": { password: "messa123", type: "commercial", name: "Messa", agence: "Rouen", permanences: ["Évreux", "Vernon", "Louviers"] },
+            "amandine": { password: "amandine123", type: "commercial", name: "Amandine", agence: "Calais", permanences: ["Saint Omer", "Saint Leonard", "Hesdin", "Hazebrouck", "Étaples"] },
+            "annabelle": { password: "annabelle123", type: "commercial", name: "Annabelle", agence: "Le Havre", permanences: ["Lisieux", "Yvetot", "Pont Audemer"] }
         };
 
-        const typesVente = ["Face à face", "Tél"];
-        const origines = ["Prcad", "Rebond Crc", "Client", "Campagne", "Reco", "Visite", "Santé sortie de groupe"];
-        const defaultContrats = [
+        var typesVente = ["Face à face", "Tél"];
+        var origines = ["Prcad", "Rebond Crc", "Client", "Campagne", "Reco", "Visite", "Santé sortie de groupe"];
+        var defaultContrats = [
             "Santé sortie de groupe", "Prévoyance individuelle", "Protectvia", "Vivépargne",
             "Prima Cap obsq Pu", "Prima Cap obsq PP", "Prima Vol obsq Pu", "Prima vol obsq Pu",
-            "Certificats Mutualistes", "Viaplus", "Protec territorial", "HPJ", "Terre de vie"
+            "Certificats Mutualistes", "Viaplus", "Protec territorial", "HPJ", "Terre de vie",
+            "Gpa", "Multiprima", "Mutame", "Perte autonomie", "Patrimoine sélection"
         ];
 
         // État de l'application
-        let appState = {
-            users: {...defaultUsers},
-            contrats: [...defaultContrats],
+        var appState = {
+            users: JSON.parse(JSON.stringify(defaultUsers)),
+            contrats: defaultContrats.slice(),
             currentUser: null,
             currentView: 'dashboard',
             selectedMonth: new Date().getMonth() + 1,
             selectedYear: new Date().getFullYear(),
             ventes: [],
             editingId: null,
+            showContractForm: false,
+            showUserForm: false,
+            editingUser: null,
+            newContract: '',
+            newUserForm: { username: '', name: '', password: '', agence: '', permanences: '' },
+            editUserForm: { permanences: '' },
             formData: {
-                commercial: '',
-                nom: '',
-                prenom: '',
-                age: '',
-                numeroPersonne: '',
-                vente: '',
-                rattachement: '',
-                origine: '',
-                contrat: '',
-                dateEffet: '',
-                chiffreAffaires: '',
-                pna: '',
-                jourRdv: ''
+                commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
+                vente: '', rattachement: '', origine: '', contrat: '',
+                dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: ''
             }
         };
 
         // Fonctions utilitaires
         function saveData() {
             try {
-                const data = {
+                var data = {
                     ventes: appState.ventes,
                     users: appState.users,
                     contrats: appState.contrats
@@ -407,9 +160,9 @@
 
         function loadData() {
             try {
-                const savedData = localStorage.getItem('salesTrackerData');
+                var savedData = localStorage.getItem('salesTrackerData');
                 if (savedData) {
-                    const data = JSON.parse(savedData);
+                    var data = JSON.parse(savedData);
                     if (data.ventes) appState.ventes = data.ventes;
                     if (data.users) appState.users = data.users;
                     if (data.contrats) appState.contrats = data.contrats;
@@ -420,25 +173,36 @@
         }
 
         function getRattachementOptions() {
-            if (appState.currentUser?.type === 'commercial') {
-                return [appState.currentUser.agence, ...appState.currentUser.permanences];
+            if (appState.currentUser && appState.currentUser.type === 'commercial') {
+                var options = [appState.currentUser.agence];
+                return options.concat(appState.currentUser.permanences);
             }
             if (!appState.formData.commercial) return [];
-            const user = Object.values(appState.users).find(u => u.name === appState.formData.commercial);
+            var users = Object.values(appState.users);
+            var user = null;
+            for (var i = 0; i < users.length; i++) {
+                if (users[i].name === appState.formData.commercial) {
+                    user = users[i];
+                    break;
+                }
+            }
             if (!user || user.type !== 'commercial') return [];
-            return [user.agence, ...user.permanences];
+            var options = [user.agence];
+            return options.concat(user.permanences);
         }
 
         function getFilteredVentes() {
-            let filtered = appState.ventes;
+            var filtered = appState.ventes.slice();
             
-            if (appState.currentUser?.type === 'commercial') {
-                filtered = filtered.filter(v => v.commercial === appState.currentUser.name);
+            if (appState.currentUser && appState.currentUser.type === 'commercial') {
+                filtered = filtered.filter(function(v) {
+                    return v.commercial === appState.currentUser.name;
+                });
             }
             
-            filtered = filtered.filter(v => {
+            filtered = filtered.filter(function(v) {
                 if (!v.dateEffet) return false;
-                const date = new Date(v.dateEffet);
+                var date = new Date(v.dateEffet);
                 return date.getMonth() + 1 === appState.selectedMonth && date.getFullYear() === appState.selectedYear;
             });
             
@@ -446,27 +210,71 @@
         }
 
         function getStats() {
-            const ventesFiltered = getFilteredVentes();
-            const totalVentes = ventesFiltered.length;
-            const totalCA = ventesFiltered.reduce((sum, v) => sum + (parseFloat(v.chiffreAffaires) || 0), 0);
-            const totalPNA = ventesFiltered.reduce((sum, v) => sum + (parseFloat(v.pna) || 0), 0);
+            var ventesFiltered = getFilteredVentes();
+            var totalVentes = ventesFiltered.length;
+            var totalCA = 0;
+            var totalPNA = 0;
             
-            const telVsFaceAFace = { "Tél": 0, "Face à face": 0 };
-            ventesFiltered.forEach(v => {
+            for (var i = 0; i < ventesFiltered.length; i++) {
+                totalCA += parseFloat(ventesFiltered[i].chiffreAffaires) || 0;
+                totalPNA += parseFloat(ventesFiltered[i].pna) || 0;
+            }
+            
+            var telVsFaceAFace = { "Tél": 0, "Face à face": 0 };
+            var ventesParCommercial = {};
+            var ventesParOrigine = {};
+            var ventesParLieu = {};
+            var ventesParProduit = {};
+            
+            for (var i = 0; i < ventesFiltered.length; i++) {
+                var v = ventesFiltered[i];
+                
                 if (v.vente) telVsFaceAFace[v.vente]++;
-            });
+                
+                if (!ventesParCommercial[v.commercial]) {
+                    ventesParCommercial[v.commercial] = { ventes: 0, ca: 0, pna: 0 };
+                }
+                ventesParCommercial[v.commercial].ventes++;
+                ventesParCommercial[v.commercial].ca += parseFloat(v.chiffreAffaires) || 0;
+                ventesParCommercial[v.commercial].pna += parseFloat(v.pna) || 0;
+                
+                if (v.origine && v.origine.trim()) {
+                    if (!ventesParOrigine[v.origine]) ventesParOrigine[v.origine] = 0;
+                    ventesParOrigine[v.origine]++;
+                }
+                
+                if (v.rattachement && v.rattachement.trim()) {
+                    if (!ventesParLieu[v.rattachement]) ventesParLieu[v.rattachement] = 0;
+                    ventesParLieu[v.rattachement]++;
+                }
+                
+                if (v.contrat && v.contrat.trim()) {
+                    if (!ventesParProduit[v.contrat]) ventesParProduit[v.contrat] = 0;
+                    ventesParProduit[v.contrat]++;
+                }
+            }
             
-            return { totalVentes, totalCA, totalPNA, telVsFaceAFace };
+            return { 
+                totalVentes: totalVentes, 
+                totalCA: totalCA, 
+                totalPNA: totalPNA, 
+                telVsFaceAFace: telVsFaceAFace, 
+                ventesParCommercial: ventesParCommercial,
+                ventesParOrigine: ventesParOrigine,
+                ventesParLieu: ventesParLieu,
+                ventesParProduit: ventesParProduit
+            };
         }
 
         // Fonctions d'action
         function handleLogin() {
-            const username = document.getElementById('username').value.toLowerCase();
-            const password = document.getElementById('password').value;
+            var username = document.getElementById('username').value.toLowerCase();
+            var password = document.getElementById('password').value;
             
-            const user = appState.users[username];
+            var user = appState.users[username];
             if (user && user.password === password) {
-                appState.currentUser = { ...user, username };
+                appState.currentUser = JSON.parse(JSON.stringify(user));
+                appState.currentUser.username = username;
                 render();
             } else {
                 alert('Nom d\'utilisateur ou mot de passe incorrect');
@@ -482,25 +290,15 @@
 
         function resetForm() {
             appState.formData = {
-                commercial: '',
-                nom: '',
-                prenom: '',
-                age: '',
-                numeroPersonne: '',
-                vente: '',
-                rattachement: '',
-                origine: '',
-                contrat: '',
-                dateEffet: '',
-                chiffreAffaires: '',
-                pna: '',
-                jourRdv: ''
+                commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
+                vente: '', rattachement: '', origine: '', contrat: '',
+                dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: ''
             };
             appState.editingId = null;
         }
 
         function handleSubmit() {
-            const commercial = appState.currentUser.type === 'commercial' ? appState.currentUser.name : appState.formData.commercial;
+            var commercial = appState.currentUser.type === 'commercial' ? appState.currentUser.name : appState.formData.commercial;
             
             if (!commercial || !appState.formData.nom || !appState.formData.prenom || !appState.formData.vente || 
                 !appState.formData.rattachement || !appState.formData.origine || !appState.formData.contrat || 
@@ -509,19 +307,22 @@
                 return;
             }
             
-            const venteFinal = { ...appState.formData, commercial };
+            var venteFinal = JSON.parse(JSON.stringify(appState.formData));
+            venteFinal.commercial = commercial;
             
             if (appState.editingId) {
-                appState.ventes = appState.ventes.map(v => 
-                    v.id === appState.editingId ? { ...venteFinal, id: appState.editingId, dateCreation: v.dateCreation } : v
-                );
+                for (var i = 0; i < appState.ventes.length; i++) {
+                    if (appState.ventes[i].id === appState.editingId) {
+                        venteFinal.id = appState.editingId;
+                        venteFinal.dateCreation = appState.ventes[i].dateCreation;
+                        appState.ventes[i] = venteFinal;
+                        break;
+                    }
+                }
             } else {
-                const newVente = {
-                    ...venteFinal,
-                    id: Date.now(),
-                    dateCreation: new Date().toLocaleString('fr-FR')
-                };
-                appState.ventes.push(newVente);
+                venteFinal.id = Date.now();
+                venteFinal.dateCreation = new Date().toLocaleString('fr-FR');
+                appState.ventes.push(venteFinal);
             }
             
             resetForm();
@@ -531,7 +332,7 @@
         }
 
         function handleEdit(vente) {
-            appState.formData = { ...vente };
+            appState.formData = JSON.parse(JSON.stringify(vente));
             appState.editingId = vente.id;
             appState.currentView = 'saisie';
             render();
@@ -539,7 +340,9 @@
 
         function handleDelete(id) {
             if (confirm('Supprimer cette vente ?')) {
-                appState.ventes = appState.ventes.filter(v => v.id !== id);
+                appState.ventes = appState.ventes.filter(function(v) {
+                    return v.id !== id;
+                });
                 saveData();
                 alert('Vente supprimée !');
                 render();
@@ -548,413 +351,606 @@
 
         function setView(view) {
             appState.currentView = view;
-            if (view !== 'saisie') {
-                resetForm();
-            }
+            if (view !== 'saisie') resetForm();
             render();
         }
 
         function updateFormField(field, value) {
             appState.formData[field] = value;
-            if (field === 'commercial') {
-                appState.formData.rattachement = '';
-            }
+            if (field === 'commercial') appState.formData.rattachement = '';
         }
 
-        // Fonction de rendu
+        // Fonctions de rendu avec DOM
         function render() {
-            const app = document.getElementById('app');
+            var app = document.getElementById('app');
             
             if (!appState.currentUser) {
-                app.innerHTML = renderLogin();
+                renderLogin();
                 return;
             }
             
-            app.innerHTML = `
-                ${renderHeader()}
-                <div class="container" style="padding-top: 1.5rem;">
-                    ${appState.currentView === 'dashboard' ? renderDashboard() : ''}
-                    ${appState.currentView === 'saisie' ? renderSaisie() : ''}
-                    ${appState.currentView === 'liste' ? renderListe() : ''}
-                    ${appState.currentView === 'gestion' ? renderGestion() : ''}
-                </div>
-            `;
+            // Clear le contenu
+            app.innerHTML = '';
+            
+            // Ajouter le header
+            renderHeader();
+            
+            // Ajouter le contenu principal
+            var container = document.createElement('div');
+            container.className = 'container';
+            container.style.paddingTop = '1.5rem';
+            
+            if (appState.currentView === 'dashboard') renderDashboard(container);
+            else if (appState.currentView === 'saisie') renderSaisie(container);
+            else if (appState.currentView === 'liste') renderListe(container);
+            else if (appState.currentView === 'gestion') renderGestion(container);
+            
+            app.appendChild(container);
         }
 
         function renderLogin() {
-            return `
-                <div class="login-container">
-                    <div class="login-card">
-                        <h1 class="login-title">Suivi des Ventes - Connexion</h1>
-                        <form onsubmit="event.preventDefault(); handleLogin();">
-                            <div class="form-space">
-                                <label class="form-label">Nom d'utilisateur</label>
-                                <input type="text" id="username" class="form-input" placeholder="Votre nom d'utilisateur" required>
-                            </div>
-                            <div class="form-space">
-                                <label class="form-label">Mot de passe</label>
-                                <input type="password" id="password" class="form-input" placeholder="Votre mot de passe" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>
-                        </form>
-                        
-                        <div class="test-accounts">
-                            <h3>Comptes de test :</h3>
-                            <div><strong>Admin:</strong> admin / admin123</div>
-                            <div><strong>Commercial:</strong> sarah / sarah123</div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            var app = document.getElementById('app');
+            var html = '<div class="login-container">' +
+                '<div class="login-card">' +
+                    '<h1 class="login-title">Suivi des Ventes - Connexion</h1>' +
+                    '<form onsubmit="event.preventDefault(); handleLogin();">' +
+                        '<div class="form-space">' +
+                            '<label class="form-label">Nom d\'utilisateur</label>' +
+                            '<input type="text" id="username" class="form-input" placeholder="Votre nom d\'utilisateur" required>' +
+                        '</div>' +
+                        '<div class="form-space">' +
+                            '<label class="form-label">Mot de passe</label>' +
+                            '<input type="password" id="password" class="form-input" placeholder="Votre mot de passe" required>' +
+                        '</div>' +
+                        '<button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>' +
+                    '</form>' +
+                    '<div class="test-accounts">' +
+                        '<h3>Comptes de test :</h3>' +
+                        '<div><strong>Admin:</strong> admin / admin123</div>' +
+                        '<div><strong>Commercial:</strong> sarah / sarah123</div>' +
+                        '<div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.5rem;">' +
+                            '(Tous les commerciaux : prénom + 123)' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+            app.innerHTML = html;
         }
 
         function renderHeader() {
-            const filteredVentes = getFilteredVentes();
+            var app = document.getElementById('app');
+            var filteredVentes = getFilteredVentes();
             
-            return `
-                <div class="header">
-                    <div class="container">
-                        <div class="header-content">
-                            <div>
-                                <h1>Suivi des Ventes - Assurance</h1>
-                                <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">
-                                    Connecté : <strong>${appState.currentUser.name}</strong>
-                                    ${appState.currentUser.type === 'commercial' ? ` (${appState.currentUser.agence})` : ''}
-                                </p>
-                            </div>
-                            
-                            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                                <!-- Sélecteur période -->
-                                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <span style="font-size: 0.875rem;">📅</span>
-                                    <select onchange="appState.selectedMonth = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">
-                                        ${Array.from({length: 12}, (_, i) => `
-                                            <option value="${i+1}" ${appState.selectedMonth === i+1 ? 'selected' : ''}>
-                                                ${new Date(0, i).toLocaleDateString('fr-FR', { month: 'long' })}
-                                            </option>
-                                        `).join('')}
-                                    </select>
-                                    <select onchange="appState.selectedYear = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">
-                                        ${[2023, 2024, 2025].map(year => `
-                                            <option value="${year}" ${appState.selectedYear === year ? 'selected' : ''}>${year}</option>
-                                        `).join('')}
-                                    </select>
-                                </div>
-                                
-                                <div class="nav-buttons">
-                                    <button onclick="setView('dashboard')" class="btn ${appState.currentView === 'dashboard' ? 'btn-primary' : 'btn-secondary'}">
-                                        📊 Dashboard
-                                    </button>
-                                    
-                                    ${appState.currentUser.type === 'commercial' ? `
-                                        <button onclick="setView('saisie')" class="btn ${appState.currentView === 'saisie' ? 'btn-primary' : 'btn-secondary'}">
-                                            ➕ Nouvelle vente
-                                        </button>
-                                        <button onclick="setView('liste')" class="btn ${appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary'}">
-                                            👁️ Mes ventes (${filteredVentes.length})
-                                        </button>
-                                    ` : ''}
-                                    
-                                    ${appState.currentUser.type === 'admin' ? `
-                                        <button onclick="setView('liste')" class="btn ${appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary'}">
-                                            👁️ Toutes les ventes (${filteredVentes.length})
-                                        </button>
-                                        <button onclick="setView('gestion')" class="btn ${appState.currentView === 'gestion' ? 'btn-primary' : 'btn-secondary'}">
-                                            ⚙️ Gestion
-                                        </button>
-                                    ` : ''}
-                                    
-                                    <button onclick="handleLogout()" class="btn btn-danger">
-                                        🚪 Déconnexion
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            var monthOptions = '';
+            for (var i = 0; i < 12; i++) {
+                var name = new Date(0, i).toLocaleDateString('fr-FR', { month: 'long' });
+                var selected = appState.selectedMonth === i + 1 ? 'selected' : '';
+                monthOptions += '<option value="' + (i + 1) + '" ' + selected + '>' + name + '</option>';
+            }
+            
+            var yearOptions = '';
+            var years = [2023, 2024, 2025];
+            for (var i = 0; i < years.length; i++) {
+                var selected = appState.selectedYear === years[i] ? 'selected' : '';
+                yearOptions += '<option value="' + years[i] + '" ' + selected + '>' + years[i] + '</option>';
+            }
+            
+            var commercialButtons = '';
+            if (appState.currentUser.type === 'commercial') {
+                commercialButtons = 
+                    '<button onclick="setView(\'saisie\')" class="btn ' + (appState.currentView === 'saisie' ? 'btn-primary' : 'btn-secondary') + '">' +
+                        '➕ Nouvelle vente' +
+                    '</button>' +
+                    '<button onclick="setView(\'liste\')" class="btn ' + (appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary') + '">' +
+                        '👁️ Mes ventes (' + filteredVentes.length + ')' +
+                    '</button>';
+            }
+            
+            var adminButtons = '';
+            if (appState.currentUser.type === 'admin') {
+                adminButtons = 
+                    '<button onclick="setView(\'liste\')" class="btn ' + (appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary') + '">' +
+                        '👁️ Toutes les ventes (' + filteredVentes.length + ')' +
+                    '</button>' +
+                    '<button onclick="setView(\'gestion\')" class="btn ' + (appState.currentView === 'gestion' ? 'btn-primary' : 'btn-secondary') + '">' +
+                        '⚙️ Gestion' +
+                    '</button>';
+            }
+            
+            var html = '<div class="header">' +
+                '<div class="container">' +
+                    '<div class="header-content">' +
+                        '<div>' +
+                            '<h1>Suivi des Ventes - Assurance</h1>' +
+                            '<p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">' +
+                                'Connecté : <strong>' + appState.currentUser.name + '</strong>' +
+                                (appState.currentUser.type === 'commercial' ? ' (' + appState.currentUser.agence + ')' : '') +
+                                '<span style="color: #059669; margin-left: 1rem;">✓ Sauvegarde automatique</span>' +
+                            '</p>' +
+                        '</div>' +
+                        '<div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">' +
+                            '<div style="display: flex; align-items: center; gap: 0.5rem;">' +
+                                '<span>📅</span>' +
+                                '<select onchange="appState.selectedMonth = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
+                                    monthOptions +
+                                '</select>' +
+                                '<select onchange="appState.selectedYear = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
+                                    yearOptions +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="nav-buttons">' +
+                                '<button onclick="setView(\'dashboard\')" class="btn ' + (appState.currentView === 'dashboard' ? 'btn-primary' : 'btn-secondary') + '">' +
+                                    '📊 Dashboard' +
+                                '</button>' +
+                                commercialButtons +
+                                adminButtons +
+                                '<button onclick="exportToCSV()" class="btn btn-success">' +
+                                    '💾 Export CSV' +
+                                '</button>' +
+                                '<button onclick="handleLogout()" class="btn btn-danger">' +
+                                    '🚪 Déconnexion' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+            
+            var headerDiv = document.createElement('div');
+            headerDiv.innerHTML = html;
+            app.appendChild(headerDiv);
         }
 
-        function renderDashboard() {
-            const stats = getStats();
+        function renderDashboard(container) {
+            var stats = getStats();
             
-            return `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Total ventes</div>
-                        <div class="stat-value" style="color: #2563eb;">${stats.totalVentes}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">CA Total</div>
-                        <div class="stat-value" style="color: #059669;">${stats.totalCA.toFixed(2)}€</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">PNA Total</div>
-                        <div class="stat-value" style="color: #7c3aed;">${stats.totalPNA.toFixed(2)}€</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">CA Moyen</div>
-                        <div class="stat-value" style="color: #ea580c;">
-                            ${stats.totalVentes > 0 ? (stats.totalCA / stats.totalVentes).toFixed(2) : '0'}€
-                        </div>
-                    </div>
-                </div>
+            // Stats principales
+            var statsGrid = document.createElement('div');
+            statsGrid.className = 'stats-grid';
+            
+            var statsData = [
+                { label: 'Total ventes', value: stats.totalVentes, color: '#2563eb' },
+                { label: 'CA Total', value: stats.totalCA.toFixed(2) + '€', color: '#059669' },
+                { label: 'PNA Total', value: stats.totalPNA.toFixed(2) + '€', color: '#7c3aed' },
+                { label: 'CA Moyen', value: (stats.totalVentes > 0 ? (stats.totalCA / stats.totalVentes).toFixed(2) : '0') + '€', color: '#ea580c' }
+            ];
+            
+            for (var i = 0; i < statsData.length; i++) {
+                var statCard = document.createElement('div');
+                statCard.className = 'stat-card';
+                statCard.innerHTML = 
+                    '<div class="stat-label">' + statsData[i].label + '</div>' +
+                    '<div class="stat-value" style="color: ' + statsData[i].color + ';">' + statsData[i].value + '</div>';
+                statsGrid.appendChild(statCard);
+            }
+            
+            container.appendChild(statsGrid);
+            
+            // Répartition Tél vs Face à face
+            var telCard = document.createElement('div');
+            telCard.className = 'card';
+            var telContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Répartition Tél vs Face à face</h3>';
+            telContent += '<div style="display: grid; gap: 1rem;">';
+            
+            var telTypes = Object.keys(stats.telVsFaceAFace);
+            for (var i = 0; i < telTypes.length; i++) {
+                var type = telTypes[i];
+                var count = stats.telVsFaceAFace[type];
+                var percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
+                var color = type === 'Tél' ? '#3b82f6' : '#10b981';
                 
-                <div class="card">
-                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Répartition Tél vs Face à face</h3>
-                    <div style="display: grid; gap: 1rem;">
-                        ${Object.entries(stats.telVsFaceAFace).map(([type, count]) => {
-                            const percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
-                            return `
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
-                                        <span>${type}</span>
-                                        <span>${count} ventes (${percentage}%)</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: ${percentage}%; background-color: ${type === 'Tél' ? '#3b82f6' : '#10b981'};"></div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `;
+                telContent += '<div>' +
+                    '<div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">' +
+                        '<span>' + type + '</span>' +
+                        '<span>' + count + ' ventes (' + percentage + '%)</span>' +
+                    '</div>' +
+                    '<div class="progress-bar">' +
+                        '<div class="progress-fill" style="width: ' + percentage + '%; background-color: ' + color + ';"></div>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            telContent += '</div>';
+            telCard.innerHTML = telContent;
+            container.appendChild(telCard);
+            
+            // Performance par Commercial (Admin seulement)
+            if (appState.currentUser.type === 'admin') {
+                var commercialCard = document.createElement('div');
+                commercialCard.className = 'card';
+                var commercialContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Commercial</h3>';
+                commercialContent += '<div style="overflow-x: auto;">';
+                commercialContent += '<table class="table">';
+                commercialContent += '<thead><tr><th>Commercial</th><th style="text-align: right;">Ventes</th><th style="text-align: right;">CA Total</th><th style="text-align: right;">PNA Total</th><th style="text-align: right;">CA Moyen</th></tr></thead>';
+                commercialContent += '<tbody>';
+                
+                var commerciaux = Object.keys(stats.ventesParCommercial);
+                commerciaux.sort(function(a, b) {
+                    return stats.ventesParCommercial[b].ventes - stats.ventesParCommercial[a].ventes;
+                });
+                
+                for (var i = 0; i < commerciaux.length; i++) {
+                    var commercial = commerciaux[i];
+                    var data = stats.ventesParCommercial[commercial];
+                    var caMoyen = data.ventes > 0 ? (data.ca / data.ventes).toFixed(2) : '0';
+                    
+                    commercialContent += '<tr>' +
+                        '<td style="font-weight: 500;">' + commercial + '</td>' +
+                        '<td style="text-align: right;">' + data.ventes + '</td>' +
+                        '<td style="text-align: right; color: #059669; font-weight: 500;">' + data.ca.toFixed(2) + '€</td>' +
+                        '<td style="text-align: right; color: #7c3aed; font-weight: 500;">' + data.pna.toFixed(2) + '€</td>' +
+                        '<td style="text-align: right;">' + caMoyen + '€</td>' +
+                    '</tr>';
+                }
+                
+                commercialContent += '</tbody></table></div>';
+                commercialCard.innerHTML = commercialContent;
+                container.appendChild(commercialCard);
+            }
+            
+            // Performance par Produit
+            var produitCard = document.createElement('div');
+            produitCard.className = 'card';
+            var produitContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Produit</h3>';
+            produitContent += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">';
+            
+            var produits = Object.keys(stats.ventesParProduit);
+            produits.sort(function(a, b) {
+                return stats.ventesParProduit[b] - stats.ventesParProduit[a];
+            });
+            produits = produits.slice(0, 9);
+            
+            for (var i = 0; i < produits.length; i++) {
+                var produit = produits[i];
+                var count = stats.ventesParProduit[produit];
+                var percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
+                
+                produitContent += '<div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: #1f2937;">' + produit + '</div>' +
+                    '<div style="font-size: 1.125rem; font-weight: 700; color: #2563eb;">' + count + ' ventes</div>' +
+                    '<div style="font-size: 0.875rem; color: #6b7280;">' + percentage + '% du total</div>' +
+                '</div>';
+            }
+            
+            produitContent += '</div>';
+            produitCard.innerHTML = produitContent;
+            container.appendChild(produitCard);
         }
 
-        function renderSaisie() {
+        function renderSaisie(container) {
             if (appState.currentUser.type !== 'commercial') {
-                return '<div class="card"><p>Accès non autorisé</p></div>';
+                var card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = '<p>Accès non autorisé</p>';
+                container.appendChild(card);
+                return;
             }
             
-            return `
-                <div class="card">
-                    <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">
-                        ${appState.editingId ? 'Modifier la vente' : 'Nouvelle vente'}
-                    </h2>
-                    
-                    <form onsubmit="event.preventDefault(); handleSubmit();">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label class="form-label">Nom *</label>
-                                <input type="text" class="form-input" value="${appState.formData.nom}" 
-                                    onchange="updateFormField('nom', this.value)" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Prénom *</label>
-                                <input type="text" class="form-input" value="${appState.formData.prenom}" 
-                                    onchange="updateFormField('prenom', this.value)" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Type de vente *</label>
-                                <select class="form-select" onchange="updateFormField('vente', this.value)" required>
-                                    <option value="">Sélectionner</option>
-                                    ${typesVente.map(type => `
-                                        <option value="${type}" ${appState.formData.vente === type ? 'selected' : ''}>${type}</option>
-                                    `).join('')}
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Rattachement *</label>
-                                <select class="form-select" onchange="updateFormField('rattachement', this.value)" required>
-                                    <option value="">Sélectionner</option>
-                                    ${getRattachementOptions().map(option => `
-                                        <option value="${option}" ${appState.formData.rattachement === option ? 'selected' : ''}>${option}</option>
-                                    `).join('')}
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Origine *</label>
-                                <select class="form-select" onchange="updateFormField('origine', this.value)" required>
-                                    <option value="">Sélectionner</option>
-                                    ${origines.map(origine => `
-                                        <option value="${origine}" ${appState.formData.origine === origine ? 'selected' : ''}>${origine}</option>
-                                    `).join('')}
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Contrat *</label>
-                                <select class="form-select" onchange="updateFormField('contrat', this.value)" required>
-                                    <option value="">Sélectionner</option>
-                                    ${appState.contrats.map(contrat => `
-                                        <option value="${contrat}" ${appState.formData.contrat === contrat ? 'selected' : ''}>${contrat}</option>
-                                    `).join('')}
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Date effet *</label>
-                                <input type="date" class="form-input" value="${appState.formData.dateEffet}" 
-                                    onchange="updateFormField('dateEffet', this.value)" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Chiffre d'affaires (€) *</label>
-                                <input type="number" step="0.01" class="form-input" value="${appState.formData.chiffreAffaires}" 
-                                    onchange="updateFormField('chiffreAffaires', this.value)" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">PNA (€) *</label>
-                                <input type="number" step="0.01" class="form-input" value="${appState.formData.pna}" 
-                                    onchange="updateFormField('pna', this.value)" required>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
-                            <button type="submit" class="btn btn-primary">
-                                ${appState.editingId ? 'Modifier la vente' : 'Enregistrer la vente'}
-                            </button>
-                            ${appState.editingId ? `
-                                <button type="button" onclick="resetForm(); render();" class="btn btn-secondary">
-                                    Annuler
-                                </button>
-                            ` : ''}
-                        </div>
-                    </form>
-                </div>
-            `;
-        }
-
-        function renderListe() {
-            const filteredVentes = getFilteredVentes();
+            var card = document.createElement('div');
+            card.className = 'card';
             
-            return `
-                <div class="card">
-                    <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1rem;">
-                        <h2 style="font-size: 1.25rem; font-weight: 600;">
-                            ${appState.currentUser.type === 'commercial' ? 'Mes ventes' : 'Liste des ventes'} 
-                            (${filteredVentes.length})
-                        </h2>
-                        <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">
-                            Période : ${new Date(0, appState.selectedMonth - 1).toLocaleDateString('fr-FR', { month: 'long' })} ${appState.selectedYear}
-                        </p>
-                    </div>
-                    
-                    ${filteredVentes.length === 0 ? `
-                        <div style="padding: 2rem; text-align: center; color: #6b7280;">
-                            <div style="font-size: 1.125rem; margin-bottom: 0.5rem;">Aucune vente pour cette période</div>
-                            <div style="font-size: 0.875rem;">Cliquez sur "Nouvelle vente" pour commencer</div>
-                        </div>
-                    ` : `
-                        <div style="overflow-x: auto;">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        ${appState.currentUser.type === 'admin' ? '<th>Commercial</th>' : ''}
-                                        <th>Client</th>
-                                        <th>Contrat</th>
-                                        <th>Type</th>
-                                        <th>Rattachement</th>
-                                        <th>CA (€)</th>
-                                        <th>PNA (€)</th>
-                                        <th>Date effet</th>
-                                        <th style="text-align: right;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${filteredVentes.map(vente => `
-                                        <tr>
-                                            ${appState.currentUser.type === 'admin' ? `<td style="font-weight: 500;">${vente.commercial}</td>` : ''}
-                                            <td>${vente.nom} ${vente.prenom}</td>
-                                            <td>${vente.contrat}</td>
-                                            <td>
-                                                <span class="badge ${vente.vente === 'Tél' ? 'badge-blue' : 'badge-green'}">
-                                                    ${vente.vente}
-                                                </span>
-                                            </td>
-                                            <td>${vente.rattachement}</td>
-                                            <td style="font-weight: 500; color: #059669;">
-                                                ${parseFloat(vente.chiffreAffaires || 0).toFixed(2)}
-                                            </td>
-                                            <td style="font-weight: 500; color: #7c3aed;">
-                                                ${parseFloat(vente.pna || 0).toFixed(2)}
-                                            </td>
-                                            <td>${vente.dateEffet}</td>
-                                            <td style="text-align: right;">
-                                                ${(appState.currentUser.type === 'admin' || vente.commercial === appState.currentUser.name) ? `
-                                                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-                                                        <button onclick="handleEdit(${JSON.stringify(vente).replace(/"/g, '&quot;')})" 
-                                                            class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"
-                                                            title="Modifier">
-                                                            ✏️
-                                                        </button>
-                                                        <button onclick="handleDelete(${vente.id})" 
-                                                            class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"
-                                                            title="Supprimer">
-                                                            🗑️
-                                                        </button>
-                                                    </div>
-                                                ` : ''}
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `}
-                </div>
-            `;
+            var html = '<h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">' +
+                (appState.editingId ? 'Modifier la vente' : 'Nouvelle vente') +
+            '</h2>';
+            
+            html += '<form onsubmit="event.preventDefault(); handleSubmit();">';
+            html += '<div class="form-grid">';
+            
+            // Champs du formulaire
+            var fields = [
+                { name: 'nom', label: 'Nom *', type: 'text', required: true },
+                { name: 'prenom', label: 'Prénom *', type: 'text', required: true },
+                { name: 'age', label: 'Âge', type: 'number' },
+                { name: 'numeroPersonne', label: 'Numéro personne', type: 'text' }
+            ];
+            
+            for (var i = 0; i < fields.length; i++) {
+                var field = fields[i];
+                html += '<div class="form-group">' +
+                    '<label class="form-label">' + field.label + '</label>' +
+                    '<input type="' + field.type + '" class="form-input" value="' + (appState.formData[field.name] || '') + '" ' +
+                        'onchange="updateFormField(\'' + field.name + '\', this.value)" ' + (field.required ? 'required' : '') + '>' +
+                '</div>';
+            }
+            
+            // Type de vente
+            html += '<div class="form-group">' +
+                '<label class="form-label">Type de vente *</label>' +
+                '<select class="form-select" onchange="updateFormField(\'vente\', this.value)" required>' +
+                    '<option value="">Sélectionner</option>';
+            
+            for (var i = 0; i < typesVente.length; i++) {
+                var selected = appState.formData.vente === typesVente[i] ? 'selected' : '';
+                html += '<option value="' + typesVente[i] + '" ' + selected + '>' + typesVente[i] + '</option>';
+            }
+            
+            html += '</select></div>';
+            
+            // Rattachement
+            html += '<div class="form-group">' +
+                '<label class="form-label">Rattachement *</label>' +
+                '<select class="form-select" onchange="updateFormField(\'rattachement\', this.value)" required>' +
+                    '<option value="">Sélectionner</option>';
+            
+            var rattachementOptions = getRattachementOptions();
+            for (var i = 0; i < rattachementOptions.length; i++) {
+                var selected = appState.formData.rattachement === rattachementOptions[i] ? 'selected' : '';
+                html += '<option value="' + rattachementOptions[i] + '" ' + selected + '>' + rattachementOptions[i] + '</option>';
+            }
+            
+            html += '</select></div>';
+            
+            // Origine
+            html += '<div class="form-group">' +
+                '<label class="form-label">Origine *</label>' +
+                '<select class="form-select" onchange="updateFormField(\'origine\', this.value)" required>' +
+                    '<option value="">Sélectionner</option>';
+            
+            for (var i = 0; i < origines.length; i++) {
+                var selected = appState.formData.origine === origines[i] ? 'selected' : '';
+                html += '<option value="' + origines[i] + '" ' + selected + '>' + origines[i] + '</option>';
+            }
+            
+            html += '</select></div>';
+            
+            // Contrat
+            html += '<div class="form-group">' +
+                '<label class="form-label">Contrat *</label>' +
+                '<select class="form-select" onchange="updateFormField(\'contrat\', this.value)" required>' +
+                    '<option value="">Sélectionner</option>';
+            
+            for (var i = 0; i < appState.contrats.length; i++) {
+                var selected = appState.formData.contrat === appState.contrats[i] ? 'selected' : '';
+                html += '<option value="' + appState.contrats[i] + '" ' + selected + '>' + appState.contrats[i] + '</option>';
+            }
+            
+            html += '</select></div>';
+            
+            // Autres champs
+            var otherFields = [
+                { name: 'dateEffet', label: 'Date effet *', type: 'date', required: true },
+                { name: 'chiffreAffaires', label: 'Chiffre d\'affaires (€) *', type: 'number', step: '0.01', required: true },
+                { name: 'pna', label: 'PNA (€) *', type: 'number', step: '0.01', required: true },
+                { name: 'jourRdv', label: 'Jour du RDV', type: 'date' }
+            ];
+            
+            for (var i = 0; i < otherFields.length; i++) {
+                var field = otherFields[i];
+                var stepAttr = field.step ? ' step="' + field.step + '"' : '';
+                html += '<div class="form-group">' +
+                    '<label class="form-label">' + field.label + '</label>' +
+                    '<input type="' + field.type + '" class="form-input" value="' + (appState.formData[field.name] || '') + '" ' +
+                        'onchange="updateFormField(\'' + field.name + '\', this.value)" ' + (field.required ? 'required' : '') + stepAttr + '>' +
+                '</div>';
+            }
+            
+            html += '</div>';
+            
+            html += '<div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">' +
+                '<button type="submit" class="btn btn-primary">' +
+                    (appState.editingId ? 'Modifier la vente' : 'Enregistrer la vente') +
+                '</button>';
+            
+            if (appState.editingId) {
+                html += '<button type="button" onclick="resetForm(); render();" class="btn btn-secondary">' +
+                    'Annuler' +
+                '</button>';
+            }
+            
+            html += '</div></form>';
+            
+            card.innerHTML = html;
+            container.appendChild(card);
         }
 
-        function renderGestion() {
+        function renderListe(container) {
+            var filteredVentes = getFilteredVentes();
+            var monthName = new Date(0, appState.selectedMonth - 1).toLocaleDateString('fr-FR', { month: 'long' });
+            
+            var card = document.createElement('div');
+            card.className = 'card';
+            
+            var html = '<div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1rem;">' +
+                '<h2 style="font-size: 1.25rem; font-weight: 600;">' +
+                    (appState.currentUser.type === 'commercial' ? 'Mes ventes' : 'Liste des ventes') + 
+                    ' (' + filteredVentes.length + ')' +
+                '</h2>' +
+                '<p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">' +
+                    'Période : ' + monthName + ' ' + appState.selectedYear +
+                '</p>' +
+            '</div>';
+            
+            if (filteredVentes.length === 0) {
+                html += '<div style="padding: 2rem; text-align: center; color: #6b7280;">' +
+                    '<div style="font-size: 1.125rem; margin-bottom: 0.5rem;">Aucune vente pour cette période</div>' +
+                    '<div style="font-size: 0.875rem;">Cliquez sur "Nouvelle vente" pour commencer</div>' +
+                '</div>';
+            } else {
+                html += '<div style="overflow-x: auto;">' +
+                    '<table class="table">' +
+                        '<thead><tr>';
+                
+                if (appState.currentUser.type === 'admin') {
+                    html += '<th>Commercial</th>';
+                }
+                
+                html += '<th>Client</th><th>Contrat</th><th>Type</th><th>Rattachement</th><th>CA (€)</th><th>PNA (€)</th><th>Date effet</th><th style="text-align: right;">Actions</th>' +
+                        '</tr></thead><tbody>';
+                
+                for (var i = 0; i < filteredVentes.length; i++) {
+                    var vente = filteredVentes[i];
+                    html += '<tr>';
+                    
+                    if (appState.currentUser.type === 'admin') {
+                        html += '<td style="font-weight: 500;">' + vente.commercial + '</td>';
+                    }
+                    
+                    var badgeClass = vente.vente === 'Tél' ? 'badge-blue' : 'badge-green';
+                    var ca = parseFloat(vente.chiffreAffaires || 0).toFixed(2);
+                    var pna = parseFloat(vente.pna || 0).toFixed(2);
+                    
+                    html += '<td>' + vente.nom + ' ' + vente.prenom + '</td>' +
+                        '<td>' + vente.contrat + '</td>' +
+                        '<td><span class="badge ' + badgeClass + '">' + vente.vente + '</span></td>' +
+                        '<td>' + vente.rattachement + '</td>' +
+                        '<td style="font-weight: 500; color: #059669;">' + ca + '</td>' +
+                        '<td style="font-weight: 500; color: #7c3aed;">' + pna + '</td>' +
+                        '<td>' + vente.dateEffet + '</td>' +
+                        '<td style="text-align: right;">';
+                    
+                    if (appState.currentUser.type === 'admin' || vente.commercial === appState.currentUser.name) {
+                        html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">' +
+                            '<button onclick="editVente(' + vente.id + ')" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>' +
+                            '<button onclick="handleDelete(' + vente.id + ')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>' +
+                        '</div>';
+                    }
+                    
+                    html += '</td></tr>';
+                }
+                
+                html += '</tbody></table></div>';
+            }
+            
+            card.innerHTML = html;
+            container.appendChild(card);
+        }
+
+        function renderGestion(container) {
             if (appState.currentUser.type !== 'admin') {
-                return '<div class="card"><p>Accès non autorisé</p></div>';
+                var card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = '<p>Accès non autorisé</p>';
+                container.appendChild(card);
+                return;
             }
             
-            return `
-                <div class="card">
-                    <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">Gestion - Fonctionnalités avancées</h2>
-                    <div style="color: #6b7280;">
-                        <p style="margin-bottom: 1rem;">Section de gestion pour l'administrateur.</p>
-                        <p style="margin-bottom: 1rem;">Fonctionnalités disponibles :</p>
-                        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
-                            <li>Gestion des commerciaux</li>
-                            <li>Configuration des contrats</li>
-                            <li>Export/Import des données</li>
-                            <li>Statistiques avancées</li>
-                        </ul>
-                        
-                        <div style="margin-top: 2rem;">
-                            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #1f2937;">Actions rapides :</h3>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <button onclick="exportData()" class="btn btn-success">
-                                    💾 Exporter les données
-                                </button>
-                                <button onclick="showImportDialog()" class="btn btn-secondary">
-                                    📁 Importer des données
-                                </button>
-                                <button onclick="resetAllData()" class="btn btn-danger">
-                                    ⚠️ Réinitialiser
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Gestion des données
+            var dataCard = document.createElement('div');
+            dataCard.className = 'card';
+            var dataHtml = '<h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">Gestion des Données</h2>' +
+                '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">' +
+                    '<button onclick="exportData()" class="btn btn-primary" style="padding: 1rem;">💾 Backup Complet</button>' +
+                    '<button onclick="showImportDialog()" class="btn btn-success" style="padding: 1rem;">📁 Importer Backup</button>' +
+                    '<button onclick="toggleUserForm()" class="btn" style="padding: 1rem; background: #7c3aed; color: white;">👤 Ajouter Commercial</button>' +
+                '</div>';
+            dataCard.innerHTML = dataHtml;
+            container.appendChild(dataCard);
+            
+            // Gestion des contrats
+            var contractCard = document.createElement('div');
+            contractCard.className = 'card';
+            var contractHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
+                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Types de Contrats</h3>' +
+                '<button onclick="toggleContractForm()" class="btn btn-primary">➕ Ajouter un contrat</button>' +
+            '</div>';
+            
+            if (appState.showContractForm) {
+                contractHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<div style="display: flex; gap: 0.75rem;">' +
+                        '<input type="text" placeholder="Nom du nouveau contrat" class="form-input" style="flex: 1;" ' +
+                            'value="' + appState.newContract + '" onchange="appState.newContract = this.value" ' +
+                            'onkeypress="if(event.key===\'Enter\') addContract()">' +
+                        '<button onclick="addContract()" class="btn btn-success">Ajouter</button>' +
+                        '<button onclick="cancelContractForm()" class="btn btn-secondary">Annuler</button>' +
+                    '</div>' +
+                '</div>';
+            }
+            
+            contractHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
+            
+            for (var i = 0; i < appState.contrats.length; i++) {
+                var contrat = appState.contrats[i];
+                contractHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<span style="font-size: 0.875rem; flex: 1;">' + contrat + '</span>' +
+                    '<button onclick="deleteContract(\'' + contrat.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer ce contrat">🗑️</button>' +
+                '</div>';
+            }
+            
+            contractHtml += '</div>';
+            
+            if (appState.contrats.length === 0) {
+                contractHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun contrat configuré</p>';
+            }
+            
+            contractCard.innerHTML = contractHtml;
+            container.appendChild(contractCard);
         }
 
-        // Fonctions supplémentaires pour la gestion
+        // Fonctions helper pour la liste
+        function editVente(id) {
+            for (var i = 0; i < appState.ventes.length; i++) {
+                if (appState.ventes[i].id === id) {
+                    handleEdit(appState.ventes[i]);
+                    break;
+                }
+            }
+        }
+
+        // Fonctions de gestion
+        function toggleUserForm() {
+            appState.showUserForm = !appState.showUserForm;
+            render();
+        }
+
+        function toggleContractForm() {
+            appState.showContractForm = !appState.showContractForm;
+            render();
+        }
+
+        function cancelUserForm() {
+            appState.showUserForm = false;
+            appState.newUserForm = { username: '', name: '', password: '', agence: '', permanences: '' };
+            render();
+        }
+
+        function cancelContractForm() {
+            appState.showContractForm = false;
+            appState.newContract = '';
+            render();
+        }
+
+        function addContract() {
+            if (!appState.newContract.trim()) {
+                alert('Veuillez saisir un nom de contrat');
+                return;
+            }
+
+            if (appState.contrats.indexOf(appState.newContract.trim()) !== -1) {
+                alert('Ce contrat existe déjà');
+                return;
+            }
+
+            appState.contrats.push(appState.newContract.trim());
+            appState.newContract = '';
+            saveData();
+            alert('Contrat ajouté avec succès !');
+            render();
+        }
+
+        function deleteContract(contractToDelete) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer le contrat "' + contractToDelete + '" ?')) {
+                appState.contrats = appState.contrats.filter(function(c) {
+                    return c !== contractToDelete;
+                });
+                saveData();
+                alert('Contrat supprimé avec succès !');
+                render();
+            }
+        }
+
         function exportData() {
-            const dataToExport = {
+            var dataToExport = {
                 ventes: appState.ventes,
                 users: appState.users,
                 contrats: appState.contrats,
                 exportDate: new Date().toISOString()
             };
             
-            const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { 
-                type: 'application/json' 
-            });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
+            var blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+            var link = document.createElement('a');
+            var url = URL.createObjectURL(blob);
             link.href = url;
-            link.download = `backup_sales_tracker_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = 'backup_sales_tracker_' + new Date().toISOString().split('T')[0] + '.json';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -963,27 +959,21 @@
         }
 
         function showImportDialog() {
-            const input = document.createElement('input');
+            var input = document.createElement('input');
             input.type = 'file';
             input.accept = '.json';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
+            input.onchange = function(e) {
+                var file = e.target.files[0];
                 if (!file) return;
 
-                const reader = new FileReader();
-                reader.onload = (event) => {
+                var reader = new FileReader();
+                reader.onload = function(event) {
                     try {
-                        const importedData = JSON.parse(event.target.result);
+                        var importedData = JSON.parse(event.target.result);
                         
-                        if (importedData.ventes) {
-                            appState.ventes = importedData.ventes;
-                        }
-                        if (importedData.users) {
-                            appState.users = importedData.users;
-                        }
-                        if (importedData.contrats) {
-                            appState.contrats = importedData.contrats;
-                        }
+                        if (importedData.ventes) appState.ventes = importedData.ventes;
+                        if (importedData.users) appState.users = importedData.users;
+                        if (importedData.contrats) appState.contrats = importedData.contrats;
                         
                         saveData();
                         render();
@@ -998,37 +988,58 @@
             input.click();
         }
 
-        function resetAllData() {
-            if (confirm('⚠️ ATTENTION ! Cette action va supprimer toutes les données (ventes, utilisateurs personnalisés, contrats). Êtes-vous sûr ?')) {
-                if (confirm('Dernière confirmation : Toutes les données seront perdues définitivement !')) {
-                    appState.ventes = [];
-                    appState.users = {...defaultUsers};
-                    appState.contrats = [...defaultContrats];
-                    localStorage.removeItem('salesTrackerData');
-                    render();
-                    alert('Toutes les données ont été réinitialisées !');
-                }
+        function exportToCSV() {
+            var ventesToExport = getFilteredVentes();
+            if (ventesToExport.length === 0) {
+                alert('Aucune vente à exporter !');
+                return;
             }
+
+            var headers = [
+                'Commercial', 'Nom', 'Prénom', 'Âge', 'Numéro personne', 'Vente', 'Rattachement',
+                'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv'
+            ];
+            
+            var csvContent = headers.join(',') + '\n';
+            
+            for (var i = 0; i < ventesToExport.length; i++) {
+                var vente = ventesToExport[i];
+                var row = [
+                    vente.commercial || '', vente.nom || '', vente.prenom || '', vente.age || '', vente.numeroPersonne || '',
+                    vente.vente || '', vente.rattachement || '', vente.origine || '', vente.contrat || '', vente.dateEffet || '',
+                    vente.chiffreAffaires || '', vente.pna || '', vente.jourRdv || ''
+                ];
+                csvContent += row.join(',') + '\n';
+            }
+
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            var url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = 'ventes_' + (appState.currentUser ? appState.currentUser.name : 'toutes') + '_' + appState.selectedMonth + '-' + appState.selectedYear + '.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
-        // Initialisation de l'application
+        // Initialisation
         function init() {
             loadData();
             render();
         }
 
-        // Gestion des événements clavier pour le login
+        // Événements
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !appState.currentUser) {
-                const usernameField = document.getElementById('username');
-                const passwordField = document.getElementById('password');
+                var usernameField = document.getElementById('username');
+                var passwordField = document.getElementById('password');
                 if (usernameField && passwordField && (document.activeElement === usernameField || document.activeElement === passwordField)) {
                     handleLogin();
                 }
             }
         });
 
-        // Lancement de l'application
+        // Démarrage
         init();
     </script>
 </body>
