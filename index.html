@@ -184,7 +184,55 @@
                 }
             }
         }
+// Mise à jour dans Firebase
+        async function updateInFirebase(vente) {
+            if (!db) return false;
+            
+            try {
+                // Trouver le document Firebase correspondant
+                const ventesSnapshot = await getDocs(collection(db, 'ventes'));
+                let docId = null;
+                ventesSnapshot.forEach((doc) => {
+                    if (doc.data().id === vente.id) {
+                        docId = doc.id;
+                    }
+                });
+                
+                if (docId) {
+                    await updateDoc(doc(db, 'ventes', docId), vente);
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('Erreur modification Firebase:', error);
+                return false;
+            }
+        }
 
+        // Suppression dans Firebase
+        async function deleteFromFirebase(venteId) {
+            if (!db) return false;
+            
+            try {
+                // Trouver le document Firebase correspondant
+                const ventesSnapshot = await getDocs(collection(db, 'ventes'));
+                let docId = null;
+                ventesSnapshot.forEach((doc) => {
+                    if (doc.data().id === venteId) {
+                        docId = doc.id;
+                    }
+                });
+                
+                if (docId) {
+                    await deleteDoc(doc(db, 'ventes', docId));
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('Erreur suppression Firebase:', error);
+                return false;
+            }
+        }
         // Synchronisation avec Firebase
         async function syncWithFirebase() {
             if (!db) return;
@@ -488,7 +536,7 @@
             appState.editingId = null;
         }
 
-        // Fonction de soumission modifiée pour Firebase
+      // Fonction de soumission modifiée pour Firebase
         async function handleSubmit() {
             var commercial = appState.currentUser.type === 'commercial' ? appState.currentUser.name : appState.formData.commercial;
             
@@ -503,20 +551,33 @@
             venteFinal.commercial = commercial;
             
             if (appState.editingId) {
+                // MODIFICATION existante
                 for (var i = 0; i < appState.ventes.length; i++) {
                     if (appState.ventes[i].id === appState.editingId) {
                         venteFinal.id = appState.editingId;
                         venteFinal.dateCreation = appState.ventes[i].dateCreation;
+                        venteFinal.dateModification = new Date().toLocaleString('fr-FR');
                         appState.ventes[i] = venteFinal;
                         break;
                     }
                 }
+                
+                // Mettre à jour dans Firebase
+                if (db) {
+                    try {
+                        await updateInFirebase(venteFinal);
+                        console.log('✅ Vente modifiée dans Firebase');
+                    } catch (error) {
+                        console.log('⚠️ Modification Firebase échouée, mode local activé');
+                    }
+                }
             } else {
+                // Nouvelle vente
                 venteFinal.id = Date.now();
                 venteFinal.dateCreation = new Date().toLocaleString('fr-FR');
                 appState.ventes.push(venteFinal);
                 
-                // Tenter de sauvegarder dans Firebase
+                // Sauvegarder dans Firebase
                 if (db) {
                     try {
                         await saveToFirebase(venteFinal);
@@ -532,7 +593,6 @@
             alert(appState.editingId ? 'Vente modifiée !' : 'Vente ajoutée !');
             render();
         }
-
         function handleEdit(vente) {
             appState.formData = JSON.parse(JSON.stringify(vente));
             appState.editingId = vente.id;
@@ -540,11 +600,23 @@
             render();
         }
 
-        function handleDelete(id) {
+    async function handleDelete(id) {
             if (confirm('Supprimer cette vente ?')) {
+                // Supprimer localement
                 appState.ventes = appState.ventes.filter(function(v) {
                     return v.id !== id;
                 });
+                
+                // Supprimer dans Firebase
+                if (db) {
+                    try {
+                        await deleteFromFirebase(id);
+                        console.log('✅ Vente supprimée de Firebase');
+                    } catch (error) {
+                        console.log('⚠️ Suppression Firebase échouée, mode local activé');
+                    }
+                }
+                
                 saveData();
                 alert('Vente supprimée !');
                 render();
