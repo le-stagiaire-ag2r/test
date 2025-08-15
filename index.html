@@ -932,7 +932,62 @@
                     '<button onclick="toggleUserForm()" class="btn" style="padding: 1rem; background: #7c3aed; color: white;">👤 Ajouter Commercial</button>' +
                 '</div>';
             dataCard.innerHTML = dataHtml;
+            // Gestion des données
+            var dataCard = document.createElement('div');
+            dataCard.className = 'card';
+            var dataHtml = '<h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">Gestion des Données</h2>' +
+                '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">' +
+                    '<button onclick="exportData()" class="btn btn-primary" style="padding: 1rem;">💾 Backup Complet</button>' +
+                    '<button onclick="showImportDialog()" class="btn btn-success" style="padding: 1rem;">📁 Importer Backup</button>' +
+                    '<button onclick="toggleUserForm()" class="btn" style="padding: 1rem; background: #7c3aed; color: white;">👤 Ajouter Commercial</button>' +
+                '</div>';
+            dataCard.innerHTML = dataHtml;
             container.appendChild(dataCard);
+            
+            // Formulaire ajout utilisateur
+            if (appState.showUserForm) {
+                var userFormCard = document.createElement('div');
+                userFormCard.className = 'card';
+                var userFormHtml = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Ajouter un nouveau commercial</h3>';
+                userFormHtml += '<div class="form-grid">';
+                userFormHtml += '<div class="form-group">' +
+                    '<label class="form-label">Nom d\'utilisateur *</label>' +
+                    '<input type="text" class="form-input" placeholder="Ex: marie" ' +
+                        'value="' + appState.newUserForm.username + '" ' +
+                        'onchange="appState.newUserForm.username = this.value">' +
+                '</div>';
+                userFormHtml += '<div class="form-group">' +
+                    '<label class="form-label">Nom complet *</label>' +
+                    '<input type="text" class="form-input" placeholder="Ex: Marie Dupont" ' +
+                        'value="' + appState.newUserForm.name + '" ' +
+                        'onchange="appState.newUserForm.name = this.value">' +
+                '</div>';
+                userFormHtml += '<div class="form-group">' +
+                    '<label class="form-label">Mot de passe *</label>' +
+                    '<input type="text" class="form-input" placeholder="Ex: marie123" ' +
+                        'value="' + appState.newUserForm.password + '" ' +
+                        'onchange="appState.newUserForm.password = this.value">' +
+                '</div>';
+                userFormHtml += '<div class="form-group">' +
+                    '<label class="form-label">Agence *</label>' +
+                    '<input type="text" class="form-input" placeholder="Ex: Lille" ' +
+                        'value="' + appState.newUserForm.agence + '" ' +
+                        'onchange="appState.newUserForm.agence = this.value">' +
+                '</div>';
+                userFormHtml += '<div class="form-group" style="grid-column: 1 / -1;">' +
+                    '<label class="form-label">Permanences (séparées par des virgules)</label>' +
+                    '<input type="text" class="form-input" placeholder="Ex: Arras, Béthune, Valenciennes" ' +
+                        'value="' + appState.newUserForm.permanences + '" ' +
+                        'onchange="appState.newUserForm.permanences = this.value">' +
+                '</div>';
+                userFormHtml += '</div>';
+                userFormHtml += '<div style="display: flex; gap: 0.75rem; margin-top: 1rem;">' +
+                    '<button onclick="addNewUser()" class="btn btn-success">Ajouter le commercial</button>' +
+                    '<button onclick="cancelUserForm()" class="btn btn-secondary">Annuler</button>' +
+                '</div>';
+                userFormCard.innerHTML = userFormHtml;
+                container.appendChild(userFormCard);
+            }
             
             // Gestion des contrats
             var contractCard = document.createElement('div');
@@ -1089,8 +1144,68 @@
                 rattachementHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun rattachement personnalisé configuré</p>';
             }
             
-            rattachementCard.innerHTML = rattachementHtml;
-            container.appendChild(rattachementCard);
+            // Gestion des commerciaux et permanences
+            var commerciauxCard = document.createElement('div');
+            commerciauxCard.className = 'card';
+            var commerciauxHtml = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem;">Gestion des Commerciaux et Permanences</h3>';
+            commerciauxHtml += '<div style="overflow-x: auto;">';
+            commerciauxHtml += '<table class="table">';
+            commerciauxHtml += '<thead><tr><th>Nom</th><th>Username</th><th>Agence</th><th>Permanences</th><th>Ventes Total</th><th style="text-align: center;">Actions</th></tr></thead>';
+            commerciauxHtml += '<tbody>';
+            
+            var commerciaux = Object.keys(appState.users).filter(function(username) {
+                return appState.users[username].type === 'commercial';
+            });
+            
+            for (var i = 0; i < commerciaux.length; i++) {
+                var username = commerciaux[i];
+                var user = appState.users[username];
+                var userVentes = appState.ventes.filter(function(v) {
+                    return v.commercial === user.name;
+                });
+                var isEditing = appState.editingUser === username;
+                
+                commerciauxHtml += '<tr>';
+                commerciauxHtml += '<td style="font-weight: 500;">' + user.name + '</td>';
+                commerciauxHtml += '<td style="color: #6b7280;">' + username + '</td>';
+                commerciauxHtml += '<td>' + user.agence + '</td>';
+                commerciauxHtml += '<td>';
+                
+                if (isEditing) {
+                    commerciauxHtml += '<div style="display: flex; gap: 0.5rem; align-items: center;">' +
+                        '<input type="text" class="form-input" style="flex: 1; padding: 0.25rem 0.5rem; font-size: 0.875rem;" ' +
+                            'placeholder="Séparez par des virgules" ' +
+                            'value="' + appState.editUserForm.permanences + '" ' +
+                            'onchange="appState.editUserForm.permanences = this.value">' +
+                        '<button onclick="saveUserPermanences()" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">✓</button>' +
+                        '<button onclick="cancelEditingUser()" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">✕</button>' +
+                    '</div>';
+                } else {
+                    var permanencesText = user.permanences.length > 0 ? user.permanences.join(', ') : 'Aucune';
+                    commerciauxHtml += '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+                        '<span style="font-size: 0.875rem;">' + permanencesText + '</span>' +
+                        '<button onclick="startEditingUser(\'' + username + '\')" ' +
+                            'class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin-left: 0.5rem;" ' +
+                            'title="Modifier les permanences">✏️</button>' +
+                    '</div>';
+                }
+                
+                commerciauxHtml += '</td>';
+                commerciauxHtml += '<td style="font-weight: 500; color: #2563eb;">' + userVentes.length + '</td>';
+                commerciauxHtml += '<td style="text-align: center;">';
+                
+                if (!isEditing) {
+                    commerciauxHtml += '<button onclick="startEditingUser(\'' + username + '\')" ' +
+                        'class="btn btn-primary" style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">' +
+                        'Modifier permanences</button>';
+                }
+                
+                commerciauxHtml += '</td></tr>';
+            }
+            
+            commerciauxHtml += '</tbody></table></div>';
+            commerciauxCard.innerHTML = commerciauxHtml;
+            container.appendChild(commerciauxCard);
         }
 
         // Fonctions helper pour la liste
@@ -1264,15 +1379,73 @@
             }
         }
 
-        function deleteRattachement(rattachementToDelete) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer le rattachement "' + rattachementToDelete + '" ?')) {
-                appState.rattachements = appState.rattachements.filter(function(r) {
-                    return r !== rattachementToDelete;
-                });
-                saveData();
-                alert('Rattachement supprimé avec succès !');
-                render();
+        function addNewUser() {
+            if (!appState.newUserForm.username || !appState.newUserForm.name || !appState.newUserForm.password || !appState.newUserForm.agence) {
+                alert('Veuillez remplir tous les champs obligatoires');
+                return;
             }
+
+            if (appState.users[appState.newUserForm.username.toLowerCase()]) {
+                alert('Cet utilisateur existe déjà');
+                return;
+            }
+
+            var permanencesArray = [];
+            if (appState.newUserForm.permanences) {
+                var permanencesList = appState.newUserForm.permanences.split(',');
+                for (var i = 0; i < permanencesList.length; i++) {
+                    var permanence = permanencesList[i].trim();
+                    if (permanence) {
+                        permanencesArray.push(permanence);
+                    }
+                }
+            }
+
+            appState.users[appState.newUserForm.username.toLowerCase()] = {
+                password: appState.newUserForm.password,
+                type: 'commercial',
+                name: appState.newUserForm.name,
+                agence: appState.newUserForm.agence,
+                permanences: permanencesArray
+            };
+            
+            cancelUserForm();
+            saveData();
+            alert('Commercial ajouté avec succès !');
+        }
+
+        function startEditingUser(username) {
+            var user = appState.users[username];
+            appState.editingUser = username;
+            appState.editUserForm.permanences = user.permanences.join(', ');
+            render();
+        }
+
+        function saveUserPermanences() {
+            if (!appState.editingUser) return;
+
+            var permanencesArray = [];
+            if (appState.editUserForm.permanences) {
+                var permanencesList = appState.editUserForm.permanences.split(',');
+                for (var i = 0; i < permanencesList.length; i++) {
+                    var permanence = permanencesList[i].trim();
+                    if (permanence) {
+                        permanencesArray.push(permanence);
+                    }
+                }
+            }
+
+            appState.users[appState.editingUser].permanences = permanencesArray;
+            
+            cancelEditingUser();
+            saveData();
+            alert('Permanences mises à jour avec succès !');
+        }
+
+        function cancelEditingUser() {
+            appState.editingUser = null;
+            appState.editUserForm.permanences = '';
+            render();
         }
 
         function exportData() {
