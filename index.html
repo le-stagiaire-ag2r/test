@@ -439,11 +439,11 @@
                 });
             }
             
-            filtered = filtered.filter(function(v) {
-                if (!v.dateEffet) return false;
-                var date = new Date(v.dateEffet);
-                return date.getMonth() + 1 === appState.selectedMonth && date.getFullYear() === appState.selectedYear;
-            });
+          filtered = filtered.filter(function(v) {
+    if (!v.jourRdv) return false;
+    var date = new Date(v.jourRdv);
+    return date.getMonth() + 1 === appState.selectedMonth && date.getFullYear() === appState.selectedYear;
+});
             
             return filtered;
         }
@@ -1805,12 +1805,11 @@
             }
             
             // Filtrer par année seulement (pas par mois)
-            allYearVentes = allYearVentes.filter(function(v) {
-                if (!v.dateEffet) return false;
-                var date = new Date(v.dateEffet);
-                return date.getFullYear() === appState.selectedYear;
-            });
-
+          allYearVentes = allYearVentes.filter(function(v) {
+    if (!v.jourRdv) return false;
+    var date = new Date(v.jourRdv);
+    return date.getFullYear() === appState.selectedYear;
+});
             if (allYearVentes.length === 0) {
                 alert('Aucune vente pour l\'année ' + appState.selectedYear + ' !');
                 return;
@@ -1826,8 +1825,7 @@
             
             for (var i = 0; i < allYearVentes.length; i++) {
                 var vente = allYearVentes[i];
-                var moisNom = vente.dateEffet ? new Date(vente.dateEffet).toLocaleDateString('fr-FR', { month: 'long' }) : '';
-                
+                var moisNom = vente.jourRdv ? new Date(vente.jourRdv).toLocaleDateString('fr-FR', { month: 'long' }) : '';
                 var row = [
                     vente.commercial || '', vente.nom || '', vente.prenom || '', vente.age || '', vente.numeroPersonne || '',
                     vente.vente || '', vente.rattachement || '', vente.origine || '', vente.contrat || '', vente.dateEffet || '',
