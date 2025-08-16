@@ -761,9 +761,14 @@
                                 '</button>' +
                                 commercialButtons +
                                 adminButtons +
-                                '<button onclick="exportToCSV()" class="btn btn-success">' +
-                                    '💾 Export CSV' +
-                                '</button>' +
+                              '<div style="display: flex; gap: 0.25rem;">' +
+    '<button onclick="exportToCSV()" class="btn btn-success" title="Export du mois sélectionné">' +
+        '💾 Export CSV' +
+    '</button>' +
+    '<button onclick="exportAnnualToCSV()" class="btn btn-success" style="background: #7c3aed;" title="Export de toute l\'année">' +
+        '📅 Export Annuel' +
+    '</button>' +
+'</div>' +
                                 '<button onclick="handleLogout()" class="btn btn-danger">' +
                                     '🚪 Déconnexion' +
                                 '</button>' +
@@ -1788,6 +1793,60 @@
             link.click();
             document.body.removeChild(link);
         }
+        function exportAnnualToCSV() {
+            // Récupérer toutes les ventes de l'année (tous les mois)
+            var allYearVentes = appState.ventes.slice();
+            
+            // Filtrer par commercial si nécessaire
+            if (appState.currentUser && appState.currentUser.type === 'commercial') {
+                allYearVentes = allYearVentes.filter(function(v) {
+                    return v.commercial === appState.currentUser.name;
+                });
+            }
+            
+            // Filtrer par année seulement (pas par mois)
+            allYearVentes = allYearVentes.filter(function(v) {
+                if (!v.dateEffet) return false;
+                var date = new Date(v.dateEffet);
+                return date.getFullYear() === appState.selectedYear;
+            });
+
+            if (allYearVentes.length === 0) {
+                alert('Aucune vente pour l\'année ' + appState.selectedYear + ' !');
+                return;
+            }
+
+            var headers = [
+                'Commercial', 'Nom', 'Prénom', 'Âge', 'Numéro personne', 'Vente', 'Rattachement',
+                'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv', 'Mois'
+            ];
+            
+            // Utiliser le point-virgule pour Excel français
+            var csvContent = headers.join(';') + '\n';
+            
+            for (var i = 0; i < allYearVentes.length; i++) {
+                var vente = allYearVentes[i];
+                var moisNom = vente.dateEffet ? new Date(vente.dateEffet).toLocaleDateString('fr-FR', { month: 'long' }) : '';
+                
+                var row = [
+                    vente.commercial || '', vente.nom || '', vente.prenom || '', vente.age || '', vente.numeroPersonne || '',
+                    vente.vente || '', vente.rattachement || '', vente.origine || '', vente.contrat || '', vente.dateEffet || '',
+                    vente.chiffreAffaires || '', vente.pna || '', vente.jourRdv || '', moisNom
+                ];
+                csvContent += row.join(';') + '\n';
+            }
+
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            var url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = 'ventes_annuel_' + (appState.currentUser ? appState.currentUser.name : 'toutes') + '_' + appState.selectedYear + '.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('Export annuel terminé ! (' + allYearVentes.length + ' ventes exportées)');
+        }
 
         // Initialisation
         function init() {
@@ -1821,6 +1880,7 @@
         window.editVente = editVente;
         window.handleDelete = handleDelete;
         window.exportToCSV = exportToCSV;
+        window.exportAnnualToCSV = exportAnnualToCSV;
         window.exportData = exportData;
         window.showImportDialog = showImportDialog;
         window.toggleUserForm = toggleUserForm;
