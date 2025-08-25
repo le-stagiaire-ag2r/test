@@ -346,6 +346,11 @@
             showRattachementForm: false,
             showUserForm: false,
             editingUser: null,
+            showPasswordForm: false,
+showChangeOwnPasswordForm: false,
+editingPassword: null,
+passwordForm: { newPassword: '', confirmPassword: '' },
+changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: '' },
             newContract: '',
             newTypeVente: '',
             newOrigine: '',
@@ -1204,11 +1209,41 @@ if (appState.currentUser.type === 'admin') {
             var dataCard = document.createElement('div');
             dataCard.className = 'card';
             var dataHtml = '<h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">Gestion des Données</h2>' +
-                '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">' +
-                    '<button onclick="exportData()" class="btn btn-primary" style="padding: 1rem;">💾 Backup Complet</button>' +
-                    '<button onclick="showImportDialog()" class="btn btn-success" style="padding: 1rem;">📁 Importer Backup</button>' +
-                    '<button onclick="toggleUserForm()" class="btn" style="padding: 1rem; background: #7c3aed; color: white;">👤 Ajouter Commercial</button>' +
-                '</div>';
+               var dataHtml = '<h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">Gestion des Données & Sécurité</h2>' +
+    '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">' +
+        '<button onclick="exportData()" class="btn btn-primary" style="padding: 1rem;">💾 Backup Complet</button>' +
+        '<button onclick="showImportDialog()" class="btn btn-success" style="padding: 1rem;">📁 Importer Backup</button>' +
+        '<button onclick="toggleUserForm()" class="btn" style="padding: 1rem; background: #7c3aed; color: white;">👤 Ajouter Commercial</button>' +
+        '<button onclick="toggleChangeOwnPasswordForm()" class="btn" style="padding: 1rem; background: #dc2626; color: white;">🔒 Changer mon mot de passe</button>' +
+    '</div>';
+
+// Formulaire changement mot de passe admin
+if (appState.showChangeOwnPasswordForm) {
+    dataHtml += '<div style="margin-bottom: 1.5rem; padding: 1.5rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem;">' +
+        '<h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #dc2626;">Changer votre mot de passe</h3>' +
+        '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">' +
+            '<div>' +
+                '<label class="form-label">Mot de passe actuel</label>' +
+                '<input type="password" class="form-input" value="' + appState.changeOwnPasswordForm.currentPassword + '" ' +
+                    'onchange="appState.changeOwnPasswordForm.currentPassword = this.value">' +
+            '</div>' +
+            '<div>' +
+                '<label class="form-label">Nouveau mot de passe</label>' +
+                '<input type="password" class="form-input" value="' + appState.changeOwnPasswordForm.newPassword + '" ' +
+                    'onchange="appState.changeOwnPasswordForm.newPassword = this.value">' +
+            '</div>' +
+            '<div>' +
+                '<label class="form-label">Confirmer nouveau mot de passe</label>' +
+                '<input type="password" class="form-input" value="' + appState.changeOwnPasswordForm.confirmPassword + '" ' +
+                    'onchange="appState.changeOwnPasswordForm.confirmPassword = this.value">' +
+            '</div>' +
+        '</div>' +
+        '<div style="display: flex; gap: 0.75rem; margin-top: 1rem;">' +
+            '<button onclick="changeOwnPassword()" class="btn btn-success">Modifier mon mot de passe</button>' +
+            '<button onclick="toggleChangeOwnPasswordForm()" class="btn btn-secondary">Annuler</button>' +
+        '</div>' +
+    '</div>';
+}
             dataCard.innerHTML = dataHtml;
             container.appendChild(dataCard);
             
@@ -1465,11 +1500,40 @@ if (appState.currentUser.type === 'admin') {
                 commerciauxHtml += '<td style="font-weight: 500; color: #2563eb;">' + userVentes.length + '</td>';
                 commerciauxHtml += '<td style="text-align: center;">';
                 
-                if (!isEditing) {
-                    commerciauxHtml += '<button onclick="startEditingUser(\'' + username + '\')" ' +
-                        'class="btn btn-primary" style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">' +
-                        'Modifier permanences</button>';
-                }
+               if (!isEditing) {
+    commerciauxHtml += '<div style="display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">' +
+        '<button onclick="startEditingUser(\'' + username + '\')" ' +
+            'class="btn btn-primary" style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">' +
+            'Modifier permanences</button>' +
+        '<button onclick="togglePasswordForm(\'' + username + '\')" ' +
+            'class="btn" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; background: #dc2626; color: white;">' +
+            'Changer mot de passe</button>' +
+    '</div>';
+    
+    // Formulaire changement mot de passe
+    if (appState.editingPassword === username) {
+        commerciauxHtml += '<div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border-radius: 0.5rem; border: 1px solid #fecaca;">' +
+            '<div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap;">' +
+                '<div style="flex: 1; min-width: 120px;">' +
+                    '<label class="form-label" style="font-size: 0.75rem;">Nouveau mot de passe</label>' +
+                    '<input type="password" class="form-input" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;" ' +
+                        'placeholder="Nouveau mot de passe" ' +
+                        'value="' + appState.passwordForm.newPassword + '" ' +
+                        'onchange="appState.passwordForm.newPassword = this.value">' +
+                '</div>' +
+                '<div style="flex: 1; min-width: 120px;">' +
+                    '<label class="form-label" style="font-size: 0.75rem;">Confirmer</label>' +
+                    '<input type="password" class="form-input" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;" ' +
+                        'placeholder="Confirmer" ' +
+                        'value="' + appState.passwordForm.confirmPassword + '" ' +
+                        'onchange="appState.passwordForm.confirmPassword = this.value">' +
+                '</div>' +
+                '<button onclick="changeUserPassword()" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">✓</button>' +
+                '<button onclick="cancelPasswordForm()" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">✕</button>' +
+            '</div>' +
+        '</div>';
+    }
+}
                 
                 commerciauxHtml += '</td></tr>';
             }
@@ -1729,7 +1793,87 @@ if (appState.currentUser.type === 'admin') {
             appState.editUserForm.permanences = '';
             render();
         }
+function togglePasswordForm(username) {
+    if (appState.editingPassword === username) {
+        appState.editingPassword = null;
+        appState.showPasswordForm = false;
+        appState.passwordForm = { newPassword: '', confirmPassword: '' };
+    } else {
+        appState.editingPassword = username;
+        appState.showPasswordForm = true;
+        appState.passwordForm = { newPassword: '', confirmPassword: '' };
+    }
+    render();
+}
 
+function toggleChangeOwnPasswordForm() {
+    appState.showChangeOwnPasswordForm = !appState.showChangeOwnPasswordForm;
+    appState.changeOwnPasswordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+    render();
+}
+
+function changeUserPassword() {
+    if (!appState.passwordForm.newPassword.trim()) {
+        alert('Veuillez saisir un nouveau mot de passe');
+        return;
+    }
+
+    if (appState.passwordForm.newPassword.trim() !== appState.passwordForm.confirmPassword.trim()) {
+        alert('Les mots de passe ne correspondent pas');
+        return;
+    }
+
+    if (appState.passwordForm.newPassword.trim().length < 4) {
+        alert('Le mot de passe doit contenir au moins 4 caractères');
+        return;
+    }
+
+    appState.users[appState.editingPassword].password = appState.passwordForm.newPassword.trim();
+    
+    appState.editingPassword = null;
+    appState.showPasswordForm = false;
+    appState.passwordForm = { newPassword: '', confirmPassword: '' };
+    
+    saveData();
+    alert('Mot de passe modifié avec succès !');
+    render();
+}
+
+function changeOwnPassword() {
+    if (!appState.changeOwnPasswordForm.currentPassword || !appState.changeOwnPasswordForm.newPassword || !appState.changeOwnPasswordForm.confirmPassword) {
+        alert('Veuillez remplir tous les champs');
+        return;
+    }
+
+    if (appState.users[appState.currentUser.username].password !== appState.changeOwnPasswordForm.currentPassword) {
+        alert('Mot de passe actuel incorrect');
+        return;
+    }
+
+    if (appState.changeOwnPasswordForm.newPassword !== appState.changeOwnPasswordForm.confirmPassword) {
+        alert('Les nouveaux mots de passe ne correspondent pas');
+        return;
+    }
+
+    if (appState.changeOwnPasswordForm.newPassword.length < 4) {
+        alert('Le nouveau mot de passe doit contenir au moins 4 caractères');
+        return;
+    }
+
+    appState.users[appState.currentUser.username].password = appState.changeOwnPasswordForm.newPassword;
+    appState.currentUser.password = appState.changeOwnPasswordForm.newPassword;
+    
+    toggleChangeOwnPasswordForm();
+    saveData();
+    alert('Votre mot de passe a été modifié avec succès !');
+}
+
+function cancelPasswordForm() {
+    appState.editingPassword = null;
+    appState.showPasswordForm = false;
+    appState.passwordForm = { newPassword: '', confirmPassword: '' };
+    render();
+}
         function exportData() {
             var dataToExport = {
                 ventes: appState.ventes,
@@ -1944,6 +2088,11 @@ if (appState.currentUser.type === 'admin') {
         window.startEditingUser = startEditingUser;
         window.saveUserPermanences = saveUserPermanences;
         window.cancelEditingUser = cancelEditingUser;
+        window.togglePasswordForm = togglePasswordForm;
+window.toggleChangeOwnPasswordForm = toggleChangeOwnPasswordForm;
+window.changeUserPassword = changeUserPassword;
+window.changeOwnPassword = changeOwnPassword;
+window.cancelPasswordForm = cancelPasswordForm;
         window.appState = appState;
         window.render = render;
 
