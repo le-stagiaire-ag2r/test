@@ -337,6 +337,7 @@
             currentView: 'dashboard',
             selectedMonth: new Date().getMonth() + 1,
             selectedYear: new Date().getFullYear(),
+            selectedCommercial: 'tous',
             ventes: [],
             editingId: null,
             showContractForm: false,
@@ -431,22 +432,28 @@
         }
 
         function getFilteredVentes() {
-            var filtered = appState.ventes.slice();
-            
-            if (appState.currentUser && appState.currentUser.type === 'commercial') {
-                filtered = filtered.filter(function(v) {
-                    return v.commercial === appState.currentUser.name;
-                });
-            }
-            
-          filtered = filtered.filter(function(v) {
-    if (!v.jourRdv) return false;
-    var date = new Date(v.jourRdv);
-    return date.getMonth() + 1 === appState.selectedMonth && date.getFullYear() === appState.selectedYear;
-});
-            
-            return filtered;
-        }
+    var filtered = appState.ventes.slice();
+    
+    if (appState.currentUser && appState.currentUser.type === 'commercial') {
+        filtered = filtered.filter(function(v) {
+            return v.commercial === appState.currentUser.name;
+        });
+    }
+
+    else if (appState.currentUser && appState.currentUser.type === 'admin' && appState.selectedCommercial !== 'tous') {
+        filtered = filtered.filter(function(v) {
+            return v.commercial === appState.selectedCommercial;
+        });
+    }
+    
+    filtered = filtered.filter(function(v) {
+        if (!v.jourRdv) return false;
+        var date = new Date(v.jourRdv);
+        return date.getMonth() + 1 === appState.selectedMonth && date.getFullYear() === appState.selectedYear;
+    });
+    
+    return filtered;
+}
 
         function getStats() {
             var ventesFiltered = getFilteredVentes();
@@ -708,7 +715,25 @@
                 var selected = appState.selectedYear === years[i] ? 'selected' : '';
                 yearOptions += '<option value="' + years[i] + '" ' + selected + '>' + years[i] + '</option>';
             }
-            
+            var commercialOptions = '';
+if (appState.currentUser.type === 'admin') {
+    commercialOptions = '<select onchange="appState.selectedCommercial = this.value; render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
+        '<option value="tous"' + (appState.selectedCommercial === 'tous' ? ' selected' : '') + '>Tous les commerciaux</option>';
+    
+    // Récupérer automatiquement tous les commerciaux
+    var commerciaux = Object.keys(appState.users).filter(function(username) {
+        return appState.users[username].type === 'commercial';
+    });
+    
+    for (var i = 0; i < commerciaux.length; i++) {
+        var username = commerciaux[i];
+        var user = appState.users[username];
+        var selected = appState.selectedCommercial === user.name ? ' selected' : '';
+        commercialOptions += '<option value="' + user.name + '"' + selected + '>' + user.name + '</option>';
+    }
+    
+    commercialOptions += '</select>';
+}
             var commercialButtons = '';
             if (appState.currentUser.type === 'commercial') {
                 commercialButtons = 
@@ -753,8 +778,10 @@
                                 '</select>' +
                                 '<select onchange="appState.selectedYear = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
                                     yearOptions +
-                                '</select>' +
-                            '</div>' +
+                               '</select>' +
+    (appState.currentUser.type === 'admin' ? 
+        '<span style="margin-left: 0.5rem;">👤</span>' + commercialOptions : '') +
+'</div>' +
                             '<div class="nav-buttons">' +
                                 '<button onclick="setView(\'dashboard\')" class="btn ' + (appState.currentView === 'dashboard' ? 'btn-primary' : 'btn-secondary') + '">' +
                                     '📊 Dashboard' +
@@ -1788,7 +1815,11 @@
             var link = document.createElement('a');
             var url = URL.createObjectURL(blob);
             link.href = url;
-            link.download = 'ventes_' + (appState.currentUser ? appState.currentUser.name : 'toutes') + '_' + appState.selectedMonth + '-' + appState.selectedYear + '.csv';
+          link.download = 'ventes_' + 
+    (appState.currentUser.type === 'commercial' ? 
+        appState.currentUser.name : 
+        (appState.selectedCommercial !== 'tous' ? appState.selectedCommercial : 'toutes')
+    ) + '_' + appState.selectedMonth + '-' + appState.selectedYear + '.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1797,12 +1828,18 @@
             // Récupérer toutes les ventes de l'année (tous les mois)
             var allYearVentes = appState.ventes.slice();
             
-            // Filtrer par commercial si nécessaire
-            if (appState.currentUser && appState.currentUser.type === 'commercial') {
-                allYearVentes = allYearVentes.filter(function(v) {
-                    return v.commercial === appState.currentUser.name;
-                });
-            }
+           // Filtrer par commercial si nécessaire
+        if (appState.currentUser && appState.currentUser.type === 'commercial') {
+            allYearVentes = allYearVentes.filter(function(v) {
+                return v.commercial === appState.currentUser.name;
+            });
+        }
+        // NOUVEAU: Filtre pour admin avec commercial sélectionné
+        else if (appState.currentUser && appState.currentUser.type === 'admin' && appState.selectedCommercial !== 'tous') {
+            allYearVentes = allYearVentes.filter(function(v) {
+                return v.commercial === appState.selectedCommercial;
+            });
+        }
             
             // Filtrer par année seulement (pas par mois)
           allYearVentes = allYearVentes.filter(function(v) {
@@ -1838,7 +1875,11 @@
             var link = document.createElement('a');
             var url = URL.createObjectURL(blob);
             link.href = url;
-            link.download = 'ventes_annuel_' + (appState.currentUser ? appState.currentUser.name : 'toutes') + '_' + appState.selectedYear + '.csv';
+           link.download = 'ventes_annuel_' + 
+    (appState.currentUser.type === 'commercial' ? 
+        appState.currentUser.name : 
+        (appState.selectedCommercial !== 'tous' ? appState.selectedCommercial : 'toutes')
+    ) + '_' + appState.selectedYear + '.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
