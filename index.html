@@ -739,28 +739,35 @@ if (appState.currentUser.type === 'admin') {
     
     commercialOptions += '</select>';
 }
-            var commercialButtons = '';
-            if (appState.currentUser.type === 'commercial') {
-                commercialButtons = 
-                    '<button onclick="setView(\'saisie\')" class="btn ' + (appState.currentView === 'saisie' ? 'btn-primary' : 'btn-secondary') + '">' +
-                        '➕ Nouvelle vente' +
-                    '</button>' +
-                    '<button onclick="setView(\'liste\')" class="btn ' + (appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary') + '">' +
-                        '👁️ Mes ventes (' + filteredVentes.length + ')' +
-                    '</button>';
-            }
+          var commercialButtons = '';
+if (appState.currentUser.type === 'commercial') {
+    commercialButtons = 
+        '<button onclick="setView(\'saisie\')" class="btn ' + (appState.currentView === 'saisie' ? 'btn-primary' : 'btn-secondary') + '">' +
+            '➕ Nouvelle vente' +
+        '</button>' +
+        '<button onclick="setView(\'liste\')" class="btn ' + (appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary') + '">' +
+            '👁️ Mes ventes (' + filteredVentes.length + ')' +
+        '</button>' +
+        '<div style="display: flex; gap: 0.25rem;">' +
+            '<button onclick="exportToCSV()" class="btn btn-success" title="Export du mois sélectionné">' +
+                '💾 Export CSV' +
+            '</button>' +
+            '<button onclick="exportAnnualToCSV()" class="btn btn-success" style="background: #7c3aed;" title="Export de toute l\'année">' +
+                '📅 Export Annuel' +
+            '</button>' +
+        '</div>';
+}
             
-            var adminButtons = '';
-            if (appState.currentUser.type === 'admin') {
-                adminButtons = 
-                    '<button onclick="setView(\'liste\')" class="btn ' + (appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary') + '">' +
-                        '👁️ Toutes les ventes (' + filteredVentes.length + ')' +
-                    '</button>' +
-                    '<button onclick="setView(\'gestion\')" class="btn ' + (appState.currentView === 'gestion' ? 'btn-primary' : 'btn-secondary') + '">' +
-                        '⚙️ Gestion' +
-                    '</button>';
-            }
-            
+      var adminButtons = '';
+if (appState.currentUser.type === 'admin') {
+    adminButtons = 
+        '<button onclick="setView(\'liste\')" class="btn ' + (appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary') + '">' +
+            '👁️ Toutes les ventes (' + filteredVentes.length + ')' +
+        '</button>' +
+        '<button onclick="setView(\'gestion\')" class="btn ' + (appState.currentView === 'gestion' ? 'btn-primary' : 'btn-secondary') + '">' +
+            '⚙️ Gestion' +
+        '</button>';
+}
             var statusIndicator = '<div class="firebase-status"></div>';
             
             var html = '<div class="header">' +
