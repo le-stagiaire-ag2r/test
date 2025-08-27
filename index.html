@@ -963,6 +963,9 @@ if (appState.currentUser.type === 'admin') {
     '<button onclick="exportToCSV()" class="btn btn-success" title="Export du mois sélectionné">' +
         '💾 Export CSV' +
     '</button>' +
+                '<button onclick="showDoublonsAlert()" class="btn" style="background: #f59e0b; color: white;" title="Vérifier les doublons">' +
+    '🔍 Doublons' +
+'</button>' +
 '</div>' +
                                 '<button onclick="handleLogout()" class="btn btn-danger">' +
                                     '🚪 Déconnexion' +
@@ -2338,6 +2341,7 @@ render();
         window.startEditingUser = startEditingUser;
         window.saveUserPermanences = saveUserPermanences;
         window.cancelEditingUser = cancelEditingUser;
+        window.showDoublonsAlert = showDoublonsAlert;
         window.togglePasswordForm = togglePasswordForm;
 window.toggleChangeOwnPasswordForm = toggleChangeOwnPasswordForm;
 window.changeUserPassword = changeUserPassword;
