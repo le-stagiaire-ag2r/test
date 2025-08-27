@@ -381,7 +381,112 @@ changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: 
                 console.error('Erreur de sauvegarde:', error);
             }
         }
+function validateVenteData(venteData) {
+    var errors = [];
+    
+    // Validation des champs requis
+    if (!venteData.nom || venteData.nom.trim().length < 2) {
+        errors.push("Le nom doit contenir au moins 2 caractères");
+    }
+    if (!venteData.prenom || venteData.prenom.trim().length < 2) {
+        errors.push("Le prénom doit contenir au moins 2 caractères");
+    }
+    
+    // Validation de l'âge
+    if (venteData.age && (isNaN(venteData.age) || venteData.age < 0 || venteData.age > 120)) {
+        errors.push("L'âge doit être entre 0 et 120 ans");
+    }
+    
+    // Validation des montants
+    if (!venteData.chiffreAffaires || isNaN(venteData.chiffreAffaires) || venteData.chiffreAffaires <= 0) {
+        errors.push("Le chiffre d'affaires doit être un montant positif");
+    }
+    if (!venteData.pna || isNaN(venteData.pna) || venteData.pna <= 0) {
+        errors.push("Le PNA doit être un montant positif");
+    }
+    
+    // Validation des dates
+    if (venteData.dateEffet) {
+        var dateEffet = new Date(venteData.dateEffet);
+        var today = new Date();
+        var maxDate = new Date(today.getFullYear() + 2, today.getMonth(), today.getDate());
+        
+        if (dateEffet > maxDate) {
+            errors.push("La date d'effet ne peut pas être à plus de 2 ans dans le futur");
+        }
+    }
+    
+    if (venteData.jourRdv) {
+        var dateRdv = new Date(venteData.jourRdv);
+        var minDate = new Date(2020, 0, 1);
+        var maxDate = new Date();
+        maxDate.setDate(maxDate.getDate() + 30);
+        
+        if (dateRdv < minDate || dateRdv > maxDate) {
+            errors.push("La date du RDV doit être entre 2020 et dans les 30 prochains jours");
+        }
+    }
+    
+    return errors;
+}
+        function cleanOrphanVentes() {
+    var commerciauxExistants = [];
+    
+    // Récupérer tous les noms des commerciaux existants
+    var usernames = Object.keys(appState.users);
+    for (var i = 0; i < usernames.length; i++) {
+        var user = appState.users[usernames[i]];
+        if (user.type === 'commercial') {
+            commerciauxExistants.push(user.name);
+        }
+    }
+    
+    // Identifier les ventes orphelines
+    var ventesOrphelines = [];
+    var ventesValides = [];
+    
+    for (var i = 0; i < appState.ventes.length; i++) {
+        var vente = appState.ventes[i];
+        if (commerciauxExistants.indexOf(vente.commercial) === -1) {
+            ventesOrphelines.push(vente);
+        } else {
+            ventesValides.push(vente);
+        }
+    }
+    
+    if (ventesOrphelines.length > 0) {
+        var commerciauxOrphelins = [];
+        for (var i = 0; i < ventesOrphelines.length; i++) {
+            var commercial = ventesOrphelines[i].commercial;
+            if (commerciauxOrphelins.indexOf(commercial) === -1) {
+                commerciauxOrphelins.push(commercial);
+            }
+        }
+        
+        var message = 'Attention : ' + ventesOrphelines.length + ' ventes appartiennent à des commerciaux supprimés :\n\n';
+        message += commerciauxOrphelins.join(', ') + '\n\n';
+        message += 'Voulez-vous :\n';
+        message += '- OK : Conserver ces ventes (elles resteront visibles)\n';
+        message += '- Annuler : Supprimer définitivement ces ventes orphelines';
+        
+        if (confirm(message)) {
+            return appState.ventes;
+        } else {
+            appState.ventes = ventesValides;
+            saveData();
+            alert(ventesOrphelines.length + ' ventes orphelines supprimées.');
+            return ventesValides;
+        }
+    }
+    
+    return appState.ventes;
+}
 
+function getVentesForCommercial(commercialName) {
+    return appState.ventes.filter(function(vente) {
+        return vente.commercial === commercialName;
+    });
+}
         function loadData() {
             try {
                 var savedData = localStorage.getItem('salesTrackerData');
@@ -556,14 +661,21 @@ changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: 
             var commercial = appState.currentUser.type === 'commercial' ? appState.currentUser.name : appState.formData.commercial;
             
             if (!commercial || !appState.formData.nom || !appState.formData.prenom || !appState.formData.vente || 
-                !appState.formData.rattachement || !appState.formData.origine || !appState.formData.contrat || 
-                !appState.formData.dateEffet || !appState.formData.chiffreAffaires || !appState.formData.pna) {
-                alert('Veuillez remplir tous les champs obligatoires (*)');
-                return;
-            }
-            
-            var venteFinal = JSON.parse(JSON.stringify(appState.formData));
-            venteFinal.commercial = commercial;
+    !appState.formData.rattachement || !appState.formData.origine || !appState.formData.contrat || 
+    !appState.formData.dateEffet || !appState.formData.chiffreAffaires || !appState.formData.pna) {
+    alert('Veuillez remplir tous les champs obligatoires (*)');
+    return;
+}
+
+// Validation des données
+var venteFinal = JSON.parse(JSON.stringify(appState.formData));
+venteFinal.commercial = commercial;
+var validationErrors = validateVenteData(venteFinal);
+
+if (validationErrors.length > 0) {
+    alert('Erreurs de validation :\n\n' + validationErrors.join('\n'));
+    return;
+}
             
             if (appState.editingId) {
                 // MODIFICATION existante
@@ -1913,23 +2025,53 @@ function cancelPasswordForm() {
 
                 var reader = new FileReader();
                 reader.onload = function(event) {
-                    try {
-                        var importedData = JSON.parse(event.target.result);
-                        
-                        if (importedData.ventes) appState.ventes = importedData.ventes;
-                        if (importedData.users) appState.users = importedData.users;
-                        if (importedData.contrats) appState.contrats = importedData.contrats;
-                        if (importedData.typesVente) appState.typesVente = importedData.typesVente;
-                        if (importedData.origines) appState.origines = importedData.origines;
-                        if (importedData.rattachements) appState.rattachements = importedData.rattachements;
-                        
-                        saveData();
-                        render();
-                        alert('Données importées avec succès !');
-                    } catch (error) {
-                        alert('Erreur lors de l\'import. Vérifiez le format du fichier.');
-                        console.error('Erreur import:', error);
-                    }
+               try {
+    var importedData = JSON.parse(event.target.result);
+    
+    // Vérification de base du format
+    if (!importedData || typeof importedData !== 'object') {
+        throw new Error('Format de fichier invalide');
+    }
+    
+    // Validation et nettoyage des ventes
+    var validVentes = [];
+    var invalidCount = 0;
+    
+    if (importedData.ventes && Array.isArray(importedData.ventes)) {
+        for (var i = 0; i < importedData.ventes.length; i++) {
+            var vente = importedData.ventes[i];
+            var errors = validateVenteData(vente);
+            
+            if (errors.length === 0) {
+                validVentes.push(vente);
+            } else {
+                invalidCount++;
+                console.warn('Vente invalide ignorée:', vente, 'Erreurs:', errors);
+            }
+        }
+    }
+    
+    // Mise à jour des données
+    if (validVentes.length > 0) appState.ventes = validVentes;
+    if (importedData.users) appState.users = importedData.users;
+    if (importedData.contrats) appState.contrats = importedData.contrats;
+    if (importedData.typesVente) appState.typesVente = importedData.typesVente;
+    if (importedData.origines) appState.origines = importedData.origines;
+    if (importedData.rattachements) appState.rattachements = importedData.rattachements;
+    
+    saveData();
+    render();
+    
+    var message = 'Données importées avec succès !';
+    if (invalidCount > 0) {
+        message += '\n\n' + invalidCount + ' ventes invalides ont été ignorées.';
+    }
+    alert(message);
+    
+} catch (error) {
+    alert('Erreur lors de l\'import. Vérifiez le format du fichier.');
+    console.error('Erreur import:', error);
+}
                 };
                 reader.readAsText(file);
             };
