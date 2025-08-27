@@ -365,7 +365,7 @@ changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: 
             formData: {
                 commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
                 vente: '', rattachement: '', origine: '', contrat: '',
-                dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: ''
+                dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
             }
         };
 
@@ -697,7 +697,7 @@ function getFilteredVentes() {
             appState.formData = {
                 commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
                 vente: '', rattachement: '', origine: '', contrat: '',
-                dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: ''
+                dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
             };
             appState.editingId = null;
         }
@@ -1257,7 +1257,12 @@ if (appState.currentUser.type === 'admin') {
                 { name: 'pna', label: 'PNA (€) *', type: 'number', step: '0.01', required: true },
                 { name: 'jourRdv', label: 'Jour du RDV', type: 'date' }
             ];
-            
+            // Champ commentaire séparé
+html += '<div class="form-group" style="grid-column: 1 / -1;">' +
+    '<label class="form-label">Commentaire (facultatif)</label>' +
+    '<textarea class="form-input" placeholder="Notes, contexte, remarques..." style="min-height: 80px; resize: vertical;" ' +
+        'onchange="updateFormField(\'commentaire\', this.value)">' + (appState.formData.commentaire || '') + '</textarea>' +
+'</div>';
             for (var i = 0; i < otherFields.length; i++) {
                 var field = otherFields[i];
                 var stepAttr = field.step ? ' step="' + field.step + '"' : '';
@@ -1357,7 +1362,11 @@ html += '<tr' + (isQuickEditing ? ' style="background-color: #fef3c7;"' : '') + 
                     var ca = parseFloat(vente.chiffreAffaires || 0).toFixed(2);
                     var pna = parseFloat(vente.pna || 0).toFixed(2);
                     
-                    html += '<td>' + vente.nom + ' ' + vente.prenom + '</td>' +
+                   html += '<td>' + vente.nom + ' ' + vente.prenom + 
+    (vente.commentaire && vente.commentaire.trim() ? 
+        ' <span onclick="showCommentaire(' + vente.id + ')" style="cursor: pointer; color: #2563eb;" title="Voir commentaire">💬</span>' : 
+        '') + 
+'</td>' +
                         '<td>' + vente.contrat + '</td>' +
                         '<td><span class="badge ' + badgeClass + '">' + vente.vente + '</span></td>' +
                         '<td>' + vente.rattachement + '</td>' +
@@ -2380,6 +2389,16 @@ function showDoublonsAlert() {
     
     alert(message);
 }
+        function showCommentaire(venteId) {
+    for (var i = 0; i < appState.ventes.length; i++) {
+        if (appState.ventes[i].id === venteId) {
+            var commentaire = appState.ventes[i].commentaire || '';
+            var client = appState.ventes[i].nom + ' ' + appState.ventes[i].prenom;
+            alert('Commentaire pour ' + client + ' :\n\n' + commentaire);
+            break;
+        }
+    }
+}
         // Rendre les fonctions globales pour les onclick
         window.handleLogin = handleLogin;
         window.handleLogout = handleLogout;
@@ -2394,6 +2413,7 @@ function showDoublonsAlert() {
         window.toggleQuickEdit = toggleQuickEdit;
         window.saveQuickEdit = saveQuickEdit;
         window.toggleUserForm = toggleUserForm;
+        window.showCommentaire = showCommentaire;
         window.toggleContractForm = toggleContractForm;
         window.toggleTypeVenteForm = toggleTypeVenteForm;
         window.toggleOrigineForm = toggleOrigineForm;
