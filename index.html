@@ -963,9 +963,9 @@ if (appState.currentUser.type === 'admin') {
     '<button onclick="exportToCSV()" class="btn btn-success" title="Export du mois sélectionné">' +
         '💾 Export CSV' +
     '</button>' +
-                '<button onclick="showDoublonsAlert()" class="btn" style="background: #f59e0b; color: white;" title="Vérifier les doublons">' +
+   '<button onclick="showDoublonsAlert()" class="btn" style="background: #f59e0b; color: white;" title="Vérifier les doublons">' +
     '🔍 Doublons' +
-'</button>' +
+'</button>' +             
 '</div>' +
                                 '<button onclick="handleLogout()" class="btn btn-danger">' +
                                     '🚪 Déconnexion' +
@@ -2306,6 +2306,83 @@ saveData();
 alert('Vente modifiée !');
 render();
 }
+        // Détection de doublons potentiels
+function detectDoublons() {
+    var doublons = [];
+    
+    for (var i = 0; i < appState.ventes.length; i++) {
+        for (var j = i + 1; j < appState.ventes.length; j++) {
+            var vente1 = appState.ventes[i];
+            var vente2 = appState.ventes[j];
+            
+            // Vérifier si même nom/prénom
+            if (vente1.nom.toLowerCase().trim() === vente2.nom.toLowerCase().trim() &&
+                vente1.prenom.toLowerCase().trim() === vente2.prenom.toLowerCase().trim()) {
+                
+                // Vérifier si même contrat
+                if (vente1.contrat === vente2.contrat) {
+                    
+                    // Vérifier si dates proches (moins de 7 jours pour même contrat)
+                    if (vente1.jourRdv && vente2.jourRdv) {
+                        var date1 = new Date(vente1.jourRdv);
+                        var date2 = new Date(vente2.jourRdv);
+                        var diffJours = Math.abs((date1 - date2) / (1000 * 60 * 60 * 24));
+                        
+                        if (diffJours <= 7) {
+                            doublons.push({
+                                vente1: vente1,
+                                vente2: vente2,
+                                diffJours: Math.round(diffJours),
+                                type: 'meme_contrat'
+                            });
+                        }
+                    }
+                }
+                
+                // Cas particulier : même jour, même montants (très suspect)
+                if (vente1.jourRdv === vente2.jourRdv && 
+                    vente1.chiffreAffaires === vente2.chiffreAffaires &&
+                    vente1.pna === vente2.pna) {
+                    
+                    doublons.push({
+                        vente1: vente1,
+                        vente2: vente2,
+                        diffJours: 0,
+                        type: 'memes_montants'
+                    });
+                }
+            }
+        }
+    }
+    
+    return doublons;
+}
+
+function showDoublonsAlert() {
+    var doublons = detectDoublons();
+    
+    if (doublons.length === 0) {
+        alert('Aucun doublon détecté !');
+        return;
+    }
+    
+    var message = 'Doublons potentiels détectés :\n\n';
+    for (var i = 0; i < doublons.length; i++) {
+        var doublon = doublons[i];
+        message += (i + 1) + '. ' + doublon.vente1.nom + ' ' + doublon.vente1.prenom;
+        
+        if (doublon.type === 'meme_contrat') {
+            message += ' - MÊME CONTRAT (' + doublon.vente1.contrat + ') à ' + doublon.diffJours + ' jours d\'écart\n';
+        } else {
+            message += ' - MÊME JOUR, MÊMES MONTANTS (très suspect !)\n';
+        }
+        
+        message += '   - Vente 1 : ' + doublon.vente1.dateCreation + ' - CA: ' + doublon.vente1.chiffreAffaires + '€ - ' + doublon.vente1.contrat + '\n';
+        message += '   - Vente 2 : ' + doublon.vente2.dateCreation + ' - CA: ' + doublon.vente2.chiffreAffaires + '€ - ' + doublon.vente2.contrat + '\n\n';
+    }
+    
+    alert(message);
+}
         // Rendre les fonctions globales pour les onclick
         window.handleLogin = handleLogin;
         window.handleLogout = handleLogout;
@@ -2315,6 +2392,7 @@ render();
         window.editVente = editVente;
         window.handleDelete = handleDelete;
         window.exportToCSV = exportToCSV;
+        window.showDoublonsAlert = showDoublonsAlert;
         window.exportData = exportData;
         window.showImportDialog = showImportDialog;
         window.toggleQuickEdit = toggleQuickEdit;
@@ -2341,7 +2419,6 @@ render();
         window.startEditingUser = startEditingUser;
         window.saveUserPermanences = saveUserPermanences;
         window.cancelEditingUser = cancelEditingUser;
-        window.showDoublonsAlert = showDoublonsAlert;
         window.togglePasswordForm = togglePasswordForm;
 window.toggleChangeOwnPasswordForm = toggleChangeOwnPasswordForm;
 window.changeUserPassword = changeUserPassword;
