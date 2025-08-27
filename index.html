@@ -341,6 +341,10 @@
             viewMode: 'mensuel', // 'mensuel' ou 'annuel'
             ventes: [],
             editingId: null,
+            searchTerm: '',
+sortBy: 'dateCreation',
+sortOrder: 'desc',
+quickEditId: null,            
             showContractForm: false,
             showTypeVenteForm: false,
             showOrigineForm: false,
@@ -542,29 +546,71 @@ function getVentesForCommercial(commercialName) {
             return uniqueOptions;
         }
 
-        function getFilteredVentes() {
+function getFilteredVentes() {
     var filtered = appState.ventes.slice();
     
+    // Filtre par commercial
     if (appState.currentUser && appState.currentUser.type === 'commercial') {
         filtered = filtered.filter(function(v) {
             return v.commercial === appState.currentUser.name;
         });
     }
-
     else if (appState.currentUser && appState.currentUser.type === 'admin' && appState.selectedCommercial !== 'tous') {
         filtered = filtered.filter(function(v) {
             return v.commercial === appState.selectedCommercial;
         });
     }
+    
+    // Filtre par période
     filtered = filtered.filter(function(v) {
-    if (!v.jourRdv) return false;
-    var date = new Date(v.jourRdv);
-    if (appState.viewMode === 'annuel') {
-        return date.getFullYear() === appState.selectedYear;
-    } else {
-        return date.getMonth() + 1 === appState.selectedMonth && date.getFullYear() === appState.selectedYear;
+        if (!v.jourRdv) return false;
+        var date = new Date(v.jourRdv);
+        if (appState.viewMode === 'annuel') {
+            return date.getFullYear() === appState.selectedYear;
+        } else {
+            return date.getMonth() + 1 === appState.selectedMonth && date.getFullYear() === appState.selectedYear;
+        }
+    });
+    
+    // NOUVEAU: Filtre par recherche
+    if (appState.searchTerm && appState.searchTerm.trim()) {
+        var searchLower = appState.searchTerm.toLowerCase().trim();
+        filtered = filtered.filter(function(v) {
+            return (v.nom && v.nom.toLowerCase().includes(searchLower)) ||
+                   (v.prenom && v.prenom.toLowerCase().includes(searchLower)) ||
+                   (v.commercial && v.commercial.toLowerCase().includes(searchLower)) ||
+                   (v.contrat && v.contrat.toLowerCase().includes(searchLower)) ||
+                   (v.rattachement && v.rattachement.toLowerCase().includes(searchLower)) ||
+                   (v.origine && v.origine.toLowerCase().includes(searchLower));
+        });
     }
-});
+    
+    // NOUVEAU: Tri
+    filtered.sort(function(a, b) {
+        var aVal = a[appState.sortBy] || '';
+        var bVal = b[appState.sortBy] || '';
+        
+        // Tri numérique pour les montants
+        if (appState.sortBy === 'chiffreAffaires' || appState.sortBy === 'pna') {
+            aVal = parseFloat(aVal) || 0;
+            bVal = parseFloat(bVal) || 0;
+        }
+        // Tri par date
+        else if (appState.sortBy === 'dateCreation' || appState.sortBy === 'jourRdv' || appState.sortBy === 'dateEffet') {
+            aVal = new Date(aVal || 0);
+            bVal = new Date(bVal || 0);
+        }
+        // Tri alphabétique
+        else {
+            aVal = String(aVal).toLowerCase();
+            bVal = String(bVal).toLowerCase();
+        }
+        
+        if (aVal < bVal) return appState.sortOrder === 'asc' ? -1 : 1;
+        if (aVal > bVal) return appState.sortOrder === 'asc' ? 1 : -1;
+        return 0;
+    });
+    
     return filtered;
 }
 
@@ -1251,14 +1297,35 @@ if (appState.currentUser.type === 'admin') {
             card.className = 'card';
             
             var html = '<div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1rem;">' +
-                '<h2 style="font-size: 1.25rem; font-weight: 600;">' +
-                    (appState.currentUser.type === 'commercial' ? 'Mes ventes' : 'Liste des ventes') + 
-                    ' (' + filteredVentes.length + ')' +
-                '</h2>' +
-                '<p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">' +
-                    'Période : ' + periodeName +
-                '</p>' +
-            '</div>';
+    '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">' +
+        '<div>' +
+            '<h2 style="font-size: 1.25rem; font-weight: 600;">' +
+                (appState.currentUser.type === 'commercial' ? 'Mes ventes' : 'Liste des ventes') + 
+                ' (' + filteredVentes.length + ')' +
+            '</h2>' +
+            '<p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">' +
+                'Période : ' + periodeName +
+            '</p>' +
+        '</div>' +
+        '<div style="display: flex; gap: 0.75rem; align-items: center;">' +
+            '<input type="text" placeholder="Rechercher..." class="form-input" style="width: 200px;" ' +
+                'value="' + appState.searchTerm + '" ' +
+                'onchange="appState.searchTerm = this.value; render();" ' +
+                'oninput="appState.searchTerm = this.value; render();">' +
+            '<select class="form-select" onchange="appState.sortBy = this.value; render();">' +
+                '<option value="dateCreation"' + (appState.sortBy === 'dateCreation' ? ' selected' : '') + '>Date création</option>' +
+                '<option value="nom"' + (appState.sortBy === 'nom' ? ' selected' : '') + '>Nom client</option>' +
+                '<option value="chiffreAffaires"' + (appState.sortBy === 'chiffreAffaires' ? ' selected' : '') + '>Chiffre d\'affaires</option>' +
+                '<option value="pna"' + (appState.sortBy === 'pna' ? ' selected' : '') + '>PNA</option>' +
+                '<option value="dateEffet"' + (appState.sortBy === 'dateEffet' ? ' selected' : '') + '>Date effet</option>' +
+            '</select>' +
+            '<button onclick="appState.sortOrder = appState.sortOrder === \'asc\' ? \'desc\' : \'asc\'; render();" ' +
+                'class="btn btn-secondary" style="padding: 0.5rem;">' +
+                (appState.sortOrder === 'asc' ? '↑' : '↓') +
+            '</button>' +
+        '</div>' +
+    '</div>' +
+'</div>';
             
             if (filteredVentes.length === 0) {
                 html += '<div style="padding: 2rem; text-align: center; color: #6b7280;">' +
@@ -1279,7 +1346,8 @@ if (appState.currentUser.type === 'admin') {
                 
                 for (var i = 0; i < filteredVentes.length; i++) {
                     var vente = filteredVentes[i];
-                    html += '<tr>';
+                    var isQuickEditing = appState.quickEditId === vente.id;
+html += '<tr' + (isQuickEditing ? ' style="background-color: #fef3c7;"' : '') + '>';
                     
                     if (appState.currentUser.type === 'admin') {
                         html += '<td style="font-weight: 500;">' + vente.commercial + '</td>';
@@ -1293,17 +1361,35 @@ if (appState.currentUser.type === 'admin') {
                         '<td>' + vente.contrat + '</td>' +
                         '<td><span class="badge ' + badgeClass + '">' + vente.vente + '</span></td>' +
                         '<td>' + vente.rattachement + '</td>' +
-                        '<td style="font-weight: 500; color: #059669;">' + ca + '</td>' +
-                        '<td style="font-weight: 500; color: #7c3aed;">' + pna + '</td>' +
+                        '<td style="font-weight: 500; color: #059669;">' +
+    (isQuickEditing ? 
+        '<input type="number" id="quickEdit_ca_' + vente.id + '" value="' + vente.chiffreAffaires + '" style="width: 80px; padding: 0.25rem; border: 1px solid #d1d5db; border-radius: 0.25rem;">' :
+        ca
+    ) +
+'</td>' +
+'<td style="font-weight: 500; color: #7c3aed;">' +
+    (isQuickEditing ? 
+        '<input type="number" id="quickEdit_pna_' + vente.id + '" value="' + vente.pna + '" style="width: 80px; padding: 0.25rem; border: 1px solid #d1d5db; border-radius: 0.25rem;">' :
+        pna
+    ) +
+'</td>' +
                         '<td>' + vente.dateEffet + '</td>' +
                         '<td style="text-align: right;">';
                     
-                    if (appState.currentUser.type === 'admin' || vente.commercial === appState.currentUser.name) {
-                        html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">' +
-                            '<button onclick="editVente(' + vente.id + ')" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>' +
-                            '<button onclick="handleDelete(' + vente.id + ')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>' +
-                        '</div>';
-                    }
+  if (appState.currentUser.type === 'admin' || vente.commercial === appState.currentUser.name) {
+    html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">';
+    
+    if (isQuickEditing) {
+        html += '<button onclick="saveQuickEdit(' + vente.id + ')" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Sauvegarder">💾</button>' +
+            '<button onclick="toggleQuickEdit(' + vente.id + ')" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Annuler">✕</button>';
+    } else {
+        html += '<button onclick="toggleQuickEdit(' + vente.id + ')" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modification rapide">⚡</button>' +
+            '<button onclick="editVente(' + vente.id + ')" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>' +
+            '<button onclick="handleDelete(' + vente.id + ')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>';
+    }
+    
+    html += '</div>';
+}
                     
                     html += '</td></tr>';
                 }
@@ -2153,7 +2239,58 @@ function cancelPasswordForm() {
                 }
             }
         });
+// Fonction de modification rapide
+function toggleQuickEdit(venteId) {
+    if (appState.quickEditId === venteId) {
+        appState.quickEditId = null;
+    } else {
+        appState.quickEditId = venteId;
+    }
+    render();
+}
 
+function saveQuickEdit(venteId) {
+    var venteIndex = -1;
+    for (var i = 0; i < appState.ventes.length; i++) {
+        if (appState.ventes[i].id === venteId) {
+            venteIndex = i;
+            break;
+        }
+    }
+    
+    if (venteIndex === -1) return;
+    
+    var vente = appState.ventes[venteIndex];
+    
+    // Récupérer les nouvelles valeurs depuis les inputs
+    var newCA = document.getElementById('quickEdit_ca_' + venteId).value;
+    var newPNA = document.getElementById('quickEdit_pna_' + venteId).value;
+    var newContrat = document.getElementById('quickEdit_contrat_' + venteId).value;
+    var newRattachement = document.getElementById('quickEdit_rattachement_' + venteId).value;
+    
+    // Validation basique
+    if (!newCA || !newPNA || isNaN(newCA) || isNaN(newPNA)) {
+        alert('CA et PNA doivent être des nombres valides');
+        return;
+    }
+    
+    if (parseFloat(newCA) <= 0 || parseFloat(newPNA) <= 0) {
+        alert('CA et PNA doivent être positifs');
+        return;
+    }
+    
+    // Mettre à jour la vente
+    vente.chiffreAffaires = newCA;
+    vente.pna = newPNA;
+    vente.contrat = newContrat;
+    vente.rattachement = newRattachement;
+    vente.dateModification = new Date().toLocaleString('fr-FR');
+    
+    appState.quickEditId = null;
+    saveData();
+    alert('Vente modifiée !');
+    render();
+}
         // Rendre les fonctions globales pour les onclick
         window.handleLogin = handleLogin;
         window.handleLogout = handleLogout;
@@ -2165,6 +2302,8 @@ function cancelPasswordForm() {
         window.exportToCSV = exportToCSV;
         window.exportData = exportData;
         window.showImportDialog = showImportDialog;
+        window.toggleQuickEdit = toggleQuickEdit;
+        window.saveQuickEdit = saveQuickEdit;
         window.toggleUserForm = toggleUserForm;
         window.toggleContractForm = toggleContractForm;
         window.toggleTypeVenteForm = toggleTypeVenteForm;
