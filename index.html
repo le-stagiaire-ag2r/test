@@ -962,10 +962,7 @@ if (appState.currentUser.type === 'admin') {
                               '<div style="display: flex; gap: 0.25rem;">' +
     '<button onclick="exportToCSV()" class="btn btn-success" title="Export du mois sélectionné">' +
         '💾 Export CSV' +
-    '</button>' +
-   '<button onclick="showDoublonsAlert()" class="btn" style="background: #f59e0b; color: white;" title="Vérifier les doublons">' +
-    '🔍 Doublons' +
-'</button>' +             
+    '</button>' +        
 '</div>' +
                                 '<button onclick="handleLogout()" class="btn btn-danger">' +
                                     '🚪 Déconnexion' +
@@ -2392,7 +2389,6 @@ function showDoublonsAlert() {
         window.editVente = editVente;
         window.handleDelete = handleDelete;
         window.exportToCSV = exportToCSV;
-        window.showDoublonsAlert = showDoublonsAlert;
         window.exportData = exportData;
         window.showImportDialog = showImportDialog;
         window.toggleQuickEdit = toggleQuickEdit;
