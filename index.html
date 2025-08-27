@@ -2287,9 +2287,21 @@ function saveQuickEdit(venteId) {
     vente.dateModification = new Date().toLocaleString('fr-FR');
     
     appState.quickEditId = null;
-    saveData();
-    alert('Vente modifiée !');
-    render();
+    
+// Mettre à jour dans Firebase
+if (db) {
+    updateInFirebase(vente).then(function(success) {
+        if (success) {
+            console.log('✅ Modification rapide sauvegardée dans Firebase');
+        } else {
+            console.log('⚠️ Modification Firebase échouée, mode local activé');
+        }
+    });
+}
+
+saveData();
+alert('Vente modifiée !');
+render();
 }
         // Rendre les fonctions globales pour les onclick
         window.handleLogin = handleLogin;
