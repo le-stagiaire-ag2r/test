@@ -338,6 +338,7 @@
             selectedMonth: new Date().getMonth() + 1,
             selectedYear: new Date().getFullYear(),
             selectedCommercial: 'tous',
+            viewMode: 'mensuel', // 'mensuel' ou 'annuel'
             ventes: [],
             editingId: null,
             showContractForm: false,
@@ -450,13 +451,15 @@ changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: 
             return v.commercial === appState.selectedCommercial;
         });
     }
-    
     filtered = filtered.filter(function(v) {
-        if (!v.jourRdv) return false;
-        var date = new Date(v.jourRdv);
+    if (!v.jourRdv) return false;
+    var date = new Date(v.jourRdv);
+    if (appState.viewMode === 'annuel') {
+        return date.getFullYear() === appState.selectedYear;
+    } else {
         return date.getMonth() + 1 === appState.selectedMonth && date.getFullYear() === appState.selectedYear;
-    });
-    
+    }
+});
     return filtered;
 }
 
@@ -778,9 +781,14 @@ if (appState.currentUser.type === 'admin') {
                         '<div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">' +
                             '<div style="display: flex; align-items: center; gap: 0.5rem;">' +
                                 '<span>📅</span>' +
-                                '<select onchange="appState.selectedMonth = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
-                                    monthOptions +
-                                '</select>' +
+                               '<select onchange="appState.viewMode = this.value; render();" class="form-select" style="padding: 0.25rem 0.5rem; margin-right: 0.5rem;">' +
+    '<option value="mensuel"' + (appState.viewMode === 'mensuel' ? ' selected' : '') + '>Vue mensuelle</option>' +
+    '<option value="annuel"' + (appState.viewMode === 'annuel' ? ' selected' : '') + '>Vue annuelle</option>' +
+'</select>' +
+(appState.viewMode === 'mensuel' ? 
+    '<select onchange="appState.selectedMonth = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
+                                 monthOptions +
+'</select>' : '') +
                                 '<select onchange="appState.selectedYear = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
                                     yearOptions +
                                '</select>' +
@@ -796,9 +804,6 @@ if (appState.currentUser.type === 'admin') {
                               '<div style="display: flex; gap: 0.25rem;">' +
     '<button onclick="exportToCSV()" class="btn btn-success" title="Export du mois sélectionné">' +
         '💾 Export CSV' +
-    '</button>' +
-    '<button onclick="exportAnnualToCSV()" class="btn btn-success" style="background: #7c3aed;" title="Export de toute l\'année">' +
-        '📅 Export Annuel' +
     '</button>' +
 '</div>' +
                                 '<button onclick="handleLogout()" class="btn btn-danger">' +
@@ -1126,7 +1131,9 @@ if (appState.currentUser.type === 'admin') {
 
         function renderListe(container) {
             var filteredVentes = getFilteredVentes();
-            var monthName = new Date(0, appState.selectedMonth - 1).toLocaleDateString('fr-FR', { month: 'long' });
+            var periodeName = appState.viewMode === 'annuel' ? 
+    'Année ' + appState.selectedYear : 
+    new Date(0, appState.selectedMonth - 1).toLocaleDateString('fr-FR', { month: 'long' }) + ' ' + appState.selectedYear;
             
             var card = document.createElement('div');
             card.className = 'card';
@@ -1137,7 +1144,7 @@ if (appState.currentUser.type === 'admin') {
                     ' (' + filteredVentes.length + ')' +
                 '</h2>' +
                 '<p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">' +
-                    'Période : ' + monthName + ' ' + appState.selectedYear +
+                    'Période : ' + periodeName +
                 '</p>' +
             '</div>';
             
@@ -1962,12 +1969,11 @@ function cancelPasswordForm() {
     (appState.currentUser.type === 'commercial' ? 
         appState.currentUser.name : 
         (appState.selectedCommercial !== 'tous' ? appState.selectedCommercial : 'toutes')
-    ) + '_' + appState.selectedMonth + '-' + appState.selectedYear + '.csv';
+   ) + '_' + (appState.viewMode === 'annuel' ? appState.selectedYear : appState.selectedMonth + '-' + appState.selectedYear) + '.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
-        function exportAnnualToCSV() {
             // Récupérer toutes les ventes de l'année (tous les mois)
             var allYearVentes = appState.ventes.slice();
             
@@ -1983,53 +1989,6 @@ function cancelPasswordForm() {
                 return v.commercial === appState.selectedCommercial;
             });
         }
-            
-            // Filtrer par année seulement (pas par mois)
-          allYearVentes = allYearVentes.filter(function(v) {
-    if (!v.jourRdv) return false;
-    var date = new Date(v.jourRdv);
-    return date.getFullYear() === appState.selectedYear;
-});
-            if (allYearVentes.length === 0) {
-                alert('Aucune vente pour l\'année ' + appState.selectedYear + ' !');
-                return;
-            }
-
-            var headers = [
-                'Commercial', 'Nom', 'Prénom', 'Âge', 'Numéro personne', 'Vente', 'Rattachement',
-                'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv', 'Mois'
-            ];
-            
-            // Utiliser le point-virgule pour Excel français
-            var csvContent = headers.join(';') + '\n';
-            
-            for (var i = 0; i < allYearVentes.length; i++) {
-                var vente = allYearVentes[i];
-                var moisNom = vente.jourRdv ? new Date(vente.jourRdv).toLocaleDateString('fr-FR', { month: 'long' }) : '';
-                var row = [
-                    vente.commercial || '', vente.nom || '', vente.prenom || '', vente.age || '', vente.numeroPersonne || '',
-                    vente.vente || '', vente.rattachement || '', vente.origine || '', vente.contrat || '', vente.dateEffet || '',
-                    vente.chiffreAffaires || '', vente.pna || '', vente.jourRdv || '', moisNom
-                ];
-                csvContent += row.join(';') + '\n';
-            }
-
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            var url = URL.createObjectURL(blob);
-            link.href = url;
-           link.download = 'ventes_annuel_' + 
-    (appState.currentUser.type === 'commercial' ? 
-        appState.currentUser.name : 
-        (appState.selectedCommercial !== 'tous' ? appState.selectedCommercial : 'toutes')
-    ) + '_' + appState.selectedYear + '.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            alert('Export annuel terminé ! (' + allYearVentes.length + ' ventes exportées)');
-        }
-
         // Initialisation
         function init() {
             loadData();
@@ -2062,7 +2021,6 @@ function cancelPasswordForm() {
         window.editVente = editVente;
         window.handleDelete = handleDelete;
         window.exportToCSV = exportToCSV;
-        window.exportAnnualToCSV = exportAnnualToCSV;
         window.exportData = exportData;
         window.showImportDialog = showImportDialog;
         window.toggleUserForm = toggleUserForm;
