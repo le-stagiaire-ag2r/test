@@ -261,7 +261,37 @@
 
                 appState.ventes = allVentes;
                 saveData();
-                
+             // Récupérer les utilisateurs depuis Firebase
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                const firebaseUsers = {};
+                usersSnapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    firebaseUsers[userData.username] = {
+                        password: userData.password,
+                        type: userData.type,
+                        name: userData.name,
+                        agence: userData.agence,
+                        permanences: userData.permanences || []
+                    };
+                });
+
+                // Fusionner avec les données locales (Firebase a priorité)
+                if (Object.keys(firebaseUsers).length > 0) {
+                    // Garder les comptes par défaut qui ne sont pas dans Firebase
+                    const mergedUsers = { ...appState.users };
+                    Object.keys(firebaseUsers).forEach(username => {
+                        mergedUsers[username] = firebaseUsers[username];
+                    });
+                    appState.users = mergedUsers;
+                } else {
+                    // Première fois - sauvegarder les utilisateurs locaux dans Firebase
+                    for (const [username, userData] of Object.entries(appState.users)) {
+                        await addDoc(collection(db, 'users'), {
+                            username: username,
+                            ...userData
+                        });
+                    }
+                }   
             } catch (error) {
                 console.error('Erreur de synchronisation:', error);
             }
@@ -285,6 +315,36 @@
                     render();
                 }
             });
+            // Écouter les changements d'utilisateurs en temps réel
+        onSnapshot(collection(db, 'users'), (snapshot) => {
+            const firebaseUsers = {};
+            snapshot.forEach((doc) => {
+                const userData = doc.data();
+                if (userData.username) {
+                    firebaseUsers[userData.username] = {
+                        password: userData.password,
+                        type: userData.type,
+                        name: userData.name,
+                        agence: userData.agence,
+                        permanences: userData.permanences || []
+                    };
+                }
+            });
+            
+            // Fusionner avec les comptes par défaut
+            const mergedUsers = { ...appState.users };
+            Object.keys(firebaseUsers).forEach(username => {
+                mergedUsers[username] = firebaseUsers[username];
+            });
+            
+            appState.users = mergedUsers;
+            saveData();
+            
+            // Re-render si l'utilisateur est connecté
+            if (appState.currentUser) {
+                render();
+            }
+        });
         }
 
         // Sauvegarde dans Firebase
@@ -1979,7 +2039,7 @@ if (appState.showChangeOwnPasswordForm) {
             }
         }
 
-        function addNewUser() {
+        async function addNewUser() {
             if (!appState.newUserForm.username || !appState.newUserForm.name || !appState.newUserForm.password || !appState.newUserForm.agence) {
                 alert('Veuillez remplir tous les champs obligatoires');
                 return;
@@ -2011,6 +2071,18 @@ if (appState.showChangeOwnPasswordForm) {
             
             cancelUserForm();
             saveData();
+            // Sauvegarder dans Firebase
+        if (db) {
+            try {
+                await addDoc(collection(db, 'users'), {
+                    username: appState.newUserForm.username.toLowerCase(),
+                    ...appState.users[appState.newUserForm.username.toLowerCase()]
+                });
+                console.log('✅ Nouveau commercial synchronisé avec Firebase');
+            } catch (error) {
+                console.log('⚠️ Synchronisation Firebase échouée pour le nouveau commercial');
+            }
+        }
             alert('Commercial ajouté avec succès !');
         }
 
@@ -2021,7 +2093,7 @@ if (appState.showChangeOwnPasswordForm) {
             render();
         }
 
-        function saveUserPermanences() {
+        async function saveUserPermanences() {
             if (!appState.editingUser) return;
 
             var permanencesArray = [];
@@ -2039,6 +2111,24 @@ if (appState.showChangeOwnPasswordForm) {
             
             cancelEditingUser();
             saveData();
+            // Synchroniser avec Firebase
+if (db) {
+    try {
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        let userDocId = null;
+        usersSnapshot.forEach((doc) => {
+            if (doc.data().username === appState.editingUser) {
+                userDocId = doc.id;
+            }
+        });
+        if (userDocId) {
+            await updateDoc(doc(db, 'users', userDocId), appState.users[appState.editingUser]);
+        }
+        console.log('✅ Permanences synchronisées avec Firebase');
+    } catch (error) {
+        console.log('⚠️ Synchronisation Firebase échouée pour les permanences');
+    }
+}
             alert('Permanences mises à jour avec succès !');
         }
 
@@ -2066,7 +2156,7 @@ function toggleChangeOwnPasswordForm() {
     render();
 }
 
-function changeUserPassword() {
+async function changeUserPassword() {
     if (!appState.passwordForm.newPassword.trim()) {
         alert('Veuillez saisir un nouveau mot de passe');
         return;
@@ -2089,11 +2179,29 @@ function changeUserPassword() {
     appState.passwordForm = { newPassword: '', confirmPassword: '' };
     
     saveData();
+    // Synchroniser avec Firebase
+        if (db) {
+            try {
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let userDocId = null;
+                usersSnapshot.forEach((doc) => {
+                    if (doc.data().username === appState.editingPassword) {
+                        userDocId = doc.id;
+                    }
+                });
+                if (userDocId) {
+                    await updateDoc(doc(db, 'users', userDocId), appState.users[appState.editingPassword]);
+                }
+                console.log('✅ Mot de passe synchronisé avec Firebase');
+            } catch (error) {
+                console.log('⚠️ Synchronisation Firebase échouée pour le mot de passe');
+            }
+        }
     alert('Mot de passe modifié avec succès !');
     render();
 }
 
-function changeOwnPassword() {
+async function changeOwnPassword() {
     if (!appState.changeOwnPasswordForm.currentPassword || !appState.changeOwnPasswordForm.newPassword || !appState.changeOwnPasswordForm.confirmPassword) {
         alert('Veuillez remplir tous les champs');
         return;
@@ -2119,6 +2227,24 @@ function changeOwnPassword() {
     
     toggleChangeOwnPasswordForm();
     saveData();
+    // Synchroniser avec Firebase
+        if (db) {
+            try {
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let userDocId = null;
+                usersSnapshot.forEach((doc) => {
+                    if (doc.data().username === appState.currentUser.username) {
+                        userDocId = doc.id;
+                    }
+                });
+                if (userDocId) {
+                    await updateDoc(doc(db, 'users', userDocId), appState.users[appState.currentUser.username]);
+                }
+                console.log('✅ Votre mot de passe synchronisé avec Firebase');
+            } catch (error) {
+                console.log('⚠️ Synchronisation Firebase échouée pour votre mot de passe');
+            }
+        }
     alert('Votre mot de passe a été modifié avec succès !');
 }
 
@@ -2128,7 +2254,7 @@ function cancelPasswordForm() {
     appState.passwordForm = { newPassword: '', confirmPassword: '' };
     render();
 }
-        function deleteCommercial(username) {
+        async function deleteCommercial(username) {
             var user = appState.users[username];
             var ventesCommercial = appState.ventes.filter(function(v) {
                 return v.commercial === user.name;
@@ -2152,6 +2278,24 @@ function cancelPasswordForm() {
                 }
                 
                 saveData();
+                // Synchroniser avec Firebase
+        if (db) {
+            try {
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let userDocId = null;
+                usersSnapshot.forEach((doc) => {
+                    if (doc.data().username === username) {
+                        userDocId = doc.id;
+                    }
+                });
+                if (userDocId) {
+                    await deleteDoc(doc(db, 'users', userDocId));
+                }
+                console.log('✅ Commercial supprimé de Firebase');
+            } catch (error) {
+                console.log('⚠️ Synchronisation Firebase échouée pour la suppression');
+            }
+        }
                 alert('Commercial supprimé !');
                 render();
             }
