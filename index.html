@@ -2704,7 +2704,7 @@ saveData();
 alert('Vente modifiée !');
 render();
 }
-        function showCommentaire(venteId) {
+       function showCommentaire(venteId) {
     for (var i = 0; i < appState.ventes.length; i++) {
         if (appState.ventes[i].id === venteId) {
             var commentaire = appState.ventes[i].commentaire || '';
