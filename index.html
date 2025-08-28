@@ -284,6 +284,21 @@
                     });
                     appState.users = mergedUsers;
                 } else {
+                    // MIGRATION TEMPORAIRE - sauvegarder tous les utilisateurs locaux dans Firebase
+const localUsernames = Object.keys(appState.users);
+for (const username of localUsernames) {
+    if (appState.users[username].type === 'commercial') {
+        try {
+            await addDoc(collection(db, 'users'), {
+                username: username,
+                ...appState.users[username]
+            });
+            console.log('Migration utilisateur:', username);
+        } catch (error) {
+            console.log('Erreur migration:', username);
+        }
+    }
+}
                     // Première fois - sauvegarder les utilisateurs locaux dans Firebase
                     for (const [username, userData] of Object.entries(appState.users)) {
                         await addDoc(collection(db, 'users'), {
