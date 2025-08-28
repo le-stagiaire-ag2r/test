@@ -296,6 +296,31 @@ async function syncWithFirebase() {
                     render();
                 }
             });
+            // Écouter les changements de configuration
+onSnapshot(collection(db, 'config'), (snapshot) => {
+    const firebaseContrats = [];
+    const firebaseOrigines = [];
+    const firebaseTypesVente = [];
+    const firebaseRattachements = [];
+
+    snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.type === 'contrat') firebaseContrats.push(data.value);
+        else if (data.type === 'origine') firebaseOrigines.push(data.value);
+        else if (data.type === 'typeVente') firebaseTypesVente.push(data.value);
+        else if (data.type === 'rattachement') firebaseRattachements.push(data.value);
+    });
+
+    appState.contrats = [...defaultContrats, ...firebaseContrats];
+    appState.origines = [...origines, ...firebaseOrigines];
+    appState.typesVente = [...typesVente, ...firebaseTypesVente];
+    appState.rattachements = firebaseRattachements;
+
+    saveData();
+    if (appState.currentUser) {
+        render();
+    }
+});
             // Écouter les changements d'utilisateurs en temps réel
         onSnapshot(collection(db, 'users'), (snapshot) => {
             const firebaseUsers = {};
@@ -340,7 +365,53 @@ async function syncWithFirebase() {
                 return false;
             }
         }
+// Mise à jour dans Firebase
+async function updateInFirebase(vente) {
+    if (!db) return false;
+    
+    try {
+        const ventesSnapshot = await getDocs(collection(db, 'ventes'));
+        let docId = null;
+        ventesSnapshot.forEach((doc) => {
+            if (doc.data().id === vente.id) {
+                docId = doc.id;
+            }
+        });
+        
+        if (docId) {
+            await updateDoc(doc(db, 'ventes', docId), vente);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Erreur modification Firebase:', error);
+        return false;
+    }
+}
 
+// Suppression dans Firebase
+async function deleteFromFirebase(venteId) {
+    if (!db) return false;
+    
+    try {
+        const ventesSnapshot = await getDocs(collection(db, 'ventes'));
+        let docId = null;
+        ventesSnapshot.forEach((doc) => {
+            if (doc.data().id === venteId) {
+                docId = doc.id;
+            }
+        });
+        
+        if (docId) {
+            await deleteDoc(doc(db, 'ventes', docId));
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Erreur suppression Firebase:', error);
+        return false;
+    }
+}
         // Données par défaut
         var defaultUsers = {
             "admin": { password: "admin123", type: "admin", name: "Administrateur" },
@@ -356,31 +427,7 @@ async function syncWithFirebase() {
             "messa": { password: "messa123", type: "commercial", name: "Messa", agence: "Rouen", permanences: ["Évreux", "Vernon", "Louviers"] },
             "amandine": { password: "amandine123", type: "commercial", name: "Amandine", agence: "Calais", permanences: ["Saint Omer", "Saint Leonard", "Hesdin", "Hazebrouck", "Étaples"] },
             "annabelle": { password: "annabelle123", type: "commercial", name: "Annabelle", agence: "Le Havre", permanences: ["Lisieux", "Yvetot", "Pont Audemer"] }
-            // NOUVEAU : Écouter les changements de configuration
-onSnapshot(collection(db, 'config'), (snapshot) => {
-    const firebaseContrats = [];
-    const firebaseOrigines = [];
-    const firebaseTypesVente = [];
-    const firebaseRattachements = [];
-
-    snapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.type === 'contrat') firebaseContrats.push(data.value);
-        else if (data.type === 'origine') firebaseOrigines.push(data.value);
-        else if (data.type === 'typeVente') firebaseTypesVente.push(data.value);
-        else if (data.type === 'rattachement') firebaseRattachements.push(data.value);
-    });
-
-    appState.contrats = [...defaultContrats, ...firebaseContrats];
-    appState.origines = [...origines, ...firebaseOrigines];
-    appState.typesVente = [...typesVente, ...firebaseTypesVente];
-    appState.rattachements = firebaseRattachements;
-
-    saveData();
-    if (appState.currentUser) {
-        render();
-    }
-});
+        
         };
 
         var typesVente = ["Face à face", "Tél"];
