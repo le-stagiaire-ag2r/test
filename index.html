@@ -2284,21 +2284,30 @@ alert('Commercial ajouté avec succès !');
                     }
                 }
             }
+var usernameToUpdate = appState.editingUser;  // AJOUTEZ cette ligne
+appState.users[usernameToUpdate].permanences = permanencesArray;
 
-            appState.users[appState.editingUser].permanences = permanencesArray;
-            
-            cancelEditingUser();
-            saveData();
-            // Synchroniser avec Firebase
+saveData();
+// Synchroniser avec Firebase
 if (db) {
     try {
         const usersSnapshot = await getDocs(collection(db, 'users'));
         let userDocId = null;
         usersSnapshot.forEach((doc) => {
-            if (doc.data().username === appState.editingUser) {
+            if (doc.data().username === usernameToUpdate) {  // CHANGEZ cette ligne
                 userDocId = doc.id;
             }
         });
+        if (userDocId) {
+            await updateDoc(doc(db, 'users', userDocId), appState.users[usernameToUpdate]);  // CHANGEZ cette ligne
+        }
+        console.log('✅ Permanences synchronisées avec Firebase');
+    } catch (error) {
+        console.log('⚠️ Synchronisation Firebase échouée pour les permanences');
+    }
+}
+
+cancelEditingUser();  // DÉPLACEZ cette ligne ici (après Firebase)
         if (userDocId) {
             await updateDoc(doc(db, 'users', userDocId), appState.users[appState.editingUser]);
         }
