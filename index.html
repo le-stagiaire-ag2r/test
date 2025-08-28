@@ -344,7 +344,9 @@
             searchTerm: '',
 sortBy: 'dateCreation',
 sortOrder: 'desc',
-quickEditId: null,            
+quickEditId: null,  
+filteredVentesCache: null,
+lastFilterState: null,            
             showContractForm: false,
             showTypeVenteForm: false,
             showOrigineForm: false,
@@ -384,6 +386,9 @@ changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: 
             } catch (error) {
                 console.error('Erreur de sauvegarde:', error);
             }
+ // Invalider le cache des ventes filtrées
+        appState.filteredVentesCache = null;
+        appState.lastFilterState = null;           
         }
 function validateVenteData(venteData) {
     var errors = [];
@@ -430,7 +435,15 @@ function validateVenteData(venteData) {
             errors.push("La date du RDV doit être entre 2020 et dans les 30 prochains jours");
         }
     }
-    
+   // Validation du numéro de personne (si fourni)
+    if (venteData.numeroPersonne && venteData.numeroPersonne.length > 20) {
+        errors.push("Le numéro de personne ne peut pas dépasser 20 caractères");
+    }
+
+    // Validation du commentaire
+    if (venteData.commentaire && venteData.commentaire.length > 500) {
+        errors.push("Le commentaire ne peut pas dépasser 500 caractères");
+    } 
     return errors;
 }
         function cleanOrphanVentes() {
@@ -547,6 +560,26 @@ function getVentesForCommercial(commercialName) {
         }
 
 function getFilteredVentes() {
+    // Créer une clé de cache basée sur les filtres actuels
+    var currentFilterState = JSON.stringify({
+        commercial: appState.selectedCommercial,
+        month: appState.selectedMonth,
+        year: appState.selectedYear,
+        viewMode: appState.viewMode,
+        searchTerm: appState.searchTerm,
+        sortBy: appState.sortBy,
+        sortOrder: appState.sortOrder,
+        userType: appState.currentUser ? appState.currentUser.type : null,
+        userName: appState.currentUser ? appState.currentUser.name : null,
+        ventesLength: appState.ventes.length
+    });
+    
+    // Si le cache est valide, le retourner
+    if (appState.filteredVentesCache && appState.lastFilterState === currentFilterState) {
+        return appState.filteredVentesCache;
+    }
+    
+    // Sinon, recalculer
     var filtered = appState.ventes.slice();
     
     // Filtre par commercial
@@ -610,7 +643,9 @@ function getFilteredVentes() {
         if (aVal > bVal) return appState.sortOrder === 'asc' ? 1 : -1;
         return 0;
     });
-    
+   // Mettre en cache le résultat
+    appState.filteredVentesCache = filtered;
+    appState.lastFilterState = currentFilterState; 
     return filtered;
 }
 
@@ -677,7 +712,7 @@ function getFilteredVentes() {
             var password = document.getElementById('password').value;
             
             var user = appState.users[username];
-            if (user && user.password === password) {
+            if (user && (user.password === password || user.password === btoa(password))) {
                 appState.currentUser = JSON.parse(JSON.stringify(user));
                 appState.currentUser.username = username;
                 render();
@@ -1352,6 +1387,9 @@ html += '<div class="form-group" style="grid-column: 1 / -1;">' +
                 for (var i = 0; i < filteredVentes.length; i++) {
                     var vente = filteredVentes[i];
                     var isQuickEditing = appState.quickEditId === vente.id;
+                    // Vérifier les permissions avant d'afficher les actions
+    var canEdit = (appState.currentUser.type === 'admin' || 
+                   (vente.commercial === appState.currentUser.name && appState.currentUser.type === 'commercial'));
 html += '<tr' + (isQuickEditing ? ' style="background-color: #fef3c7;"' : '') + '>';
                     
                     if (appState.currentUser.type === 'admin') {
@@ -1385,7 +1423,7 @@ html += '<tr' + (isQuickEditing ? ' style="background-color: #fef3c7;"' : '') + 
                         '<td>' + vente.dateEffet + '</td>' +
                         '<td style="text-align: right;">';
                     
-  if (appState.currentUser.type === 'admin' || vente.commercial === appState.currentUser.name) {
+ if (canEdit) {
     html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">';
     
     if (isQuickEditing) {
@@ -1961,7 +1999,7 @@ if (appState.showChangeOwnPasswordForm) {
             }
 
             appState.users[appState.newUserForm.username.toLowerCase()] = {
-                password: appState.newUserForm.password,
+                password: btoa(appState.newUserForm.password),
                 type: 'commercial',
                 name: appState.newUserForm.name,
                 agence: appState.newUserForm.agence,
@@ -2041,7 +2079,7 @@ function changeUserPassword() {
         return;
     }
 
-    appState.users[appState.editingPassword].password = appState.passwordForm.newPassword.trim();
+    appState.users[appState.editingPassword].password = btoa(appState.passwordForm.newPassword.trim());
     
     appState.editingPassword = null;
     appState.showPasswordForm = false;
@@ -2073,7 +2111,7 @@ function changeOwnPassword() {
         return;
     }
 
-    appState.users[appState.currentUser.username].password = appState.changeOwnPasswordForm.newPassword;
+    appState.users[appState.currentUser.username].password = btoa(appState.changeOwnPasswordForm.newPassword);
     appState.currentUser.password = appState.changeOwnPasswordForm.newPassword;
     
     toggleChangeOwnPasswordForm();
@@ -2127,7 +2165,14 @@ function cancelPasswordForm() {
     if (!importedData || typeof importedData !== 'object') {
         throw new Error('Format de fichier invalide');
     }
+    // Vérification des propriétés essentielles
+    if (!importedData.ventes || !Array.isArray(importedData.ventes)) {
+        throw new Error('Le fichier ne contient pas de données de ventes valides');
+    }
     
+    if (!importedData.users || typeof importedData.users !== 'object') {
+        throw new Error('Le fichier ne contient pas de données d\'utilisateurs valides');
+    }
     // Validation et nettoyage des ventes
     var validVentes = [];
     var invalidCount = 0;
@@ -2210,21 +2255,6 @@ function cancelPasswordForm() {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
-            // Récupérer toutes les ventes de l'année (tous les mois)
-            var allYearVentes = appState.ventes.slice();
-            
-           // Filtrer par commercial si nécessaire
-        if (appState.currentUser && appState.currentUser.type === 'commercial') {
-            allYearVentes = allYearVentes.filter(function(v) {
-                return v.commercial === appState.currentUser.name;
-            });
-        }
-        // NOUVEAU: Filtre pour admin avec commercial sélectionné
-        else if (appState.currentUser && appState.currentUser.type === 'admin' && appState.selectedCommercial !== 'tous') {
-            allYearVentes = allYearVentes.filter(function(v) {
-                return v.commercial === appState.selectedCommercial;
-            });
         }
         // Initialisation
         function init() {
