@@ -2237,8 +2237,7 @@ async function addNewUser() {
             }
         }
     }
-
-    var username = appState.newUserForm.username.toLowerCase();
+var username = appState.newUserForm.username.toLowerCase();
     appState.users[username] = {
         password: btoa(appState.newUserForm.password),
         type: 'commercial',
@@ -2248,49 +2247,22 @@ async function addNewUser() {
     };
     
     saveData();
-    
-    // Sauvegarder dans Firebase AVANT de vider le formulaire
-    if (db) {
-        try {
-            await addDoc(collection(db, 'users'), {
-                username: username,
-                ...appState.users[username]
-            });
-            console.log('✅ Nouveau commercial synchronisé avec Firebase');
-        } catch (error) {
-            console.log('⚠️ Synchronisation Firebase échouée pour le nouveau commercial');
-        }
+     // Sauvegarder dans Firebase
+if (db) {
+    try {
+        await addDoc(collection(db, 'users'), {
+            username: username,
+            ...appState.users[username]
+        });
+        console.log('✅ Nouveau commercial synchronisé avec Firebase');
+    } catch (error) {
+        console.log('⚠️ Synchronisation Firebase échouée pour le nouveau commercial');
     }
-    
-    // MAINTENANT on peut vider le formulaire
-    cancelUserForm();
-    alert('Commercial ajouté avec succès !');
 }
 
-            appState.users[appState.newUserForm.username.toLowerCase()] = {
-                password: btoa(appState.newUserForm.password),
-                type: 'commercial',
-                name: appState.newUserForm.name,
-                agence: appState.newUserForm.agence,
-                permanences: permanencesArray
-            };
-            
-           var username = appState.newUserForm.username.toLowerCase();
-            saveData();
-            // Sauvegarder dans Firebase
-        if (db) {
-            try {
-                await addDoc(collection(db, 'users'), {
-                  username: username,
-...appState.users[username]
-                });
-                console.log('✅ Nouveau commercial synchronisé avec Firebase');
-            } catch (error) {
-                console.log('⚠️ Synchronisation Firebase échouée pour le nouveau commercial');
-            }
-        }
-        cancelUserForm();
-        }
+cancelUserForm();
+alert('Commercial ajouté avec succès !'); 
+}
 
         function startEditingUser(username) {
             var user = appState.users[username];
