@@ -2187,7 +2187,10 @@ async function changeUserPassword() {
         return;
     }
 
-    appState.users[appState.editingPassword].password = btoa(appState.passwordForm.newPassword.trim());
+   // GARDER la référence username AVANT de réinitialiser
+const usernameToUpdate = appState.editingPassword;
+
+appState.users[usernameToUpdate].password = btoa(appState.passwordForm.newPassword.trim());
     
     appState.editingPassword = null;
     appState.showPasswordForm = false;
@@ -2200,12 +2203,12 @@ async function changeUserPassword() {
                 const usersSnapshot = await getDocs(collection(db, 'users'));
                 let userDocId = null;
                 usersSnapshot.forEach((doc) => {
-                    if (doc.data().username === appState.editingPassword) {
+                    if (doc.data().username === usernameToUpdate) {
                         userDocId = doc.id;
                     }
                 });
                 if (userDocId) {
-                    await updateDoc(doc(db, 'users', userDocId), appState.users[appState.editingPassword]);
+                    await updateDoc(doc(db, 'users', userDocId), appState.users[usernameToUpdate]);
                 }
                 console.log('✅ Mot de passe synchronisé avec Firebase');
             } catch (error) {
