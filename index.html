@@ -267,10 +267,10 @@ async function syncWithFirebase() {
         });
 
         // Fusionner avec les valeurs par défaut
-        appState.contrats = [...defaultContrats, ...firebaseContrats];
-        appState.origines = [...origines, ...firebaseOrigines];
-        appState.typesVente = [...typesVente, ...firebaseTypesVente];
-        appState.rattachements = firebaseRattachements;
+      appState.contrats = firebaseContrats.length > 0 ? [...defaultContrats, ...firebaseContrats] : defaultContrats.slice();
+appState.origines = firebaseOrigines.length > 0 ? [...origines, ...firebaseOrigines] : origines.slice();
+appState.typesVente = firebaseTypesVente.length > 0 ? [...typesVente, ...firebaseTypesVente] : typesVente.slice();
+appState.rattachements = firebaseRattachements;
 
         saveData();
         
@@ -311,9 +311,9 @@ onSnapshot(collection(db, 'config'), (snapshot) => {
         else if (data.type === 'rattachement') firebaseRattachements.push(data.value);
     });
 
-    appState.contrats = [...defaultContrats, ...firebaseContrats];
-    appState.origines = [...origines, ...firebaseOrigines];
-    appState.typesVente = [...typesVente, ...firebaseTypesVente];
+   appState.contrats = firebaseContrats.length > 0 ? [...defaultContrats, ...firebaseContrats] : defaultContrats.slice();
+appState.origines = firebaseOrigines.length > 0 ? [...origines, ...firebaseOrigines] : origines.slice();
+appState.typesVente = firebaseTypesVente.length > 0 ? [...typesVente, ...firebaseTypesVente] : typesVente.slice();
     appState.rattachements = firebaseRattachements;
 
     saveData();
