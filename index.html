@@ -184,134 +184,100 @@
                 }
             }
         }
-// Mise à jour dans Firebase
-        async function updateInFirebase(vente) {
-            if (!db) return false;
-            
-            try {
-                // Trouver le document Firebase correspondant
-                const ventesSnapshot = await getDocs(collection(db, 'ventes'));
-                let docId = null;
-                ventesSnapshot.forEach((doc) => {
-                    if (doc.data().id === vente.id) {
-                        docId = doc.id;
-                    }
-                });
-                
-                if (docId) {
-                    await updateDoc(doc(db, 'ventes', docId), vente);
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error('Erreur modification Firebase:', error);
-                return false;
+async function syncWithFirebase() {
+    if (!db) return;
+    
+    try {
+        // Récupérer les ventes depuis Firebase
+        const ventesSnapshot = await getDocs(collection(db, 'ventes'));
+        const firebaseVentes = [];
+        ventesSnapshot.forEach((doc) => {
+            firebaseVentes.push({ id: doc.id, ...doc.data() });
+        });
+
+        const localVentes = appState.ventes || [];
+        const allVentes = [...firebaseVentes];
+
+        for (const localVente of localVentes) {
+            const existsInFirebase = firebaseVentes.some(fv => fv.id === localVente.id);
+            if (!existsInFirebase) {
+                allVentes.push(localVente);
+                await addDoc(collection(db, 'ventes'), localVente);
             }
         }
 
-        // Suppression dans Firebase
-        async function deleteFromFirebase(venteId) {
-            if (!db) return false;
-            
-            try {
-                // Trouver le document Firebase correspondant
-                const ventesSnapshot = await getDocs(collection(db, 'ventes'));
-                let docId = null;
-                ventesSnapshot.forEach((doc) => {
-                    if (doc.data().id === venteId) {
-                        docId = doc.id;
-                    }
-                });
-                
-                if (docId) {
-                    await deleteDoc(doc(db, 'ventes', docId));
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error('Erreur suppression Firebase:', error);
-                return false;
-            }
-        }
-        // Synchronisation avec Firebase
-        async function syncWithFirebase() {
-            if (!db) return;
-            
-            try {
-                // Récupérer les ventes depuis Firebase
-                const ventesSnapshot = await getDocs(collection(db, 'ventes'));
-                const firebaseVentes = [];
-                ventesSnapshot.forEach((doc) => {
-                    firebaseVentes.push({ id: doc.id, ...doc.data() });
-                });
+        appState.ventes = allVentes;
 
-                // Fusionner avec les données locales
-                const localVentes = appState.ventes || [];
-                const allVentes = [...firebaseVentes];
+        // Récupérer les utilisateurs depuis Firebase
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const firebaseUsers = {};
+        usersSnapshot.forEach((doc) => {
+            const userData = doc.data();
+            firebaseUsers[userData.username] = {
+                password: userData.password,
+                type: userData.type,
+                name: userData.name,
+                agence: userData.agence,
+                permanences: userData.permanences || []
+            };
+        });
 
-                // Ajouter les ventes locales qui ne sont pas dans Firebase
-                for (const localVente of localVentes) {
-                    const existsInFirebase = firebaseVentes.some(fv => fv.id === localVente.id);
-                    if (!existsInFirebase) {
-                        allVentes.push(localVente);
-                        // Sauvegarder dans Firebase
-                        await addDoc(collection(db, 'ventes'), localVente);
-                    }
-                }
-
-                appState.ventes = allVentes;
-                saveData();
-             // Récupérer les utilisateurs depuis Firebase
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                const firebaseUsers = {};
-                usersSnapshot.forEach((doc) => {
-                    const userData = doc.data();
-                    firebaseUsers[userData.username] = {
-                        password: userData.password,
-                        type: userData.type,
-                        name: userData.name,
-                        agence: userData.agence,
-                        permanences: userData.permanences || []
-                    };
-                });
-
-                // Fusionner avec les données locales (Firebase a priorité)
-                if (Object.keys(firebaseUsers).length > 0) {
-                    // Garder les comptes par défaut qui ne sont pas dans Firebase
-                    const mergedUsers = { ...appState.users };
-                    Object.keys(firebaseUsers).forEach(username => {
-                        mergedUsers[username] = firebaseUsers[username];
-                    });
-                    appState.users = mergedUsers;
-                } else {
-                    // MIGRATION TEMPORAIRE - sauvegarder tous les utilisateurs locaux dans Firebase
-const localUsernames = Object.keys(appState.users);
-for (const username of localUsernames) {
-    if (appState.users[username].type === 'commercial') {
-        try {
-            await addDoc(collection(db, 'users'), {
-                username: username,
-                ...appState.users[username]
+        if (Object.keys(firebaseUsers).length > 0) {
+            const mergedUsers = { ...appState.users };
+            Object.keys(firebaseUsers).forEach(username => {
+                mergedUsers[username] = firebaseUsers[username];
             });
-            console.log('Migration utilisateur:', username);
-        } catch (error) {
-            console.log('Erreur migration:', username);
-        }
-    }
-}
-                    // Première fois - sauvegarder les utilisateurs locaux dans Firebase
-                    for (const [username, userData] of Object.entries(appState.users)) {
+            appState.users = mergedUsers;
+        } else {
+            const localUsernames = Object.keys(appState.users);
+            for (const username of localUsernames) {
+                if (appState.users[username].type === 'commercial') {
+                    try {
                         await addDoc(collection(db, 'users'), {
                             username: username,
-                            ...userData
+                            ...appState.users[username]
                         });
+                        console.log('Migration utilisateur:', username);
+                    } catch (error) {
+                        console.log('Erreur migration:', username);
                     }
-                }   
-            } catch (error) {
-                console.error('Erreur de synchronisation:', error);
+                }
+            }
+            for (const [username, userData] of Object.entries(appState.users)) {
+                await addDoc(collection(db, 'users'), {
+                    username: username,
+                    ...userData
+                });
             }
         }
 
+        // NOUVEAU : Récupérer la configuration depuis Firebase
+        const configSnapshot = await getDocs(collection(db, 'config'));
+        const firebaseContrats = [];
+        const firebaseOrigines = [];
+        const firebaseTypesVente = [];
+        const firebaseRattachements = [];
+
+        configSnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.type === 'contrat') firebaseContrats.push(data.value);
+            else if (data.type === 'origine') firebaseOrigines.push(data.value);
+            else if (data.type === 'typeVente') firebaseTypesVente.push(data.value);
+            else if (data.type === 'rattachement') firebaseRattachements.push(data.value);
+        });
+
+        // Fusionner avec les valeurs par défaut
+        appState.contrats = [...defaultContrats, ...firebaseContrats];
+        appState.origines = [...origines, ...firebaseOrigines];
+        appState.typesVente = [...typesVente, ...firebaseTypesVente];
+        appState.rattachements = firebaseRattachements;
+
+        saveData();
+        
+    } catch (error) {
+        console.error('Erreur de synchronisation:', error);
+    }
+}
         // Écoute des changements en temps réel
         function setupRealtimeListeners() {
             if (!db) return;
@@ -390,6 +356,31 @@ for (const username of localUsernames) {
             "messa": { password: "messa123", type: "commercial", name: "Messa", agence: "Rouen", permanences: ["Évreux", "Vernon", "Louviers"] },
             "amandine": { password: "amandine123", type: "commercial", name: "Amandine", agence: "Calais", permanences: ["Saint Omer", "Saint Leonard", "Hesdin", "Hazebrouck", "Étaples"] },
             "annabelle": { password: "annabelle123", type: "commercial", name: "Annabelle", agence: "Le Havre", permanences: ["Lisieux", "Yvetot", "Pont Audemer"] }
+            // NOUVEAU : Écouter les changements de configuration
+onSnapshot(collection(db, 'config'), (snapshot) => {
+    const firebaseContrats = [];
+    const firebaseOrigines = [];
+    const firebaseTypesVente = [];
+    const firebaseRattachements = [];
+
+    snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.type === 'contrat') firebaseContrats.push(data.value);
+        else if (data.type === 'origine') firebaseOrigines.push(data.value);
+        else if (data.type === 'typeVente') firebaseTypesVente.push(data.value);
+        else if (data.type === 'rattachement') firebaseRattachements.push(data.value);
+    });
+
+    appState.contrats = [...defaultContrats, ...firebaseContrats];
+    appState.origines = [...origines, ...firebaseOrigines];
+    appState.typesVente = [...typesVente, ...firebaseTypesVente];
+    appState.rattachements = firebaseRattachements;
+
+    saveData();
+    if (appState.currentUser) {
+        render();
+    }
+});
         };
 
         var typesVente = ["Face à face", "Tél"];
@@ -1938,143 +1929,296 @@ if (appState.showChangeOwnPasswordForm) {
             render();
         }
 
-        function addContract() {
-            if (!appState.newContract.trim()) {
-                alert('Veuillez saisir un nom de contrat');
-                return;
-            }
+       async function addContract() {
+    if (!appState.newContract.trim()) {
+        alert('Veuillez saisir un nom de contrat');
+        return;
+    }
 
-            if (appState.contrats.indexOf(appState.newContract.trim()) !== -1) {
-                alert('Ce contrat existe déjà');
-                return;
-            }
+    if (appState.contrats.indexOf(appState.newContract.trim()) !== -1) {
+        alert('Ce contrat existe déjà');
+        return;
+    }
 
-            appState.contrats.push(appState.newContract.trim());
-            appState.newContract = '';
-            saveData();
-            alert('Contrat ajouté avec succès !');
-            render();
+    const contractValue = appState.newContract.trim();
+    appState.contrats.push(contractValue);
+    appState.newContract = '';
+    saveData();
+
+    // Synchroniser avec Firebase
+    if (db) {
+        try {
+            await addDoc(collection(db, 'config'), {
+                type: 'contrat',
+                value: contractValue,
+                dateCreation: new Date().toISOString()
+            });
+            console.log('✅ Contrat synchronisé avec Firebase');
+        } catch (error) {
+            console.log('⚠️ Synchronisation Firebase échouée pour le contrat');
         }
+    }
 
-        function addTypeVente() {
-            if (!appState.newTypeVente.trim()) {
-                alert('Veuillez saisir un nom de type de vente');
-                return;
-            }
+    alert('Contrat ajouté avec succès !');
+    render();
+}
 
-            if (appState.typesVente.indexOf(appState.newTypeVente.trim()) !== -1) {
-                alert('Ce type de vente existe déjà');
-                return;
-            }
+        async function addTypeVente() {
+    if (!appState.newTypeVente.trim()) {
+        alert('Veuillez saisir un nom de type de vente');
+        return;
+    }
 
-            appState.typesVente.push(appState.newTypeVente.trim());
-            appState.newTypeVente = '';
-            saveData();
-            alert('Type de vente ajouté avec succès !');
-            render();
+    if (appState.typesVente.indexOf(appState.newTypeVente.trim()) !== -1) {
+        alert('Ce type de vente existe déjà');
+        return;
+    }
+
+    const typeVenteValue = appState.newTypeVente.trim();
+    appState.typesVente.push(typeVenteValue);
+    appState.newTypeVente = '';
+    saveData();
+
+    // Synchroniser avec Firebase
+    if (db) {
+        try {
+            await addDoc(collection(db, 'config'), {
+                type: 'typeVente',
+                value: typeVenteValue,
+                dateCreation: new Date().toISOString()
+            });
+            console.log('✅ Type de vente synchronisé avec Firebase');
+        } catch (error) {
+            console.log('⚠️ Synchronisation Firebase échouée pour le type de vente');
         }
+    }
 
-        function addOrigine() {
-            if (!appState.newOrigine.trim()) {
-                alert('Veuillez saisir un nom d\'origine');
-                return;
-            }
+    alert('Type de vente ajouté avec succès !');
+    render();
+}
+       async function addOrigine() {
+    if (!appState.newOrigine.trim()) {
+        alert('Veuillez saisir un nom d\'origine');
+        return;
+    }
 
-            if (appState.origines.indexOf(appState.newOrigine.trim()) !== -1) {
-                alert('Cette origine existe déjà');
-                return;
-            }
+    if (appState.origines.indexOf(appState.newOrigine.trim()) !== -1) {
+        alert('Cette origine existe déjà');
+        return;
+    }
 
-            appState.origines.push(appState.newOrigine.trim());
-            appState.newOrigine = '';
-            saveData();
-            alert('Origine ajoutée avec succès !');
-            render();
+    const origineValue = appState.newOrigine.trim();
+    appState.origines.push(origineValue);
+    appState.newOrigine = '';
+    saveData();
+
+    // Synchroniser avec Firebase
+    if (db) {
+        try {
+            await addDoc(collection(db, 'config'), {
+                type: 'origine',
+                value: origineValue,
+                dateCreation: new Date().toISOString()
+            });
+            console.log('✅ Origine synchronisée avec Firebase');
+        } catch (error) {
+            console.log('⚠️ Synchronisation Firebase échouée pour l\'origine');
         }
+    }
 
-        function addRattachement() {
-            if (!appState.newRattachement.trim()) {
-                alert('Veuillez saisir un nom de rattachement');
-                return;
-            }
+    alert('Origine ajoutée avec succès !');
+    render();
+}
+       async function addRattachement() {
+    if (!appState.newRattachement.trim()) {
+        alert('Veuillez saisir un nom de rattachement');
+        return;
+    }
 
-            if (appState.rattachements.indexOf(appState.newRattachement.trim()) !== -1) {
-                alert('Ce rattachement existe déjà');
-                return;
-            }
+    if (appState.rattachements.indexOf(appState.newRattachement.trim()) !== -1) {
+        alert('Ce rattachement existe déjà');
+        return;
+    }
 
-            appState.rattachements.push(appState.newRattachement.trim());
-            appState.newRattachement = '';
-            saveData();
-            alert('Rattachement ajouté avec succès !');
-            render();
+    const rattachementValue = appState.newRattachement.trim();
+    appState.rattachements.push(rattachementValue);
+    appState.newRattachement = '';
+    saveData();
+
+    if (db) {
+        try {
+            await addDoc(collection(db, 'config'), {
+                type: 'rattachement',
+                value: rattachementValue,
+                dateCreation: new Date().toISOString()
+            });
+            console.log('✅ Rattachement synchronisé avec Firebase');
+        } catch (error) {
+            console.log('⚠️ Synchronisation Firebase échouée pour le rattachement');
         }
+    }
 
-        function deleteContract(contractToDelete) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer le contrat "' + contractToDelete + '" ?')) {
-                appState.contrats = appState.contrats.filter(function(c) {
-                    return c !== contractToDelete;
-                });
-                saveData();
-                alert('Contrat supprimé avec succès !');
-                render();
-            }
-        }
+    alert('Rattachement ajouté avec succès !');
+    render();
+}
+       async function deleteContract(contractToDelete) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer le contrat "' + contractToDelete + '" ?')) {
+        appState.contrats = appState.contrats.filter(function(c) {
+            return c !== contractToDelete;
+        });
+        saveData();
 
-        function deleteTypeVente(typeToDelete) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer le type de vente "' + typeToDelete + '" ?')) {
-                appState.typesVente = appState.typesVente.filter(function(t) {
-                    return t !== typeToDelete;
-                });
-                saveData();
-                alert('Type de vente supprimé avec succès !');
-                render();
-            }
-        }
-
-        function deleteOrigine(origineToDelete) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer l\'origine "' + origineToDelete + '" ?')) {
-                appState.origines = appState.origines.filter(function(o) {
-                    return o !== origineToDelete;
-                });
-                saveData();
-                alert('Origine supprimée avec succès !');
-                render();
-            }
-        }
-
-        function deleteRattachement(rattachementToDelete) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer le rattachement "' + rattachementToDelete + '" ?')) {
-                appState.rattachements = appState.rattachements.filter(function(r) {
-                    return r !== rattachementToDelete;
-                });
-                saveData();
-                alert('Rattachement supprimé avec succès !');
-                render();
-            }
-        }
-
-        async function addNewUser() {
-            if (!appState.newUserForm.username || !appState.newUserForm.name || !appState.newUserForm.password || !appState.newUserForm.agence) {
-                alert('Veuillez remplir tous les champs obligatoires');
-                return;
-            }
-
-            if (appState.users[appState.newUserForm.username.toLowerCase()]) {
-                alert('Cet utilisateur existe déjà');
-                return;
-            }
-
-            var permanencesArray = [];
-            if (appState.newUserForm.permanences) {
-                var permanencesList = appState.newUserForm.permanences.split(',');
-                for (var i = 0; i < permanencesList.length; i++) {
-                    var permanence = permanencesList[i].trim();
-                    if (permanence) {
-                        permanencesArray.push(permanence);
+        // Supprimer de Firebase
+        if (db) {
+            try {
+                const configSnapshot = await getDocs(collection(db, 'config'));
+                configSnapshot.forEach(async (doc) => {
+                    const data = doc.data();
+                    if (data.type === 'contrat' && data.value === contractToDelete) {
+                        await deleteDoc(doc.ref);
                     }
-                }
+                });
+                console.log('✅ Contrat supprimé de Firebase');
+            } catch (error) {
+                console.log('⚠️ Suppression Firebase échouée pour le contrat');
             }
+        }
+
+        alert('Contrat supprimé avec succès !');
+        render();
+    }
+}
+        async function deleteTypeVente(typeToDelete) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer le type de vente "' + typeToDelete + '" ?')) {
+        appState.typesVente = appState.typesVente.filter(function(t) {
+            return t !== typeToDelete;
+        });
+        saveData();
+
+        if (db) {
+            try {
+                const configSnapshot = await getDocs(collection(db, 'config'));
+                configSnapshot.forEach(async (doc) => {
+                    const data = doc.data();
+                    if (data.type === 'typeVente' && data.value === typeToDelete) {
+                        await deleteDoc(doc.ref);
+                    }
+                });
+                console.log('✅ Type de vente supprimé de Firebase');
+            } catch (error) {
+                console.log('⚠️ Suppression Firebase échouée pour le type de vente');
+            }
+        }
+
+        alert('Type de vente supprimé avec succès !');
+        render();
+    }
+}
+
+        async function deleteOrigine(origineToDelete) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer l\'origine "' + origineToDelete + '" ?')) {
+        appState.origines = appState.origines.filter(function(o) {
+            return o !== origineToDelete;
+        });
+        saveData();
+
+        if (db) {
+            try {
+                const configSnapshot = await getDocs(collection(db, 'config'));
+                configSnapshot.forEach(async (doc) => {
+                    const data = doc.data();
+                    if (data.type === 'origine' && data.value === origineToDelete) {
+                        await deleteDoc(doc.ref);
+                    }
+                });
+                console.log('✅ Origine supprimée de Firebase');
+            } catch (error) {
+                console.log('⚠️ Suppression Firebase échouée pour l\'origine');
+            }
+        }
+
+        alert('Origine supprimée avec succès !');
+        render();
+    }
+}
+
+       async function deleteRattachement(rattachementToDelete) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer le rattachement "' + rattachementToDelete + '" ?')) {
+        appState.rattachements = appState.rattachements.filter(function(r) {
+            return r !== rattachementToDelete;
+        });
+        saveData();
+
+        if (db) {
+            try {
+                const configSnapshot = await getDocs(collection(db, 'config'));
+                configSnapshot.forEach(async (doc) => {
+                    const data = doc.data();
+                    if (data.type === 'rattachement' && data.value === rattachementToDelete) {
+                        await deleteDoc(doc.ref);
+                    }
+                });
+                console.log('✅ Rattachement supprimé de Firebase');
+            } catch (error) {
+                console.log('⚠️ Suppression Firebase échouée pour le rattachement');
+            }
+        }
+
+        alert('Rattachement supprimé avec succès !');
+        render();
+    }
+}
+
+async function addNewUser() {
+    if (!appState.newUserForm.username || !appState.newUserForm.name || !appState.newUserForm.password || !appState.newUserForm.agence) {
+        alert('Veuillez remplir tous les champs obligatoires');
+        return;
+    }
+
+    if (appState.users[appState.newUserForm.username.toLowerCase()]) {
+        alert('Cet utilisateur existe déjà');
+        return;
+    }
+
+    var permanencesArray = [];
+    if (appState.newUserForm.permanences) {
+        var permanencesList = appState.newUserForm.permanences.split(',');
+        for (var i = 0; i < permanencesList.length; i++) {
+            var permanence = permanencesList[i].trim();
+            if (permanence) {
+                permanencesArray.push(permanence);
+            }
+        }
+    }
+
+    var username = appState.newUserForm.username.toLowerCase();
+    appState.users[username] = {
+        password: btoa(appState.newUserForm.password),
+        type: 'commercial',
+        name: appState.newUserForm.name,
+        agence: appState.newUserForm.agence,
+        permanences: permanencesArray
+    };
+    
+    saveData();
+    
+    // Sauvegarder dans Firebase AVANT de vider le formulaire
+    if (db) {
+        try {
+            await addDoc(collection(db, 'users'), {
+                username: username,
+                ...appState.users[username]
+            });
+            console.log('✅ Nouveau commercial synchronisé avec Firebase');
+        } catch (error) {
+            console.log('⚠️ Synchronisation Firebase échouée pour le nouveau commercial');
+        }
+    }
+    
+    // MAINTENANT on peut vider le formulaire
+    cancelUserForm();
+    alert('Commercial ajouté avec succès !');
+}
 
             appState.users[appState.newUserForm.username.toLowerCase()] = {
                 password: btoa(appState.newUserForm.password),
@@ -2084,21 +2228,21 @@ if (appState.showChangeOwnPasswordForm) {
                 permanences: permanencesArray
             };
             
-            cancelUserForm();
+           var username = appState.newUserForm.username.toLowerCase();
             saveData();
             // Sauvegarder dans Firebase
         if (db) {
             try {
                 await addDoc(collection(db, 'users'), {
-                    username: appState.newUserForm.username.toLowerCase(),
-                    ...appState.users[appState.newUserForm.username.toLowerCase()]
+                  username: username,
+...appState.users[username]
                 });
                 console.log('✅ Nouveau commercial synchronisé avec Firebase');
             } catch (error) {
                 console.log('⚠️ Synchronisation Firebase échouée pour le nouveau commercial');
             }
         }
-            alert('Commercial ajouté avec succès !');
+        cancelUserForm();
         }
 
         function startEditingUser(username) {
