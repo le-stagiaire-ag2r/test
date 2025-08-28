@@ -1759,6 +1759,9 @@ if (appState.showChangeOwnPasswordForm) {
         '<button onclick="togglePasswordForm(\'' + username + '\')" ' +
             'class="btn" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; background: #dc2626; color: white;">' +
             'Changer mot de passe</button>' +
+        '<button onclick="deleteCommercial(\'' + username + '\')" ' +
+    'class="btn btn-danger" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; margin-left: 0.5rem;">' +
+    'Supprimer commercial</button>' +
     '</div>';
     
     // Formulaire changement mot de passe
@@ -2125,6 +2128,34 @@ function cancelPasswordForm() {
     appState.passwordForm = { newPassword: '', confirmPassword: '' };
     render();
 }
+        function deleteCommercial(username) {
+            var user = appState.users[username];
+            var ventesCommercial = appState.ventes.filter(function(v) {
+                return v.commercial === user.name;
+            });
+            
+            var message = 'Supprimer le commercial "' + user.name + '" ?';
+            if (ventesCommercial.length > 0) {
+                message += '\n\nAttention : Ce commercial a ' + ventesCommercial.length + ' ventes.';
+                message += '\nQue faire de ses ventes ?\n\n';
+                message += 'OK = Supprimer le commercial ET ses ventes\n';
+                message += 'Annuler = Garder le commercial';
+            }
+            
+            if (confirm(message)) {
+                delete appState.users[username];
+                
+                if (ventesCommercial.length > 0) {
+                    appState.ventes = appState.ventes.filter(function(v) {
+                        return v.commercial !== user.name;
+                    });
+                }
+                
+                saveData();
+                alert('Commercial supprimé !');
+                render();
+            }
+        }
         function exportData() {
             var dataToExport = {
                 ventes: appState.ventes,
@@ -2456,6 +2487,7 @@ function showDoublonsAlert() {
         window.addContract = addContract;
         window.addTypeVente = addTypeVente;
         window.addOrigine = addOrigine;
+        window.deleteCommercial = deleteCommercial;
         window.addRattachement = addRattachement;
         window.deleteContract = deleteContract;
         window.deleteTypeVente = deleteTypeVente;
