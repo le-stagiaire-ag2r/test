@@ -2307,18 +2307,6 @@ if (db) {
     }
 }
 
-cancelEditingUser();  // DÉPLACEZ cette ligne ici (après Firebase)
-        if (userDocId) {
-            await updateDoc(doc(db, 'users', userDocId), appState.users[appState.editingUser]);
-        }
-        console.log('✅ Permanences synchronisées avec Firebase');
-    } catch (error) {
-        console.log('⚠️ Synchronisation Firebase échouée pour les permanences');
-    }
-}
-            alert('Permanences mises à jour avec succès !');
-        }
-
         function cancelEditingUser() {
             appState.editingUser = null;
             appState.editUserForm.permanences = '';
