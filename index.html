@@ -119,8 +119,8 @@
 
     <script type="module">
         // Configuration Firebase
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js';
+       import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyCskhBW5hoqNYl8dA9mW0tnZRh4FrznGAE",
@@ -2609,17 +2609,26 @@ function cancelPasswordForm() {
             link.click();
             document.body.removeChild(link);
         }
-        // Initialisation
-        function init() {
-            loadData();
-            
-            // Initialiser Firebase en arrière-plan
-            setTimeout(() => {
-                initFirebase();
-            }, 100);
-            
-            render();
-        }
+      function init() {
+    try {
+        loadData();
+        
+        // Initialiser Firebase en arrière-plan
+        setTimeout(() => {
+            initFirebase();
+        }, 100);
+        
+        render();
+    } catch (error) {
+        console.error('Erreur d\'initialisation:', error);
+        document.getElementById('app').innerHTML = 
+            '<div style="padding: 2rem; text-align: center; color: red;">' +
+                '<h2>Erreur de chargement</h2>' +
+                '<p>Veuillez recharger la page. Si le problème persiste, contactez le support.</p>' +
+                '<button onclick="location.reload()" style="padding: 0.5rem 1rem; margin-top: 1rem;">Recharger</button>' +
+            '</div>';
+    }
+}
 
         // Événements
         document.addEventListener('keypress', function(e) {
