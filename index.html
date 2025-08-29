@@ -2638,12 +2638,10 @@ function cancelPasswordForm() {
     // Validation basique
     if (!newCA || !newPNA || isNaN(newCA) || isNaN(newPNA)) {
         alert('CA et PNA doivent être des nombres valides');
-        return;
     }
     
     if (parseFloat(newCA) <= 0 || parseFloat(newPNA) <= 0) {
         alert('CA et PNA doivent être positifs');
-        return;
     }
     
     // Mettre à jour la vente
