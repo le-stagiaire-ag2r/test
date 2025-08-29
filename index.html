@@ -2306,6 +2306,11 @@ if (db) {
         console.log('⚠️ Synchronisation Firebase échouée pour les permanences');
     }
 }
+appState.editingUser = null;
+        appState.editUserForm.permanences = '';
+        alert('Permanences modifiées avec succès !');
+        render();
+    }            
 
         function cancelEditingUser() {
             appState.editingUser = null;
