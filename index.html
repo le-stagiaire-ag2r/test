@@ -2634,12 +2634,7 @@ function cancelPasswordForm() {
                 }
             }
         });
-    // Récupérer les nouvelles valeurs depuis les inputs
-    var newCA = document.getElementById('quickEdit_ca_' + venteId).value;
-    var newPNA = document.getElementById('quickEdit_pna_' + venteId).value;
-    var newContrat = document.getElementById('quickEdit_contrat_' + venteId).value;
-    var newRattachement = document.getElementById('quickEdit_rattachement_' + venteId).value;
-    
+ 
     // Validation basique
     if (!newCA || !newPNA || isNaN(newCA) || isNaN(newPNA)) {
         alert('CA et PNA doivent être des nombres valides');
@@ -2658,7 +2653,6 @@ function cancelPasswordForm() {
     vente.rattachement = newRattachement;
     vente.dateModification = new Date().toLocaleString('fr-FR');
     
-    appState.quickEditId = null;
     
 // Mettre à jour dans Firebase
 if (db) {
