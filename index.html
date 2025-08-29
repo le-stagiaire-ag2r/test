@@ -2119,12 +2119,14 @@ if (appState.showChangeOwnPasswordForm) {
         if (db) {
             try {
                 const configSnapshot = await getDocs(collection(db, 'config'));
-                configSnapshot.forEach(async (doc) => {
-                    const data = doc.data();
-                    if (data.type === 'contrat' && data.value === contractToDelete) {
-                        await deleteDoc(doc.ref);
-                    }
-                });
+         for (const doc of configSnapshot.docs) {
+    const data = doc.data();
+    if (data.type === 'contrat' && data.value === contractToDelete) {
+        await deleteDoc(doc.ref);
+        console.log('✅ Contrat supprimé de Firebase');
+        break;
+    }
+}
                 console.log('✅ Contrat supprimé de Firebase');
             } catch (error) {
                 console.log('⚠️ Suppression Firebase échouée pour le contrat');
@@ -2145,12 +2147,13 @@ if (appState.showChangeOwnPasswordForm) {
         if (db) {
             try {
                 const configSnapshot = await getDocs(collection(db, 'config'));
-                configSnapshot.forEach(async (doc) => {
-                    const data = doc.data();
-                    if (data.type === 'typeVente' && data.value === typeToDelete) {
-                        await deleteDoc(doc.ref);
-                    }
-                });
+            for (const doc of configSnapshot.docs) {
+    const data = doc.data();
+    if (data.type === 'typeVente' && data.value === typeToDelete) {
+        await deleteDoc(doc.ref);
+        break;
+    }
+}
                 console.log('✅ Type de vente supprimé de Firebase');
             } catch (error) {
                 console.log('⚠️ Suppression Firebase échouée pour le type de vente');
@@ -2172,12 +2175,13 @@ if (appState.showChangeOwnPasswordForm) {
         if (db) {
             try {
                 const configSnapshot = await getDocs(collection(db, 'config'));
-                configSnapshot.forEach(async (doc) => {
-                    const data = doc.data();
-                    if (data.type === 'origine' && data.value === origineToDelete) {
-                        await deleteDoc(doc.ref);
-                    }
-                });
+              for (const doc of configSnapshot.docs) {
+    const data = doc.data();
+    if (data.type === 'origine' && data.value === origineToDelete) {
+        await deleteDoc(doc.ref);
+        break;
+    }
+}
                 console.log('✅ Origine supprimée de Firebase');
             } catch (error) {
                 console.log('⚠️ Suppression Firebase échouée pour l\'origine');
@@ -2199,12 +2203,13 @@ if (appState.showChangeOwnPasswordForm) {
         if (db) {
             try {
                 const configSnapshot = await getDocs(collection(db, 'config'));
-                configSnapshot.forEach(async (doc) => {
-                    const data = doc.data();
-                    if (data.type === 'rattachement' && data.value === rattachementToDelete) {
-                        await deleteDoc(doc.ref);
-                    }
-                });
+             for (const doc of configSnapshot.docs) {
+    const data = doc.data();
+    if (data.type === 'rattachement' && data.value === rattachementToDelete) {
+        await deleteDoc(doc.ref);
+        break;
+    }
+}
                 console.log('✅ Rattachement supprimé de Firebase');
             } catch (error) {
                 console.log('⚠️ Suppression Firebase échouée pour le rattachement');
