@@ -2612,8 +2612,6 @@ function init() {
         render();
     } catch (error) {
         console.error('Erreur d\'initialisation:', error);
-    }
-} 
         document.getElementById('app').innerHTML = 
             '<div style="padding: 2rem; text-align: center; color: red;">' +
                 '<h2>Erreur de chargement</h2>' +
@@ -2622,7 +2620,6 @@ function init() {
             '</div>';
     }
 }
-
         // Événements
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !appState.currentUser) {
@@ -2634,38 +2631,6 @@ function init() {
             }
         });
  
-    // Validation basique
-    if (!newCA || !newPNA || isNaN(newCA) || isNaN(newPNA)) {
-        alert('CA et PNA doivent être des nombres valides');
-    }
-    
-    if (parseFloat(newCA) <= 0 || parseFloat(newPNA) <= 0) {
-        alert('CA et PNA doivent être positifs');
-    }
-    
-    // Mettre à jour la vente
-    vente.chiffreAffaires = newCA;
-    vente.pna = newPNA;
-    vente.contrat = newContrat;
-    vente.rattachement = newRattachement;
-    vente.dateModification = new Date().toLocaleString('fr-FR');
-    
-    
-// Mettre à jour dans Firebase
-if (db) {
-    updateInFirebase(vente).then(function(success) {
-        if (success) {
-            console.log('✅ Modification rapide sauvegardée dans Firebase');
-        } else {
-            console.log('⚠️ Modification Firebase échouée, mode local activé');
-        }
-    });
-}
-
-saveData();
-alert('Vente modifiée !');
-render();
-}
        function showCommentaire(venteId) {
     for (var i = 0; i < appState.ventes.length; i++) {
         if (appState.ventes[i].id === venteId) {
