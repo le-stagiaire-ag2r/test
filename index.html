@@ -457,7 +457,6 @@ async function deleteFromFirebase(venteId) {
             searchTerm: '',
 sortBy: 'dateCreation',
 sortOrder: 'desc',
-quickEditId: null,  
 filteredVentesCache: null,
 lastFilterState: null,            
             showContractForm: false,
@@ -1499,11 +1498,11 @@ html += '<div class="form-group" style="grid-column: 1 / -1;">' +
                 
                 for (var i = 0; i < filteredVentes.length; i++) {
                     var vente = filteredVentes[i];
-                    var isQuickEditing = appState.quickEditId === vente.id;
+          
                     // Vérifier les permissions avant d'afficher les actions
     var canEdit = (appState.currentUser.type === 'admin' || 
                    (vente.commercial === appState.currentUser.name && appState.currentUser.type === 'commercial'));
-html += '<tr' + (isQuickEditing ? ' style="background-color: #fef3c7;"' : '') + '>';
+html += '<tr>';
                     
                     if (appState.currentUser.type === 'admin') {
                         html += '<td style="font-weight: 500;">' + vente.commercial + '</td>';
@@ -1513,40 +1512,25 @@ html += '<tr' + (isQuickEditing ? ' style="background-color: #fef3c7;"' : '') + 
                     var ca = parseFloat(vente.chiffreAffaires || 0).toFixed(2);
                     var pna = parseFloat(vente.pna || 0).toFixed(2);
                     
-                   html += '<td>' + vente.nom + ' ' + vente.prenom + 
-    (vente.commentaire && vente.commentaire.trim() ? 
-        ' <span onclick="showCommentaire(' + vente.id + ')" style="cursor: pointer; color: #2563eb;" title="Voir commentaire">💬</span>' : 
-        '') + 
-'</td>' +
-                        '<td>' + vente.contrat + '</td>' +
-                        '<td><span class="badge ' + badgeClass + '">' + vente.vente + '</span></td>' +
-                        '<td>' + vente.rattachement + '</td>' +
-                        '<td style="font-weight: 500; color: #059669;">' +
-    (isQuickEditing ? 
-        '<input type="number" id="quickEdit_ca_' + vente.id + '" value="' + vente.chiffreAffaires + '" style="width: 80px; padding: 0.25rem; border: 1px solid #d1d5db; border-radius: 0.25rem;">' :
-        ca
-    ) +
-'</td>' +
-'<td style="font-weight: 500; color: #7c3aed;">' +
-    (isQuickEditing ? 
-        '<input type="number" id="quickEdit_pna_' + vente.id + '" value="' + vente.pna + '" style="width: 80px; padding: 0.25rem; border: 1px solid #d1d5db; border-radius: 0.25rem;">' :
-        pna
-    ) +
-'</td>' +
-                        '<td>' + vente.dateEffet + '</td>' +
-                        '<td style="text-align: right;">';
+     html += '<td>' + vente.nom + ' ' + vente.prenom + 
+        (vente.commentaire && vente.commentaire.trim() ? 
+            ' <span onclick="showCommentaire(' + vente.id + ')" style="cursor: pointer; color: #2563eb;" title="Voir commentaire">💬</span>' : 
+            '') + 
+        '</td>' +
+        '<td>' + vente.contrat + '</td>' +
+        '<td><span class="badge ' + badgeClass + '">' + vente.vente + '</span></td>' +
+        '<td>' + vente.rattachement + '</td>' +
+        '<td style="font-weight: 500; color: #059669;">' + ca + '</td>' +
+        '<td style="font-weight: 500; color: #7c3aed;">' + pna + '</td>' +
+        '<td>' + vente.dateEffet + '</td>' +
+        '<td style="text-align: right;">';
                     
  if (canEdit) {
     html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">';
-    
-    if (isQuickEditing) {
-        html += '<button onclick="saveQuickEdit(' + vente.id + ')" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Sauvegarder">💾</button>' +
-            '<button onclick="toggleQuickEdit(' + vente.id + ')" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Annuler">✕</button>';
-    } else {
-        html += '<button onclick="toggleQuickEdit(' + vente.id + ')" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modification rapide">⚡</button>' +
-            '<button onclick="editVente(' + vente.id + ')" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>' +
+    if (canEdit) {
+    html += '<button onclick="editVente(' + vente.id + ')" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>' +
             '<button onclick="handleDelete(' + vente.id + ')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>';
-    }
+}
     
     html += '</div>';
 }
@@ -2650,29 +2634,6 @@ function cancelPasswordForm() {
                 }
             }
         });
-// Fonction de modification rapide
-function toggleQuickEdit(venteId) {
-    if (appState.quickEditId === venteId) {
-        appState.quickEditId = null;
-    } else {
-        appState.quickEditId = venteId;
-    }
-    render();
-}
-
-function saveQuickEdit(venteId) {
-    var venteIndex = -1;
-    for (var i = 0; i < appState.ventes.length; i++) {
-        if (appState.ventes[i].id === venteId) {
-            venteIndex = i;
-            break;
-        }
-    }
-    
-    if (venteIndex === -1) return;
-    
-    var vente = appState.ventes[venteIndex];
-    
     // Récupérer les nouvelles valeurs depuis les inputs
     var newCA = document.getElementById('quickEdit_ca_' + venteId).value;
     var newPNA = document.getElementById('quickEdit_pna_' + venteId).value;
@@ -2735,7 +2696,6 @@ render();
         window.exportToCSV = exportToCSV;
         window.exportData = exportData;
         window.showImportDialog = showImportDialog;
-        window.toggleQuickEdit = toggleQuickEdit;
         window.saveQuickEdit = saveQuickEdit;
         window.toggleUserForm = toggleUserForm;
         window.showCommentaire = showCommentaire;
