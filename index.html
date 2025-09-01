@@ -195,18 +195,22 @@ async function syncWithFirebase() {
             firebaseVentes.push({ id: doc.id, ...doc.data() });
         });
 
-        const localVentes = appState.ventes || [];
-        const allVentes = [...firebaseVentes];
+    console.log('Firebase:', firebaseVentes.length, 'ventes');
+console.log('Local:', (appState.ventes || []).length, 'ventes');
 
-        for (const localVente of localVentes) {
-            const existsInFirebase = firebaseVentes.some(fv => fv.id === localVente.id);
-            if (!existsInFirebase) {
-                allVentes.push(localVente);
-                await addDoc(collection(db, 'ventes'), localVente);
-            }
-        }
-
-        appState.ventes = allVentes;
+// NOUVELLE LOGIQUE : Firebase = source de vérité
+if (firebaseVentes.length > 0) {
+    // Firebase a des données -> on les utilise
+    appState.ventes = firebaseVentes;
+    console.log('Données synchronisées depuis Firebase');
+} else {
+    // Firebase vide -> on vide aussi le local
+    const localVentes = appState.ventes || [];
+    if (localVentes.length > 0) {
+        console.log('ATTENTION: Firebase vide mais local contient', localVentes.length, 'ventes');
+    }
+    appState.ventes = []; // Évite la remontée automatique
+}
 
         // Récupérer les utilisateurs depuis Firebase
         const usersSnapshot = await getDocs(collection(db, 'users'));
