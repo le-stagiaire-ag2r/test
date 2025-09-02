@@ -471,11 +471,11 @@ changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: 
             newUserForm: { username: '', name: '', password: '', agence: '', permanences: '' },
             editUserForm: { permanences: '' },
             formData: {
-                commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
-                vente: '', rattachement: '', origine: '', contrat: '',
-                dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
-            }
-        };
+    commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
+    vente: '', rattachement: '', origine: '', contrat: '',
+    dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
+},
+permanencesSortBy: 'ventes'
 
       function invalidateCache() {
     // Invalider le cache des ventes filtrées
@@ -1162,7 +1162,18 @@ if (appState.currentUser.type === 'admin') {
    // Stats des Permanences (pour commerciaux et admin)
    var permanencesCard = document.createElement('div');
    permanencesCard.className = 'card';
-   var permanencesContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Permanence</h3>';
+   var permanencesContent = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">' +
+    '<h3 style="font-size: 1.125rem; font-weight: 600;">Performance par Permanence</h3>';
+
+if (appState.currentUser.type === 'admin') {
+    permanencesContent += '<select onchange="appState.permanencesSortBy = this.value; render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
+        '<option value="ventes"' + (appState.permanencesSortBy === 'ventes' ? ' selected' : '') + '>Plus de ventes</option>' +
+        '<option value="pna"' + (appState.permanencesSortBy === 'pna' ? ' selected' : '') + '>Plus de PNA</option>' +
+        '<option value="alphabetique"' + (appState.permanencesSortBy === 'alphabetique' ? ' selected' : '') + '>Ordre alphabétique</option>' +
+    '</select>';
+}
+
+permanencesContent += '</div>';
    permanencesContent += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">';
 
    var permanencesStats = {};
@@ -1204,9 +1215,17 @@ if (appState.currentUser.type === 'admin') {
 
    // Afficher d'abord les agences (rattachements de base)
    var agencesList = Object.keys(agencesStats);
-   agencesList.sort(function(a, b) {
-       return agencesStats[b].ventes - agencesStats[a].ventes;
-   });
+   if (appState.permanencesSortBy === 'ventes') {
+    agencesList.sort(function(a, b) {
+        return agencesStats[b].ventes - agencesStats[a].ventes;
+    });
+} else if (appState.permanencesSortBy === 'pna') {
+    agencesList.sort(function(a, b) {
+        return agencesStats[b].pna - agencesStats[a].pna;
+    });
+} else if (appState.permanencesSortBy === 'alphabetique') {
+    agencesList.sort();
+}
 
    for (var i = 0; i < agencesList.length; i++) {
        var agence = agencesList[i];
@@ -1224,9 +1243,17 @@ if (appState.currentUser.type === 'admin') {
 
    // Ensuite afficher les permanences
    var permanencesList = Object.keys(permanencesStats);
-   permanencesList.sort(function(a, b) {
-       return permanencesStats[b].ventes - permanencesStats[a].ventes;
-   });
+   if (appState.permanencesSortBy === 'ventes') {
+    permanencesList.sort(function(a, b) {
+        return permanencesStats[b].ventes - permanencesStats[a].ventes;
+    });
+} else if (appState.permanencesSortBy === 'pna') {
+    permanencesList.sort(function(a, b) {
+        return permanencesStats[b].pna - permanencesStats[a].pna;
+    });
+} else if (appState.permanencesSortBy === 'alphabetique') {
+    permanencesList.sort();
+}
 
    for (var i = 0; i < permanencesList.length; i++) {
        var permanence = permanencesList[i];
