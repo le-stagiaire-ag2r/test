@@ -1159,131 +1159,98 @@ if (appState.currentUser.type === 'admin') {
             telCard.innerHTML = telContent;
             container.appendChild(telCard);
             
-            // Stats des Permanences (pour commerciaux et admin)
-            var permanencesCard = document.createElement('div');
-            permanencesCard.className = 'card';
-            var permanencesContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Permanence</h3>';
-            permanencesContent += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">';
-            
-            var permanencesStats = {};
-            var totalVentesPermanences = 0;
-            
-            // Calculer les stats par permanence
-            for (var i = 0; i < filteredVentes.length; i++) {
-                var vente = filteredVentes[i];
-                if (vente.rattachement && vente.rattachement.trim()) {
-                    // Vérifier si c'est une permanence (pas une agence)
-                    var isAgence = false;
-                    var usersList = Object.values(appState.users);
-                    for (var j = 0; j < usersList.length; j++) {
-                        if (usersList[j].type === 'commercial' && usersList[j].agence === vente.rattachement) {
-                            isAgence = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!isAgence) { // C'est une permanence
-                        if (!permanencesStats[vente.rattachement]) {
-                            permanencesStats[vente.rattachement] = 0;
-                        }
-                        permanencesStats[vente.rattachement]++;
-                        totalVentesPermanences++;
-                    }
-                }
+           // Stats des Permanences (pour commerciaux et admin)
+var permanencesCard = document.createElement('div');
+permanencesCard.className = 'card';
+var permanencesContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Permanence</h3>';
+permanencesContent += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">';
+
+var permanencesStats = {};
+var agencesStats = {};
+
+// Calculer les stats par permanence ET par agence (rattachement de base)
+for (var i = 0; i < filteredVentes.length; i++) {
+    var vente = filteredVentes[i];
+    if (vente.rattachement && vente.rattachement.trim()) {
+        // Vérifier si c'est une agence
+        var isAgence = false;
+        var usersList = Object.values(appState.users);
+        for (var j = 0; j < usersList.length; j++) {
+            if (usersList[j].type === 'commercial' && usersList[j].agence === vente.rattachement) {
+                isAgence = true;
+                break;
             }
-            
-            var permanencesList = Object.keys(permanencesStats);
-            permanencesList.sort(function(a, b) {
-                return permanencesStats[b] - permanencesStats[a];
-            });
-            
-            if (permanencesList.length > 0) {
-                for (var i = 0; i < permanencesList.length; i++) {
-                    var permanence = permanencesList[i];
-                    var count = permanencesStats[permanence];
-                    var percentage = totalVentesPermanences > 0 ? (count / totalVentesPermanences * 100).toFixed(1) : 0;
-                    
-                    permanencesContent += '<div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
-                        '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">' +
-                            permanence +
-                            '<span class="badge badge-yellow" style="margin-left: 0.5rem;">Permanence</span>' +
-                        '</div>' +
-                        '<div style="font-size: 1.125rem; font-weight: 700; color: #1f2937;">' + count + ' ventes</div>' +
-                        '<div style="font-size: 0.875rem; color: #6b7280;">' + percentage + '% des permanences</div>' +
-                    '</div>';
-                }
-            } else {
-                permanencesContent += '<div style="grid-column: 1 / -1; text-align: center; color: #6b7280; padding: 2rem;">' +
-                    'Aucune vente en permanence pour cette période' +
-                '</div>';
-            }
-            
-            permanencesContent += '</div>';
-            permanencesCard.innerHTML = permanencesContent;
-            container.appendChild(permanencesCard);
-            
-            // Performance par Commercial (Admin seulement)
-            if (appState.currentUser.type === 'admin') {
-                var commercialCard = document.createElement('div');
-                commercialCard.className = 'card';
-                var commercialContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Commercial</h3>';
-                commercialContent += '<div style="overflow-x: auto;">';
-                commercialContent += '<table class="table">';
-                commercialContent += '<thead><tr><th>Commercial</th><th style="text-align: right;">Ventes</th><th style="text-align: right;">CA Total</th><th style="text-align: right;">PNA Total</th><th style="text-align: right;">CA Moyen</th></tr></thead>';
-                commercialContent += '<tbody>';
-                
-                var commerciaux = Object.keys(stats.ventesParCommercial);
-                commerciaux.sort(function(a, b) {
-                    return stats.ventesParCommercial[b].ventes - stats.ventesParCommercial[a].ventes;
-                });
-                
-                for (var i = 0; i < commerciaux.length; i++) {
-                    var commercial = commerciaux[i];
-                    var data = stats.ventesParCommercial[commercial];
-                    var caMoyen = data.ventes > 0 ? (data.ca / data.ventes).toFixed(2) : '0';
-                    
-                    commercialContent += '<tr>' +
-                        '<td style="font-weight: 500;">' + commercial + '</td>' +
-                        '<td style="text-align: right;">' + data.ventes + '</td>' +
-                        '<td style="text-align: right; color: #059669; font-weight: 500;">' + data.ca.toFixed(2) + '€</td>' +
-                        '<td style="text-align: right; color: #7c3aed; font-weight: 500;">' + data.pna.toFixed(2) + '€</td>' +
-                        '<td style="text-align: right;">' + caMoyen + '€</td>' +
-                    '</tr>';
-                }
-                
-                commercialContent += '</tbody></table></div>';
-                commercialCard.innerHTML = commercialContent;
-                container.appendChild(commercialCard);
-            }
-            
-            // Performance par Produit
-            var produitCard = document.createElement('div');
-            produitCard.className = 'card';
-            var produitContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Produit</h3>';
-            produitContent += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">';
-            
-            var produits = Object.keys(stats.ventesParProduit);
-            produits.sort(function(a, b) {
-                return stats.ventesParProduit[b] - stats.ventesParProduit[a];
-            });
-            produits = produits.slice(0, 9);
-            
-            for (var i = 0; i < produits.length; i++) {
-                var produit = produits[i];
-                var count = stats.ventesParProduit[produit];
-                var percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
-                
-                produitContent += '<div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
-                    '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: #1f2937;">' + produit + '</div>' +
-                    '<div style="font-size: 1.125rem; font-weight: 700; color: #2563eb;">' + count + ' ventes</div>' +
-                    '<div style="font-size: 0.875rem; color: #6b7280;">' + percentage + '% du total</div>' +
-                '</div>';
-            }
-            
-            produitContent += '</div>';
-            produitCard.innerHTML = produitContent;
-            container.appendChild(produitCard);
         }
+        
+        var pnaAmount = parseFloat(vente.pna) || 0;
+        
+        if (isAgence) {
+            // C'est une agence (rattachement de base)
+            if (!agencesStats[vente.rattachement]) {
+                agencesStats[vente.rattachement] = { ventes: 0, pna: 0 };
+            }
+            agencesStats[vente.rattachement].ventes++;
+            agencesStats[vente.rattachement].pna += pnaAmount;
+        } else {
+            // C'est une permanence
+            if (!permanencesStats[vente.rattachement]) {
+                permanencesStats[vente.rattachement] = { ventes: 0, pna: 0 };
+            }
+            permanencesStats[vente.rattachement].ventes++;
+            permanencesStats[vente.rattachement].pna += pnaAmount;
+        }
+    }
+}
+
+// Afficher d'abord les agences (rattachements de base)
+var agencesList = Object.keys(agencesStats);
+agencesList.sort(function(a, b) {
+    return agencesStats[b].ventes - agencesStats[a].ventes;
+});
+
+for (var i = 0; i < agencesList.length; i++) {
+    var agence = agencesList[i];
+    var stats = agencesStats[agence];
+    
+    permanencesContent += '<div style="padding: 1rem; background: #e0f2fe; border-radius: 0.5rem; border-left: 4px solid #0277bd;">' +
+        '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">' +
+            agence +
+            '<span class="badge badge-blue" style="margin-left: 0.5rem;">Agence</span>' +
+        '</div>' +
+        '<div style="font-size: 1.125rem; font-weight: 700; color: #1f2937;">' + stats.ventes + ' ventes</div>' +
+        '<div style="font-size: 0.875rem; color: #0277bd; font-weight: 500;">PNA: ' + stats.pna.toFixed(2) + '€</div>' +
+    '</div>';
+}
+
+// Ensuite afficher les permanences
+var permanencesList = Object.keys(permanencesStats);
+permanencesList.sort(function(a, b) {
+    return permanencesStats[b].ventes - permanencesStats[a].ventes;
+});
+
+for (var i = 0; i < permanencesList.length; i++) {
+    var permanence = permanencesList[i];
+    var stats = permanencesStats[permanence];
+    
+    permanencesContent += '<div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+        '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">' +
+            permanence +
+            '<span class="badge badge-yellow" style="margin-left: 0.5rem;">Permanence</span>' +
+        '</div>' +
+        '<div style="font-size: 1.125rem; font-weight: 700; color: #1f2937;">' + stats.ventes + ' ventes</div>' +
+        '<div style="font-size: 0.875rem; color: #7c3aed; font-weight: 500;">PNA: ' + stats.pna.toFixed(2) + '€</div>' +
+    '</div>';
+}
+
+if (agencesList.length === 0 && permanencesList.length === 0) {
+    permanencesContent += '<div style="grid-column: 1 / -1; text-align: center; color: #6b7280; padding: 2rem;">' +
+        'Aucune vente pour cette période' +
+    '</div>';
+}
+
+permanencesContent += '</div>';
+permanencesCard.innerHTML = permanencesContent;
+container.appendChild(permanencesCard);
 
         function renderSaisie(container) {
             if (appState.currentUser.type !== 'commercial') {
