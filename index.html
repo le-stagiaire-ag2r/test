@@ -1252,6 +1252,69 @@ permanencesContent += '</div>';
 permanencesCard.innerHTML = permanencesContent;
 container.appendChild(permanencesCard);
 
+            // Performance par Commercial (Admin seulement)
+            if (appState.currentUser.type === 'admin') {
+                var commercialCard = document.createElement('div');
+                commercialCard.className = 'card';
+                var commercialContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Commercial</h3>';
+                commercialContent += '<div style="overflow-x: auto;">';
+                commercialContent += '<table class="table">';
+                commercialContent += '<thead><tr><th>Commercial</th><th style="text-align: right;">Ventes</th><th style="text-align: right;">CA Total</th><th style="text-align: right;">PNA Total</th><th style="text-align: right;">CA Moyen</th></tr></thead>';
+                commercialContent += '<tbody>';
+                
+                var commerciaux = Object.keys(stats.ventesParCommercial);
+                commerciaux.sort(function(a, b) {
+                    return stats.ventesParCommercial[b].ventes - stats.ventesParCommercial[a].ventes;
+                });
+                
+                for (var i = 0; i < commerciaux.length; i++) {
+                    var commercial = commerciaux[i];
+                    var data = stats.ventesParCommercial[commercial];
+                    var caMoyen = data.ventes > 0 ? (data.ca / data.ventes).toFixed(2) : '0';
+                    
+                    commercialContent += '<tr>' +
+                        '<td style="font-weight: 500;">' + commercial + '</td>' +
+                        '<td style="text-align: right;">' + data.ventes + '</td>' +
+                        '<td style="text-align: right; color: #059669; font-weight: 500;">' + data.ca.toFixed(2) + '€</td>' +
+                        '<td style="text-align: right; color: #7c3aed; font-weight: 500;">' + data.pna.toFixed(2) + '€</td>' +
+                        '<td style="text-align: right;">' + caMoyen + '€</td>' +
+                    '</tr>';
+                }
+                
+                commercialContent += '</tbody></table></div>';
+                commercialCard.innerHTML = commercialContent;
+                container.appendChild(commercialCard);
+            }
+            
+            // Performance par Produit
+            var produitCard = document.createElement('div');
+            produitCard.className = 'card';
+            var produitContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Produit</h3>';
+            produitContent += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">';
+            
+            var produits = Object.keys(stats.ventesParProduit);
+            produits.sort(function(a, b) {
+                return stats.ventesParProduit[b] - stats.ventesParProduit[a];
+            });
+            produits = produits.slice(0, 9);
+            
+            for (var i = 0; i < produits.length; i++) {
+                var produit = produits[i];
+                var count = stats.ventesParProduit[produit];
+                var percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
+                
+                produitContent += '<div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
+                    '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: #1f2937;">' + produit + '</div>' +
+                    '<div style="font-size: 1.125rem; font-weight: 700; color: #2563eb;">' + count + ' ventes</div>' +
+                    '<div style="font-size: 0.875rem; color: #6b7280;">' + percentage + '% du total</div>' +
+                '</div>';
+            }
+            
+            produitContent += '</div>';
+            produitCard.innerHTML = produitContent;
+            container.appendChild(produitCard);
+        }
+            
         function renderSaisie(container) {
             if (appState.currentUser.type !== 'commercial') {
                 var card = document.createElement('div');
