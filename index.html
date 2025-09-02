@@ -449,10 +449,11 @@ async function deleteFromFirebase(venteId) {
             ventes: [],
             editingId: null,
             searchTerm: '',
+permanencesSortBy: 'ventes',
 sortBy: 'dateCreation',
 sortOrder: 'desc',
 filteredVentesCache: null,
-lastFilterState: null,            
+lastFilterState: null,         
             showContractForm: false,
             showTypeVenteForm: false,
             showOrigineForm: false,
@@ -475,7 +476,6 @@ changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: 
     vente: '', rattachement: '', origine: '', contrat: '',
     dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
 },
-permanencesSortBy: 'ventes'
 
       function invalidateCache() {
     // Invalider le cache des ventes filtrées
