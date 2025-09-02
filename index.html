@@ -227,33 +227,23 @@ if (firebaseVentes.length > 0) {
         });
 
         if (Object.keys(firebaseUsers).length > 0) {
-            const mergedUsers = { ...appState.users };
-            Object.keys(firebaseUsers).forEach(username => {
-                mergedUsers[username] = firebaseUsers[username];
+    // Firebase devient la source de vérité pour les utilisateurs
+    appState.users = { ...defaultUsers, ...firebaseUsers };
+} else {
+    // Firebase vide - migrer les utilisateurs par défaut
+    for (const [username, userData] of Object.entries(defaultUsers)) {
+        try {
+            await addDoc(collection(db, 'users'), {
+                username: username,
+                ...userData
             });
-            appState.users = mergedUsers;
-        } else {
-            const localUsernames = Object.keys(appState.users);
-            for (const username of localUsernames) {
-                if (appState.users[username].type === 'commercial') {
-                    try {
-                        await addDoc(collection(db, 'users'), {
-                            username: username,
-                            ...appState.users[username]
-                        });
-                        console.log('Migration utilisateur:', username);
-                    } catch (error) {
-                        console.log('Erreur migration:', username);
-                    }
-                }
-            }
-            for (const [username, userData] of Object.entries(appState.users)) {
-                await addDoc(collection(db, 'users'), {
-                    username: username,
-                    ...userData
-                });
-            }
+            console.log('Migration utilisateur par défaut:', username);
+        } catch (error) {
+            console.log('Erreur migration:', username);
         }
+    }
+    appState.users = defaultUsers;
+}
 
         // NOUVEAU : Récupérer la configuration depuis Firebase
         const configSnapshot = await getDocs(collection(db, 'config'));
@@ -276,7 +266,7 @@ appState.origines = firebaseOrigines.length > 0 ? [...origines, ...firebaseOrigi
 appState.typesVente = firebaseTypesVente.length > 0 ? [...typesVente, ...firebaseTypesVente] : typesVente.slice();
 appState.rattachements = firebaseRattachements;
 
-        saveData();
+        invalidateCache();
         
     } catch (error) {
         console.error('Erreur de synchronisation:', error);
@@ -293,7 +283,7 @@ appState.rattachements = firebaseRattachements;
                 });
                 
                 appState.ventes = firebaseVentes;
-                saveData();
+                invalidateCache();
                 
                 // Re-render si l'utilisateur est connecté
                 if (appState.currentUser) {
@@ -320,7 +310,7 @@ appState.origines = firebaseOrigines.length > 0 ? [...origines, ...firebaseOrigi
 appState.typesVente = firebaseTypesVente.length > 0 ? [...typesVente, ...firebaseTypesVente] : typesVente.slice();
     appState.rattachements = firebaseRattachements;
 
-    saveData();
+    invalidateCache();
     if (appState.currentUser) {
         render();
     }
@@ -348,7 +338,7 @@ appState.typesVente = firebaseTypesVente.length > 0 ? [...typesVente, ...firebas
             });
             
             appState.users = mergedUsers;
-            saveData();
+           invalidateCache();
             
             // Re-render si l'utilisateur est connecté
             if (appState.currentUser) {
@@ -487,25 +477,11 @@ changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: 
             }
         };
 
-        // Fonctions utilitaires
-        function saveData() {
-            try {
-                var data = {
-                    ventes: appState.ventes,
-                    users: appState.users,
-                    contrats: appState.contrats,
-                    typesVente: appState.typesVente,
-                    origines: appState.origines,
-                    rattachements: appState.rattachements
-                };
-                localStorage.setItem('salesTrackerData', JSON.stringify(data));
-            } catch (error) {
-                console.error('Erreur de sauvegarde:', error);
-            }
- // Invalider le cache des ventes filtrées
-        appState.filteredVentesCache = null;
-        appState.lastFilterState = null;           
-        }
+      function invalidateCache() {
+    // Invalider le cache des ventes filtrées
+    appState.filteredVentesCache = null;
+    appState.lastFilterState = null;
+}
 function validateVenteData(venteData) {
     var errors = [];
     
@@ -606,7 +582,7 @@ function validateVenteData(venteData) {
             return appState.ventes;
         } else {
             appState.ventes = ventesValides;
-            saveData();
+            invalidateCache();
             alert(ventesOrphelines.length + ' ventes orphelines supprimées.');
             return ventesValides;
         }
@@ -620,22 +596,16 @@ function getVentesForCommercial(commercialName) {
         return vente.commercial === commercialName;
     });
 }
-        function loadData() {
-            try {
-                var savedData = localStorage.getItem('salesTrackerData');
-                if (savedData) {
-                    var data = JSON.parse(savedData);
-                    if (data.ventes) appState.ventes = data.ventes;
-                    if (data.users) appState.users = data.users;
-                    if (data.contrats) appState.contrats = data.contrats;
-                    if (data.typesVente) appState.typesVente = data.typesVente;
-                    if (data.origines) appState.origines = data.origines;
-                    if (data.rattachements) appState.rattachements = data.rattachements;
-                }
-            } catch (error) {
-                console.error('Erreur de chargement:', error);
-            }
-        }
+    function initializeDefaultData() {
+    // Initialiser avec les données par défaut uniquement
+    // Firebase se chargera de la synchronisation
+    appState.users = JSON.parse(JSON.stringify(defaultUsers));
+    appState.contrats = defaultContrats.slice();
+    appState.typesVente = typesVente.slice();
+    appState.origines = origines.slice();
+    appState.rattachements = [];
+    appState.ventes = [];
+}
 
         function getRattachementOptions() {
             var options = [];
@@ -913,7 +883,7 @@ if (validationErrors.length > 0) {
             }
             
             resetForm();
-            saveData();
+            invalidateCache();
             alert(appState.editingId ? 'Vente modifiée !' : 'Vente ajoutée !');
             render();
         }
@@ -941,7 +911,7 @@ if (validationErrors.length > 0) {
                     }
                 }
                 
-                saveData();
+                invalidateCache();
                 alert('Vente supprimée !');
                 render();
             }
@@ -1978,7 +1948,7 @@ if (appState.showChangeOwnPasswordForm) {
     const contractValue = appState.newContract.trim();
     appState.contrats.push(contractValue);
     appState.newContract = '';
-    saveData();
+    invalidateCache();
 
     // Synchroniser avec Firebase
     if (db) {
@@ -2012,7 +1982,7 @@ if (appState.showChangeOwnPasswordForm) {
     const typeVenteValue = appState.newTypeVente.trim();
     appState.typesVente.push(typeVenteValue);
     appState.newTypeVente = '';
-    saveData();
+    invalidateCache();
 
     // Synchroniser avec Firebase
     if (db) {
@@ -2045,7 +2015,7 @@ if (appState.showChangeOwnPasswordForm) {
     const origineValue = appState.newOrigine.trim();
     appState.origines.push(origineValue);
     appState.newOrigine = '';
-    saveData();
+    invalidateCache();
 
     // Synchroniser avec Firebase
     if (db) {
@@ -2078,7 +2048,7 @@ if (appState.showChangeOwnPasswordForm) {
     const rattachementValue = appState.newRattachement.trim();
     appState.rattachements.push(rattachementValue);
     appState.newRattachement = '';
-    saveData();
+    invalidateCache();
 
     if (db) {
         try {
@@ -2101,7 +2071,7 @@ if (appState.showChangeOwnPasswordForm) {
         appState.contrats = appState.contrats.filter(function(c) {
             return c !== contractToDelete;
         });
-        saveData();
+        invalidateCache();
 
         // Supprimer de Firebase
         if (db) {
@@ -2130,8 +2100,8 @@ if (appState.showChangeOwnPasswordForm) {
         appState.typesVente = appState.typesVente.filter(function(t) {
             return t !== typeToDelete;
         });
-        saveData();
-
+       invalidateCache();
+        
         if (db) {
             try {
                 const configSnapshot = await getDocs(collection(db, 'config'));
@@ -2158,7 +2128,7 @@ if (appState.showChangeOwnPasswordForm) {
         appState.origines = appState.origines.filter(function(o) {
             return o !== origineToDelete;
         });
-        saveData();
+        invalidateCache();
 
         if (db) {
             try {
@@ -2186,7 +2156,7 @@ if (appState.showChangeOwnPasswordForm) {
         appState.rattachements = appState.rattachements.filter(function(r) {
             return r !== rattachementToDelete;
         });
-        saveData();
+        invalidateCache();
 
         if (db) {
             try {
@@ -2239,7 +2209,7 @@ var username = appState.newUserForm.username.toLowerCase();
         permanences: permanencesArray
     };
     
-    saveData();
+    invalidateCache();
      // Sauvegarder dans Firebase
 if (db) {
     try {
@@ -2280,7 +2250,7 @@ alert('Commercial ajouté avec succès !');
 var usernameToUpdate = appState.editingUser;  // AJOUTEZ cette ligne
 appState.users[usernameToUpdate].permanences = permanencesArray;
 
-saveData();
+invalidateCache();
 // Synchroniser avec Firebase
 if (db) {
     try {
@@ -2354,7 +2324,7 @@ appState.users[usernameToUpdate].password = btoa(appState.passwordForm.newPasswo
     appState.showPasswordForm = false;
     appState.passwordForm = { newPassword: '', confirmPassword: '' };
     
-    saveData();
+    invalidateCache();
     // Synchroniser avec Firebase
         if (db) {
             try {
@@ -2402,7 +2372,7 @@ async function changeOwnPassword() {
     appState.currentUser.password = appState.changeOwnPasswordForm.newPassword;
     
     toggleChangeOwnPasswordForm();
-    saveData();
+    invalidateCache();
     // Synchroniser avec Firebase
         if (db) {
             try {
@@ -2453,7 +2423,7 @@ function cancelPasswordForm() {
                     });
                 }
                 
-                saveData();
+                invalidateCache();
                 // Synchroniser avec Firebase
         if (db) {
             try {
@@ -2550,7 +2520,7 @@ function cancelPasswordForm() {
     if (importedData.origines) appState.origines = importedData.origines;
     if (importedData.rattachements) appState.rattachements = importedData.rattachements;
     
-    saveData();
+    invalidateCache();
     render();
     
     var message = 'Données importées avec succès !';
@@ -2609,7 +2579,7 @@ function cancelPasswordForm() {
         }
 function init() {
     try {
-        loadData();
+        initializeDefaultData();
         setTimeout(() => {
             initFirebase();
         }, 100);
