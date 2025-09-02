@@ -1210,15 +1210,15 @@ agencesList.sort(function(a, b) {
 
 for (var i = 0; i < agencesList.length; i++) {
     var agence = agencesList[i];
-    var stats = agencesStats[agence];
+    var agenceData = agencesStats[agence];  // ← CHANGÉ
     
     permanencesContent += '<div style="padding: 1rem; background: #e0f2fe; border-radius: 0.5rem; border-left: 4px solid #0277bd;">' +
         '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">' +
             agence +
             '<span class="badge badge-blue" style="margin-left: 0.5rem;">Agence</span>' +
         '</div>' +
-        '<div style="font-size: 1.125rem; font-weight: 700; color: #1f2937;">' + stats.ventes + ' ventes</div>' +
-        '<div style="font-size: 0.875rem; color: #0277bd; font-weight: 500;">PNA: ' + stats.pna.toFixed(2) + '€</div>' +
+        '<div style="font-size: 1.125rem; font-weight: 700; color: #1f2937;">' + agenceData.ventes + ' ventes</div>' +
+        '<div style="font-size: 0.875rem; color: #0277bd; font-weight: 500;">PNA: ' + agenceData.pna.toFixed(2) + '€</div>' +
     '</div>';
 }
 
@@ -1230,15 +1230,15 @@ permanencesList.sort(function(a, b) {
 
 for (var i = 0; i < permanencesList.length; i++) {
     var permanence = permanencesList[i];
-    var stats = permanencesStats[permanence];
+    var permanenceData = permanencesStats[permanence];  // ← CHANGÉ
     
     permanencesContent += '<div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
         '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">' +
             permanence +
             '<span class="badge badge-yellow" style="margin-left: 0.5rem;">Permanence</span>' +
         '</div>' +
-        '<div style="font-size: 1.125rem; font-weight: 700; color: #1f2937;">' + stats.ventes + ' ventes</div>' +
-        '<div style="font-size: 0.875rem; color: #7c3aed; font-weight: 500;">PNA: ' + stats.pna.toFixed(2) + '€</div>' +
+        '<div style="font-size: 1.125rem; font-weight: 700; color: #1f2937;">' + permanenceData.ventes + ' ventes</div>' +
+        '<div style="font-size: 0.875rem; color: #7c3aed; font-weight: 500;">PNA: ' + permanenceData.pna.toFixed(2) + '€</div>' +
     '</div>';
 }
 
