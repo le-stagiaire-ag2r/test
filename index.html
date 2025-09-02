@@ -822,7 +822,10 @@ function getFilteredVentes() {
             };
             appState.editingId = null;
         }
-
+function cancelEdit() {
+    resetForm();
+    setView('liste'); 
+}
       // Fonction de soumission modifiée pour Firebase
         async function handleSubmit() {
             var commercial = appState.currentUser.type === 'commercial' ? appState.currentUser.name : appState.formData.commercial;
@@ -1401,12 +1404,11 @@ html += '<div class="form-group" style="grid-column: 1 / -1;">' +
                     (appState.editingId ? 'Modifier la vente' : 'Enregistrer la vente') +
                 '</button>';
             
-            if (appState.editingId) {
-                html += '<button type="button" onclick="resetForm(); render();" class="btn btn-secondary">' +
-                    'Annuler' +
-                '</button>';
-            }
-            
+           if (appState.editingId) {
+    html += '<button type="button" onclick="cancelEdit();" class="btn btn-secondary">' +
+        'Annuler' +
+    '</button>';
+}
             html += '</div></form>';
             
             card.innerHTML = html;
@@ -2647,6 +2649,7 @@ function init() {
         window.deleteOrigine = deleteOrigine;
         window.deleteRattachement = deleteRattachement;
         window.addNewUser = addNewUser;
+        window.cancelEdit = cancelEdit;
         window.startEditingUser = startEditingUser;
         window.saveUserPermanences = saveUserPermanences;
         window.cancelEditingUser = cancelEditingUser;
