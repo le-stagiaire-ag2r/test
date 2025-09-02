@@ -475,9 +475,8 @@ changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: 
     commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
     vente: '', rattachement: '', origine: '', contrat: '',
     dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
-}  
-
-    function invalidateCache() {
+};
+function invalidateCache() {
     // Invalider le cache des ventes filtrées
     appState.filteredVentesCache = null;
     appState.lastFilterState = null;
