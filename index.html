@@ -1330,12 +1330,11 @@ permanencesContent += '</div>';
    for (var i = 0; i < produits.length; i++) {
        var produit = produits[i];
        var count = stats.ventesParProduit[produit];
-       var percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
        
        produitContent += '<div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
            '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: #1f2937;">' + produit + '</div>' +
            '<div style="font-size: 1.125rem; font-weight: 700; color: #2563eb;">' + count + ' ventes</div>' +
-           '<div style="font-size: 0.875rem; color: #6b7280;">' + percentage + '% du total</div>' +
+           '<div style="font-size: 0.875rem; color: #059669;">Priorité commerciale</div>' +
        '</div>';
    }
    
