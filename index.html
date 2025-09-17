@@ -274,9 +274,9 @@ onSnapshot(collection(db, 'config'), (snapshot) => {
         else if (data.type === 'rattachement') firebaseRattachements.push(data.value);
     });
 
-   appState.contrats = firebaseContrats.length > 0 ? [...defaultContrats, ...firebaseContrats] : defaultContrats.slice();
-appState.origines = firebaseOrigines.length > 0 ? [...origines, ...firebaseOrigines] : origines.slice();
-appState.typesVente = firebaseTypesVente.length > 0 ? [...typesVente, ...firebaseTypesVente] : typesVente.slice();
+   appState.contrats = firebaseContrats;
+appState.origines = firebaseOrigines;
+appState.typesVente = firebaseTypesVente;
     appState.rattachements = firebaseRattachements;
 
     invalidateCache();
@@ -396,79 +396,7 @@ async function deleteFromFirebase(venteId) {
         return false;
     }
 }
-        // Données par défaut
-        var defaultUsers = {
-            "admin": { password: "admin123", type: "admin", name: "Administrateur" },
-            "sarah": { password: "sarah123", type: "commercial", name: "Sarah", agence: "Lille", permanences: ["Armentières", "Bousbecques", "Lesquin", "Carvin"] },
-            "caroline": { password: "caroline123", type: "commercial", name: "Caroline", agence: "Lille", permanences: ["Arras", "Béthune", "Valenciennes", "La Bassée"] },
-            "laurence": { password: "laurence123", type: "commercial", name: "Laurence", agence: "Lille", permanences: ["Cambrai", "Feignies", "Flers en Escrebieux"] },
-            "sophie": { password: "sophie123", type: "commercial", name: "Sophie", agence: "Compiègne", permanences: ["Chauny", "Laon", "Saint Quentin", "Soissons"] },
-            "christelle": { password: "christelle123", type: "commercial", name: "Christelle", agence: "Compiègne", permanences: ["Beauvais", "Gouvieux", "Mouy", "St Just en chaussée"] },
-            "aldo": { password: "aldo123", type: "commercial", name: "Aldo", agence: "Boves", permanences: [] },
-            "celine": { password: "celine123", type: "commercial", name: "Céline", agence: "Boves", permanences: ["Doullens", "Saint Valery", "Albert", "Péronne", "Poix de Picardie", "Abbeville"] },
-            "july": { password: "july123", type: "commercial", name: "July", agence: "Caen", permanences: [] },
-            "cedric": { password: "cedric123", type: "commercial", name: "Cédric", agence: "Caen", permanences: ["Cherbourg", "Granville", "Saint Lô", "Alençon", "Argentan", "Flers"] },
-            "messa": { password: "messa123", type: "commercial", name: "Messa", agence: "Rouen", permanences: ["Évreux", "Vernon", "Louviers"] },
-            "amandine": { password: "amandine123", type: "commercial", name: "Amandine", agence: "Calais", permanences: ["Saint Omer", "Saint Leonard", "Hesdin", "Hazebrouck", "Étaples"] },
-            "annabelle": { password: "annabelle123", type: "commercial", name: "Annabelle", agence: "Le Havre", permanences: ["Lisieux", "Yvetot", "Pont Audemer"] }
-        
-        };
-
-        var typesVente = ["Face à face", "Tél"];
-        var origines = ["Prcad", "Rebond Crc", "Client", "Campagne", "Reco", "Visite", "Santé sortie de groupe"];
-        var defaultContrats = [
-            "Santé sortie de groupe", "Prévoyance individuelle", "Protectvia", "Vivépargne",
-            "Prima Cap obsq Pu", "Prima Cap obsq PP", "Prima Vol obsq Pu", "Prima vol obsq Pu",
-            "Certificats Mutualistes", "Viaplus", "Protec territorial", "HPJ", "Terre de vie",
-            "Gpa", "Multiprima", "Mutame", "Perte autonomie", "Patrimoine sélection"
-        ];
-
-        // État de l'application
-        var appState = {
-            users: JSON.parse(JSON.stringify(defaultUsers)),
-            contrats: defaultContrats.slice(),
-            typesVente: typesVente.slice(),
-            origines: origines.slice(),
-            rattachements: [], // Rattachements personnalisés
-            currentUser: null,
-            currentView: 'dashboard',
-            selectedMonth: new Date().getMonth() + 1,
-            selectedYear: new Date().getFullYear(),
-            selectedCommercial: 'tous',
-            viewMode: 'mensuel', // 'mensuel' ou 'annuel'
-            ventes: [],
-            editingId: null,
-            searchTerm: '',
-            permanencesSortBy: 'ventes',
-            sortBy: 'dateCreation',
-            sortOrder: 'desc',
-            filteredVentesCache: null,
-            lastFilterState: null,         
-            showContractForm: false,
-            showContractForm: false,
-            showTypeVenteForm: false,
-            showOrigineForm: false,
-            showRattachementForm: false,
-            showUserForm: false,
-            editingUser: null,
-            showPasswordForm: false,
-showChangeOwnPasswordForm: false,
-editingPassword: null,
-passwordForm: { newPassword: '', confirmPassword: '' },
-changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: '' },
-            newContract: '',
-            newTypeVente: '',
-            newOrigine: '',
-            newRattachement: '',
-            newUserForm: { username: '', name: '', password: '', agence: '', permanences: '' },
-            editUserForm: { permanences: '' },
-            formData: {
-    commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
-    vente: '', rattachement: '', origine: '', contrat: '',
-    dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
-}
-};
-
+  
 function invalidateCache() {
     // Invalider le cache des ventes filtrées
     appState.filteredVentesCache = null;
