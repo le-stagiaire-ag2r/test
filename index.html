@@ -188,31 +188,30 @@ async function syncWithFirebase() {
     if (!db) return;
     
     try {
-        // Récupérer les ventes depuis Firebase
         const ventesSnapshot = await getDocs(collection(db, 'ventes'));
         const firebaseVentes = [];
         ventesSnapshot.forEach((doc) => {
             firebaseVentes.push({ id: doc.id, ...doc.data() });
         });
 
-    console.log('Firebase:', firebaseVentes.length, 'ventes');
-console.log('Local:', (appState.ventes || []).length, 'ventes');
+        console.log('Firebase:', firebaseVentes.length, 'ventes');
+        console.log('Local:', (appState.ventes || []).length, 'ventes');
 
-// NOUVELLE LOGIQUE : Firebase = source de vérité
-if (firebaseVentes.length > 0) {
-    // Firebase a des données -> on les utilise
-    appState.ventes = firebaseVentes;
-    console.log('Données synchronisées depuis Firebase');
-} else {
-    // Firebase vide -> on vide aussi le local
-    const localVentes = appState.ventes || [];
-    if (localVentes.length > 0) {
-        console.log('ATTENTION: Firebase vide mais local contient', localVentes.length, 'ventes');
-    }
-    appState.ventes = []; // Évite la remontée automatique
-}
+        // CORRECTION : Ne pas vider si Firebase est vide
+        if (firebaseVentes.length > 0) {
+            appState.ventes = firebaseVentes;
+            console.log('Données synchronisées depuis Firebase');
+        } else if (appState.ventes && appState.ventes.length > 0) {
+            console.log('Migration des données locales vers Firebase...');
+            for (let i = 0; i < appState.ventes.length; i++) {
+                try {
+                    await saveToFirebase(appState.ventes[i]);
+                } catch (error) {
+                    console.error('Erreur migration vente:', error);
+                }
+            }
+        }
 
-        // Récupérer les utilisateurs depuis Firebase
         const usersSnapshot = await getDocs(collection(db, 'users'));
         const firebaseUsers = {};
         usersSnapshot.forEach((doc) => {
@@ -226,26 +225,37 @@ if (firebaseVentes.length > 0) {
             };
         });
 
+        // CORRECTION mots de passe
         if (Object.keys(firebaseUsers).length > 0) {
-    // Firebase devient la source de vérité pour les utilisateurs
-    appState.users = { ...defaultUsers, ...firebaseUsers };
-} else {
-    // Firebase vide - migrer les utilisateurs par défaut
-    for (const [username, userData] of Object.entries(defaultUsers)) {
-        try {
-            await addDoc(collection(db, 'users'), {
-                username: username,
-                ...userData
-            });
-            console.log('Migration utilisateur par défaut:', username);
-        } catch (error) {
-            console.log('Erreur migration:', username);
+            const mergedUsers = { ...defaultUsers };
+            
+            for (const username in firebaseUsers) {
+                if (firebaseUsers[username]) {
+                    mergedUsers[username] = firebaseUsers[username];
+                }
+            }
+            
+            for (const username in appState.users) {
+                if (appState.users[username] && !defaultUsers[username]) {
+                    mergedUsers[username] = appState.users[username];
+                }
+            }
+            
+            appState.users = mergedUsers;
+        } else {
+            for (const [username, userData] of Object.entries(defaultUsers)) {
+                try {
+                    await addDoc(collection(db, 'users'), {
+                        username: username,
+                        ...userData
+                    });
+                    console.log('Migration utilisateur par défaut:', username);
+                } catch (error) {
+                    console.log('Erreur migration:', username);
+                }
+            }
         }
-    }
-    appState.users = defaultUsers;
-}
 
-        // NOUVEAU : Récupérer la configuration depuis Firebase
         const configSnapshot = await getDocs(collection(db, 'config'));
         const firebaseContrats = [];
         const firebaseOrigines = [];
@@ -260,11 +270,10 @@ if (firebaseVentes.length > 0) {
             else if (data.type === 'rattachement') firebaseRattachements.push(data.value);
         });
 
-        // Fusionner avec les valeurs par défaut
-      appState.contrats = firebaseContrats.length > 0 ? [...defaultContrats, ...firebaseContrats] : defaultContrats.slice();
-appState.origines = firebaseOrigines.length > 0 ? [...origines, ...firebaseOrigines] : origines.slice();
-appState.typesVente = firebaseTypesVente.length > 0 ? [...typesVente, ...firebaseTypesVente] : typesVente.slice();
-appState.rattachements = firebaseRattachements;
+        appState.contrats = firebaseContrats.length > 0 ? [...defaultContrats, ...firebaseContrats] : defaultContrats.slice();
+        appState.origines = firebaseOrigines.length > 0 ? [...origines, ...firebaseOrigines] : origines.slice();
+        appState.typesVente = firebaseTypesVente.length > 0 ? [...typesVente, ...firebaseTypesVente] : typesVente.slice();
+        appState.rattachements = firebaseRattachements;
 
         invalidateCache();
         
@@ -347,18 +356,39 @@ appState.typesVente = firebaseTypesVente.length > 0 ? [...typesVente, ...firebas
         });
         }
 
-        // Sauvegarde dans Firebase
-        async function saveToFirebase(vente) {
-            if (!db) return false;
-            
-            try {
-                await addDoc(collection(db, 'ventes'), vente);
-                return true;
-            } catch (error) {
-                console.error('Erreur sauvegarde Firebase:', error);
-                return false;
-            }
-        }
+     async function saveToFirebase(vente) {
+    if (!db) return false;
+    
+    try {
+        const venteToSave = { ...vente };
+        delete venteToSave.id;
+        
+        await addDoc(collection(db, 'ventes'), venteToSave);
+        return true;
+    } catch (error) {
+        console.error('Erreur sauvegarde Firebase:', error);
+        return false;
+    }
+}
+function debugFirebaseState() {
+    console.log('=== DEBUG FIREBASE ===');
+    console.log('DB connecté:', !!db);
+    console.log('Status Firebase:', firebaseStatus);
+    console.log('Ventes locales:', appState.ventes.length);
+    console.log('Utilisateurs locaux:', Object.keys(appState.users).length);
+    
+    if (db) {
+        getDocs(collection(db, 'ventes')).then(snapshot => {
+            console.log('Ventes Firebase:', snapshot.size);
+        });
+        
+        getDocs(collection(db, 'users')).then(snapshot => {
+            console.log('Utilisateurs Firebase:', snapshot.size);
+        });
+    }
+    console.log('=== FIN DEBUG ===');
+}
+
 // Mise à jour dans Firebase
 async function updateInFirebase(vente) {
     if (!db) return false;
@@ -2706,6 +2736,7 @@ function init() {
         window.deleteRattachement = deleteRattachement;
         window.addNewUser = addNewUser;
         window.cancelEdit = cancelEdit;
+        window.debugFirebaseState = debugFirebaseState;
         window.startEditingUser = startEditingUser;
         window.saveUserPermanences = saveUserPermanences;
         window.cancelEditingUser = cancelEditingUser;
