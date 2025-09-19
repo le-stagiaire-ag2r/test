@@ -2054,10 +2054,9 @@ async function changeOwnPassword() {
         alert('Veuillez remplir tous les champs');
         return;
     }
-
-    if (appState.users[appState.currentUser.username].password !== appState.changeOwnPasswordForm.currentPassword) {
-        alert('Mot de passe actuel incorrect');
-        return;
+// NOUVEAU
+alert('Changement de mot de passe Firebase Auth non implémenté pour le moment');
+return;
     }
 
     if (appState.changeOwnPasswordForm.newPassword !== appState.changeOwnPasswordForm.confirmPassword) {
@@ -2070,36 +2069,20 @@ async function changeOwnPassword() {
         return;
     }
 
-    appState.users[appState.currentUser.username].password = btoa(appState.changeOwnPasswordForm.newPassword);
-    appState.currentUser.password = appState.changeOwnPasswordForm.newPassword;
+  alert('Changement de mot de passe Firebase Auth non implémenté pour le moment');
+return;
     
-    toggleChangeOwnPasswordForm();
-    invalidateCache();
-    // Synchroniser avec Firebase
-        if (db) {
-            try {
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                let userDocId = null;
-                usersSnapshot.forEach((doc) => {
-                    if (doc.data().username === appState.currentUser.username) {
-                        userDocId = doc.id;
-                    }
-                });
-                if (userDocId) {
-                    await updateDoc(doc(db, 'users', userDocId), appState.users[appState.currentUser.username]);
-                }
-                console.log('✅ Votre mot de passe synchronisé avec Firebase');
-            } catch (error) {
-                console.log('⚠️ Synchronisation Firebase échouée pour votre mot de passe');
-            }
-        }
-    alert('Votre mot de passe a été modifié avec succès !');
 }
 
 function cancelPasswordForm() {
     appState.editingPassword = null;
     appState.showPasswordForm = false;
     appState.passwordForm = { newPassword: '', confirmPassword: '' };
+    render();
+}
+            function toggleChangeOwnPasswordForm() {
+    appState.showChangeOwnPasswordForm = !appState.showChangeOwnPasswordForm;
+    appState.changeOwnPasswordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
     render();
 }
         function exportData() {
