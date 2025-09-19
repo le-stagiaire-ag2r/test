@@ -121,6 +121,7 @@
         // Configuration Firebase
        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
 
  const firebaseConfig = {
     apiKey: "AIzaSyCskhBW5hoqNYl8dA9mW0tnZRh4FrznGAE",
@@ -133,11 +134,12 @@ import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, o
   };
 // État de l'application
 var appState = {
-    users: {},
+    userRoles: {},
     contrats: [],
     typesVente: [],
     origines: [],
     rattachements: [],
+    isAuthenticating: true,
     currentUser: null,
     currentView: 'dashboard',
     selectedMonth: new Date().getMonth() + 1,
@@ -178,6 +180,7 @@ var appState = {
         // Variables Firebase
         let firebaseApp = null;
         let db = null;
+        let auth = null;
         let firebaseStatus = 'connecting';
 
         // Initialisation Firebase
@@ -185,6 +188,7 @@ var appState = {
             try {
                 firebaseApp = initializeApp(firebaseConfig);
                 db = getFirestore(firebaseApp);
+                auth = getAuth(firebaseApp);
                 firebaseStatus = 'connected';
                 console.log('✅ Firebase connecté');
                 
@@ -193,7 +197,43 @@ var appState = {
                 
                 // Écouter les changements en temps réel
                 setupRealtimeListeners();
-                
+               // Écouter l'état d'authentification
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        // Utilisateur connecté - récupérer ses rôles
+        try {
+            const userRolesSnapshot = await getDocs(collection(db, 'userRoles'));
+            let userRole = null;
+            userRolesSnapshot.forEach((doc) => {
+                if (doc.data().email === user.email) {
+                    userRole = doc.data();
+                }
+            });
+            
+            if (userRole) {
+                appState.currentUser = {
+                    email: user.email,
+                    uid: user.uid,
+                    ...userRole
+                };
+            } else {
+                // Utilisateur sans rôle défini
+                appState.currentUser = null;
+                alert('Accès non autorisé. Contactez l\'administrateur.');
+                await signOut(auth);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération des rôles:', error);
+            appState.currentUser = null;
+        }
+    } else {
+        // Utilisateur déconnecté
+        appState.currentUser = null;
+    }
+    
+    appState.isAuthenticating = false;
+    render();
+});
             } catch (error) {
                 console.error('❌ Erreur Firebase:', error);
                 firebaseStatus = 'error';
@@ -240,21 +280,8 @@ async function syncWithFirebase() {
         appState.ventes = firebaseVentes;
         console.log('Ventes chargées depuis Firebase:', firebaseVentes.length);
 
-        // UTILISATEURS : Firebase = source unique de vérité  
-        const usersSnapshot = await getDocs(collection(db, 'users'));
-        const firebaseUsers = {};
-        usersSnapshot.forEach((doc) => {
-            const userData = doc.data();
-            firebaseUsers[userData.username] = {
-                password: userData.password,
-                type: userData.type,
-                name: userData.name,
-                agence: userData.agence,
-                permanences: userData.permanences || []
-            };
-        });
-        appState.users = firebaseUsers;
-        console.log('Utilisateurs chargés depuis Firebase:', Object.keys(firebaseUsers).length);
+    // Les utilisateurs sont maintenant gérés par Firebase Auth
+console.log('Authentification gérée par Firebase Auth');
 
         // CONFIGURATION : Firebase = source unique de vérité
         const configSnapshot = await getDocs(collection(db, 'config'));
@@ -283,7 +310,7 @@ async function syncWithFirebase() {
         console.error('Erreur de synchronisation Firebase:', error);
         // En cas d'erreur Firebase, garder l'état vide
         appState.ventes = [];
-        appState.users = {};
+        appState.userRoles = {};
         appState.contrats = [];
         appState.typesVente = [];
         appState.origines = [];
@@ -332,37 +359,7 @@ appState.typesVente = firebaseTypesVente;
         render();
     }
 });
-            // Écouter les changements d'utilisateurs en temps réel
-        onSnapshot(collection(db, 'users'), (snapshot) => {
-            const firebaseUsers = {};
-            snapshot.forEach((doc) => {
-                const userData = doc.data();
-                if (userData.username) {
-                    firebaseUsers[userData.username] = {
-                        password: userData.password,
-                        type: userData.type,
-                        name: userData.name,
-                        agence: userData.agence,
-                        permanences: userData.permanences || []
-                    };
-                }
-            });
-            
-            // Fusionner avec les comptes par défaut
-            const mergedUsers = { ...appState.users };
-            Object.keys(firebaseUsers).forEach(username => {
-                mergedUsers[username] = firebaseUsers[username];
-            });
-            
-            appState.users = mergedUsers;
-           invalidateCache();
-            
-            // Re-render si l'utilisateur est connecté
-            if (appState.currentUser) {
-                render();
-            }
-        });
-        }
+         
 
      async function saveToFirebase(vente) {
     if (!db) return false;
@@ -383,15 +380,11 @@ function debugFirebaseState() {
     console.log('DB connecté:', !!db);
     console.log('Status Firebase:', firebaseStatus);
     console.log('Ventes locales:', appState.ventes.length);
-    console.log('Utilisateurs locaux:', Object.keys(appState.users).length);
+   console.log('Rôles utilisateurs locaux:', Object.keys(appState.userRoles).length);
     
     if (db) {
         getDocs(collection(db, 'ventes')).then(snapshot => {
             console.log('Ventes Firebase:', snapshot.size);
-        });
-        
-        getDocs(collection(db, 'users')).then(snapshot => {
-            console.log('Utilisateurs Firebase:', snapshot.size);
         });
     }
     console.log('=== FIN DEBUG ===');
@@ -521,22 +514,22 @@ function getVentesForCommercial(commercialName) {
                 options.push(appState.currentUser.agence);
                 // Ajouter ses permanences
                 options = options.concat(appState.currentUser.permanences);
-            } else if (appState.formData.commercial) {
-                // Mode admin - trouver le commercial sélectionné
-                var users = Object.values(appState.users);
-                var user = null;
-                for (var i = 0; i < users.length; i++) {
-                    if (users[i].name === appState.formData.commercial) {
-                        user = users[i];
-                        break;
-                    }
-                }
-                if (user && user.type === 'commercial') {
-                    options.push(user.agence);
-                    options = options.concat(user.permanences);
-                }
-            }
-            
+           } else if (appState.formData.commercial) {
+    // Mode admin - trouver le commercial sélectionné
+    var userEmails = Object.keys(appState.userRoles);
+    var user = null;
+    for (var i = 0; i < userEmails.length; i++) {
+        var email = userEmails[i];
+        if (appState.userRoles[email].name === appState.formData.commercial) {
+            user = appState.userRoles[email];
+            break;
+        }
+    }
+    if (user && user.type === 'commercial') {
+        options.push(user.agence);
+        options = options.concat(user.permanences);
+    }
+}
             // Ajouter les rattachements personnalisés de l'admin
             options = options.concat(appState.rattachements);
             
@@ -698,26 +691,26 @@ function getFilteredVentes() {
             };
         }
 
-      function handleLogin() {
-    var username = document.getElementById('username').value.toLowerCase();
+   async function handleLogin() {
+    var email = document.getElementById('email').value;
     var password = document.getElementById('password').value;
     
-    var user = appState.users[username];
-    if (user && user.password === password) {
-        appState.currentUser = JSON.parse(JSON.stringify(user));
-        appState.currentUser.username = username;
-        render();
-    } else {
-        alert('Nom d\'utilisateur ou mot de passe incorrect. Veuillez attendre que les données se chargent depuis Firebase.');
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // Firebase gère automatiquement la connexion
+    } catch (error) {
+        alert('Email ou mot de passe incorrect');
     }
 }
 
-        function handleLogout() {
-            appState.currentUser = null;
-            appState.currentView = 'dashboard';
-            resetForm();
-            render();
-        }
+      async function handleLogout() {
+    try {
+        await signOut(auth);
+        // Firebase gère automatiquement la déconnexion
+    } catch (error) {
+        console.error('Erreur déconnexion:', error);
+    }
+}
 
         function resetForm() {
             appState.formData = {
@@ -839,6 +832,16 @@ if (validationErrors.length > 0) {
         // Fonctions de rendu avec DOM
         function render() {
             var app = document.getElementById('app');
+            // Afficher un état de chargement pendant l'authentification
+if (appState.isAuthenticating) {
+    app.innerHTML = '<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">' +
+        '<div style="text-align: center;">' +
+            '<div style="font-size: 1.5rem; margin-bottom: 1rem;">🔄 Chargement...</div>' +
+            '<div style="color: #6b7280;">Vérification de l\'authentification</div>' +
+        '</div>' +
+    '</div>';
+    return;
+}
             
             if (!appState.currentUser) {
                 renderLogin();
@@ -871,8 +874,8 @@ if (validationErrors.length > 0) {
                     '<h1 class="login-title">Suivi des Ventes - Connexion</h1>' +
                     '<form onsubmit="event.preventDefault(); handleLogin();">' +
                         '<div class="form-space">' +
-                            '<label class="form-label">Nom d\'utilisateur</label>' +
-                            '<input type="text" id="username" class="form-input" placeholder="Votre nom d\'utilisateur" required>' +
+                            '<label class="form-label">Email</label>' +
+                            '<input type="email" id="email" class="form-input" placeholder="Votre email" required>' +
                         '</div>' +
                         '<div class="form-space">' +
                             '<label class="form-label">Mot de passe</label>' +
@@ -910,19 +913,19 @@ if (validationErrors.length > 0) {
                 var selected = appState.selectedYear === years[i] ? 'selected' : '';
                 yearOptions += '<option value="' + years[i] + '" ' + selected + '>' + years[i] + '</option>';
             }
-            var commercialOptions = '';
+         var commercialOptions = '';
 if (appState.currentUser.type === 'admin') {
     commercialOptions = '<select onchange="appState.selectedCommercial = this.value; render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
         '<option value="tous"' + (appState.selectedCommercial === 'tous' ? ' selected' : '') + '>Tous les commerciaux</option>';
     
-    // Récupérer automatiquement tous les commerciaux
-    var commerciaux = Object.keys(appState.users).filter(function(username) {
-        return appState.users[username].type === 'commercial';
+    // Récupérer tous les commerciaux depuis userRoles
+    var commerciaux = Object.keys(appState.userRoles).filter(function(email) {
+        return appState.userRoles[email].type === 'commercial';
     });
     
     for (var i = 0; i < commerciaux.length; i++) {
-        var username = commerciaux[i];
-        var user = appState.users[username];
+        var email = commerciaux[i];
+        var user = appState.userRoles[email];
         var selected = appState.selectedCommercial === user.name ? ' selected' : '';
         commercialOptions += '<option value="' + user.name + '"' + selected + '>' + user.name + '</option>';
     }
@@ -1088,15 +1091,16 @@ permanencesContent += '</div>';
    for (var i = 0; i < filteredVentes.length; i++) {
        var vente = filteredVentes[i];
        if (vente.rattachement && vente.rattachement.trim()) {
-           // Vérifier si c'est une agence
-           var isAgence = false;
-           var usersList = Object.values(appState.users);
-           for (var j = 0; j < usersList.length; j++) {
-               if (usersList[j].type === 'commercial' && usersList[j].agence === vente.rattachement) {
-                   isAgence = true;
-                   break;
-               }
-           }
+         // Vérifier si c'est une agence
+var isAgence = false;
+var userEmails = Object.keys(appState.userRoles);
+for (var j = 0; j < userEmails.length; j++) {
+    var userRole = appState.userRoles[userEmails[j]];
+    if (userRole.type === 'commercial' && userRole.agence === vente.rattachement) {
+        isAgence = true;
+        break;
+    }
+}
            
            var pnaAmount = parseFloat(vente.pna) || 0;
            
@@ -1733,101 +1737,6 @@ if (appState.showChangeOwnPasswordForm) {
             rattachementCard.innerHTML = rattachementHtml;
             container.appendChild(rattachementCard);
             
-            // Gestion des commerciaux et permanences
-            var commerciauxCard = document.createElement('div');
-            commerciauxCard.className = 'card';
-            var commerciauxHtml = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem;">Gestion des Commerciaux et Permanences</h3>';
-            commerciauxHtml += '<div style="overflow-x: auto;">';
-            commerciauxHtml += '<table class="table">';
-            commerciauxHtml += '<thead><tr><th>Nom</th><th>Username</th><th>Agence</th><th>Permanences</th><th>Ventes Total</th><th style="text-align: center;">Actions</th></tr></thead>';
-            commerciauxHtml += '<tbody>';
-            
-            var commerciaux = Object.keys(appState.users).filter(function(username) {
-                return appState.users[username].type === 'commercial';
-            });
-            
-            for (var i = 0; i < commerciaux.length; i++) {
-                var username = commerciaux[i];
-                var user = appState.users[username];
-                var userVentes = appState.ventes.filter(function(v) {
-                    return v.commercial === user.name;
-                });
-                var isEditing = appState.editingUser === username;
-                
-                commerciauxHtml += '<tr>';
-                commerciauxHtml += '<td style="font-weight: 500;">' + user.name + '</td>';
-                commerciauxHtml += '<td style="color: #6b7280;">' + username + '</td>';
-                commerciauxHtml += '<td>' + user.agence + '</td>';
-                commerciauxHtml += '<td>';
-                
-                if (isEditing) {
-                    commerciauxHtml += '<div style="display: flex; gap: 0.5rem; align-items: center;">' +
-                        '<input type="text" class="form-input" style="flex: 1; padding: 0.25rem 0.5rem; font-size: 0.875rem;" ' +
-                            'placeholder="Séparez par des virgules" ' +
-                            'value="' + appState.editUserForm.permanences + '" ' +
-                            'onchange="appState.editUserForm.permanences = this.value">' +
-                        '<button onclick="saveUserPermanences()" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">✓</button>' +
-                        '<button onclick="cancelEditingUser()" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">✕</button>' +
-                    '</div>';
-                } else {
-                    var permanencesText = user.permanences.length > 0 ? user.permanences.join(', ') : 'Aucune';
-                    commerciauxHtml += '<div style="display: flex; justify-content: space-between; align-items: center;">' +
-                        '<span style="font-size: 0.875rem;">' + permanencesText + '</span>' +
-                        '<button onclick="startEditingUser(\'' + username + '\')" ' +
-                            'class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin-left: 0.5rem;" ' +
-                            'title="Modifier les permanences">✏️</button>' +
-                    '</div>';
-                }
-                
-                commerciauxHtml += '</td>';
-                commerciauxHtml += '<td style="font-weight: 500; color: #2563eb;">' + userVentes.length + '</td>';
-                commerciauxHtml += '<td style="text-align: center;">';
-                
-               if (!isEditing) {
-    commerciauxHtml += '<div style="display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">' +
-        '<button onclick="startEditingUser(\'' + username + '\')" ' +
-            'class="btn btn-primary" style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">' +
-            'Modifier permanences</button>' +
-        '<button onclick="togglePasswordForm(\'' + username + '\')" ' +
-            'class="btn" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; background: #dc2626; color: white;">' +
-            'Changer mot de passe</button>' +
-        '<button onclick="deleteCommercial(\'' + username + '\')" ' +
-    'class="btn btn-danger" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; margin-left: 0.5rem;">' +
-    'Supprimer commercial</button>' +
-    '</div>';
-    
-    // Formulaire changement mot de passe
-    if (appState.editingPassword === username) {
-        commerciauxHtml += '<div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border-radius: 0.5rem; border: 1px solid #fecaca;">' +
-            '<div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap;">' +
-                '<div style="flex: 1; min-width: 120px;">' +
-                    '<label class="form-label" style="font-size: 0.75rem;">Nouveau mot de passe</label>' +
-                    '<input type="password" class="form-input" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;" ' +
-                        'placeholder="Nouveau mot de passe" ' +
-                        'value="' + appState.passwordForm.newPassword + '" ' +
-                        'onchange="appState.passwordForm.newPassword = this.value">' +
-                '</div>' +
-                '<div style="flex: 1; min-width: 120px;">' +
-                    '<label class="form-label" style="font-size: 0.75rem;">Confirmer</label>' +
-                    '<input type="password" class="form-input" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;" ' +
-                        'placeholder="Confirmer" ' +
-                        'value="' + appState.passwordForm.confirmPassword + '" ' +
-                        'onchange="appState.passwordForm.confirmPassword = this.value">' +
-                '</div>' +
-                '<button onclick="changeUserPassword()" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">✓</button>' +
-                '<button onclick="cancelPasswordForm()" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">✕</button>' +
-            '</div>' +
-        '</div>';
-    }
-}
-                
-                commerciauxHtml += '</td></tr>';
-            }
-            
-            commerciauxHtml += '</tbody></table></div>';
-            commerciauxCard.innerHTML = commerciauxHtml;
-            container.appendChild(commerciauxCard);
-        }
 
         // Fonctions helper pour la liste
         function editVente(id) {
@@ -2140,174 +2049,6 @@ if (appState.showChangeOwnPasswordForm) {
     }
 }
 
-async function addNewUser() {
-    if (!appState.newUserForm.username || !appState.newUserForm.name || !appState.newUserForm.password || !appState.newUserForm.agence) {
-        alert('Veuillez remplir tous les champs obligatoires');
-        return;
-    }
-
-    if (appState.users[appState.newUserForm.username.toLowerCase()]) {
-        alert('Cet utilisateur existe déjà');
-        return;
-    }
-
-    var permanencesArray = [];
-    if (appState.newUserForm.permanences) {
-        var permanencesList = appState.newUserForm.permanences.split(',');
-        for (var i = 0; i < permanencesList.length; i++) {
-            var permanence = permanencesList[i].trim();
-            if (permanence) {
-                permanencesArray.push(permanence);
-            }
-        }
-    }
-var username = appState.newUserForm.username.toLowerCase();
-    appState.users[username] = {
-        password: btoa(appState.newUserForm.password),
-        type: 'commercial',
-        name: appState.newUserForm.name,
-        agence: appState.newUserForm.agence,
-        permanences: permanencesArray
-    };
-    
-    invalidateCache();
-     // Sauvegarder dans Firebase
-if (db) {
-    try {
-        await addDoc(collection(db, 'users'), {
-            username: username,
-            ...appState.users[username]
-        });
-        console.log('✅ Nouveau commercial synchronisé avec Firebase');
-    } catch (error) {
-        console.log('⚠️ Synchronisation Firebase échouée pour le nouveau commercial');
-    }
-}
-
-cancelUserForm();
-alert('Commercial ajouté avec succès !'); 
-}
-
-        function startEditingUser(username) {
-            var user = appState.users[username];
-            appState.editingUser = username;
-            appState.editUserForm.permanences = user.permanences.join(', ');
-            render();
-        }
-
-        async function saveUserPermanences() {
-            if (!appState.editingUser) return;
-
-            var permanencesArray = [];
-            if (appState.editUserForm.permanences) {
-                var permanencesList = appState.editUserForm.permanences.split(',');
-                for (var i = 0; i < permanencesList.length; i++) {
-                    var permanence = permanencesList[i].trim();
-                    if (permanence) {
-                        permanencesArray.push(permanence);
-                    }
-                }
-            }
-var usernameToUpdate = appState.editingUser;  // AJOUTEZ cette ligne
-appState.users[usernameToUpdate].permanences = permanencesArray;
-
-invalidateCache();
-// Synchroniser avec Firebase
-if (db) {
-    try {
-        const usersSnapshot = await getDocs(collection(db, 'users'));
-        let userDocId = null;
-        usersSnapshot.forEach((doc) => {
-            if (doc.data().username === usernameToUpdate) {  // CHANGEZ cette ligne
-                userDocId = doc.id;
-            }
-        });
-        if (userDocId) {
-            await updateDoc(doc(db, 'users', userDocId), appState.users[usernameToUpdate]);  // CHANGEZ cette ligne
-        }
-        console.log('✅ Permanences synchronisées avec Firebase');
-    } catch (error) {
-        console.log('⚠️ Synchronisation Firebase échouée pour les permanences');
-    }
-}
-appState.editingUser = null;
-        appState.editUserForm.permanences = '';
-        alert('Permanences modifiées avec succès !');
-        render();
-    }            
-
-        function cancelEditingUser() {
-            appState.editingUser = null;
-            appState.editUserForm.permanences = '';
-            render();
-        }
-function togglePasswordForm(username) {
-    if (appState.editingPassword === username) {
-        appState.editingPassword = null;
-        appState.showPasswordForm = false;
-        appState.passwordForm = { newPassword: '', confirmPassword: '' };
-    } else {
-        appState.editingPassword = username;
-        appState.showPasswordForm = true;
-        appState.passwordForm = { newPassword: '', confirmPassword: '' };
-    }
-    render();
-}
-
-function toggleChangeOwnPasswordForm() {
-    appState.showChangeOwnPasswordForm = !appState.showChangeOwnPasswordForm;
-    appState.changeOwnPasswordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
-    render();
-}
-
-async function changeUserPassword() {
-    if (!appState.passwordForm.newPassword.trim()) {
-        alert('Veuillez saisir un nouveau mot de passe');
-        return;
-    }
-
-    if (appState.passwordForm.newPassword.trim() !== appState.passwordForm.confirmPassword.trim()) {
-        alert('Les mots de passe ne correspondent pas');
-        return;
-    }
-
-    if (appState.passwordForm.newPassword.trim().length < 4) {
-        alert('Le mot de passe doit contenir au moins 4 caractères');
-        return;
-    }
-
-   // GARDER la référence username AVANT de réinitialiser
-const usernameToUpdate = appState.editingPassword;
-
-appState.users[usernameToUpdate].password = btoa(appState.passwordForm.newPassword.trim());
-    
-    appState.editingPassword = null;
-    appState.showPasswordForm = false;
-    appState.passwordForm = { newPassword: '', confirmPassword: '' };
-    
-    invalidateCache();
-    // Synchroniser avec Firebase
-        if (db) {
-            try {
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                let userDocId = null;
-                usersSnapshot.forEach((doc) => {
-                    if (doc.data().username === usernameToUpdate) {
-                        userDocId = doc.id;
-                    }
-                });
-                if (userDocId) {
-                    await updateDoc(doc(db, 'users', userDocId), appState.users[usernameToUpdate]);
-                }
-                console.log('✅ Mot de passe synchronisé avec Firebase');
-            } catch (error) {
-                console.log('⚠️ Synchronisation Firebase échouée pour le mot de passe');
-            }
-        }
-    alert('Mot de passe modifié avec succès !');
-    render();
-}
-
 async function changeOwnPassword() {
     if (!appState.changeOwnPasswordForm.currentPassword || !appState.changeOwnPasswordForm.newPassword || !appState.changeOwnPasswordForm.confirmPassword) {
         alert('Veuillez remplir tous les champs');
@@ -2361,52 +2102,6 @@ function cancelPasswordForm() {
     appState.passwordForm = { newPassword: '', confirmPassword: '' };
     render();
 }
-        async function deleteCommercial(username) {
-            var user = appState.users[username];
-            var ventesCommercial = appState.ventes.filter(function(v) {
-                return v.commercial === user.name;
-            });
-            
-            var message = 'Supprimer le commercial "' + user.name + '" ?';
-            if (ventesCommercial.length > 0) {
-                message += '\n\nAttention : Ce commercial a ' + ventesCommercial.length + ' ventes.';
-                message += '\nQue faire de ses ventes ?\n\n';
-                message += 'OK = Supprimer le commercial ET ses ventes\n';
-                message += 'Annuler = Garder le commercial';
-            }
-            
-            if (confirm(message)) {
-                delete appState.users[username];
-                
-                if (ventesCommercial.length > 0) {
-                    appState.ventes = appState.ventes.filter(function(v) {
-                        return v.commercial !== user.name;
-                    });
-                }
-                
-                invalidateCache();
-                // Synchroniser avec Firebase
-        if (db) {
-            try {
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                let userDocId = null;
-                usersSnapshot.forEach((doc) => {
-                    if (doc.data().username === username) {
-                        userDocId = doc.id;
-                    }
-                });
-                if (userDocId) {
-                    await deleteDoc(doc(db, 'users', userDocId));
-                }
-                console.log('✅ Commercial supprimé de Firebase');
-            } catch (error) {
-                console.log('⚠️ Synchronisation Firebase échouée pour la suppression');
-            }
-        }
-                alert('Commercial supprimé !');
-                render();
-            }
-        }
         function exportData() {
             var dataToExport = {
                 ventes: appState.ventes,
@@ -2542,7 +2237,7 @@ function init() {
     try {
         // État de l'app : Firebase uniquement, pas de données par défaut
         appState.ventes = [];
-        appState.users = {};
+        appState.userRoles = {};
         appState.contrats = [];
         appState.typesVente = [];
         appState.origines = [];
@@ -2607,21 +2302,15 @@ function init() {
         window.addContract = addContract;
         window.addTypeVente = addTypeVente;
         window.addOrigine = addOrigine;
-        window.deleteCommercial = deleteCommercial;
         window.addRattachement = addRattachement;
         window.deleteContract = deleteContract;
         window.deleteTypeVente = deleteTypeVente;
         window.deleteOrigine = deleteOrigine;
         window.deleteRattachement = deleteRattachement;
-        window.addNewUser = addNewUser;
         window.cancelEdit = cancelEdit;
         window.debugFirebaseState = debugFirebaseState;
-        window.startEditingUser = startEditingUser;
-        window.saveUserPermanences = saveUserPermanences;
-        window.cancelEditingUser = cancelEditingUser;
-        window.togglePasswordForm = togglePasswordForm;
+       
 window.toggleChangeOwnPasswordForm = toggleChangeOwnPasswordForm;
-window.changeUserPassword = changeUserPassword;
 window.changeOwnPassword = changeOwnPassword;
 window.cancelPasswordForm = cancelPasswordForm;
         window.appState = appState;
