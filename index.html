@@ -158,19 +158,10 @@ var appState = {
     showTypeVenteForm: false,
     showOrigineForm: false,
     showRattachementForm: false,
-    showUserForm: false,
-    editingUser: null,
-    showPasswordForm: false,
-    showChangeOwnPasswordForm: false,
-    editingPassword: null,
-    passwordForm: { newPassword: '', confirmPassword: '' },
-    changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: '' },
     newContract: '',
     newTypeVente: '',
     newOrigine: '',
     newRattachement: '',
-    newUserForm: { username: '', name: '', password: '', agence: '', permanences: '' },
-    editUserForm: { permanences: '' },
     formData: {
         commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
         vente: '', rattachement: '', origine: '', contrat: '',
@@ -1500,84 +1491,10 @@ html += '<tr>';
     '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">' +
         '<button onclick="exportData()" class="btn btn-primary" style="padding: 1rem;">💾 Backup Complet</button>' +
         '<button onclick="showImportDialog()" class="btn btn-success" style="padding: 1rem;">📁 Importer Backup</button>' +
-        '<button onclick="toggleUserForm()" class="btn" style="padding: 1rem; background: #7c3aed; color: white;">👤 Ajouter Commercial</button>' +
-        '<button onclick="toggleChangeOwnPasswordForm()" class="btn" style="padding: 1rem; background: #dc2626; color: white;">🔒 Changer mon mot de passe</button>' +
     '</div>';
 
-// Formulaire changement mot de passe admin
-if (appState.showChangeOwnPasswordForm) {
-    dataHtml += '<div style="margin-bottom: 1.5rem; padding: 1.5rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem;">' +
-        '<h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #dc2626;">Changer votre mot de passe</h3>' +
-        '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">' +
-            '<div>' +
-                '<label class="form-label">Mot de passe actuel</label>' +
-                '<input type="password" class="form-input" value="' + appState.changeOwnPasswordForm.currentPassword + '" ' +
-                    'onchange="appState.changeOwnPasswordForm.currentPassword = this.value">' +
-            '</div>' +
-            '<div>' +
-                '<label class="form-label">Nouveau mot de passe</label>' +
-                '<input type="password" class="form-input" value="' + appState.changeOwnPasswordForm.newPassword + '" ' +
-                    'onchange="appState.changeOwnPasswordForm.newPassword = this.value">' +
-            '</div>' +
-            '<div>' +
-                '<label class="form-label">Confirmer nouveau mot de passe</label>' +
-                '<input type="password" class="form-input" value="' + appState.changeOwnPasswordForm.confirmPassword + '" ' +
-                    'onchange="appState.changeOwnPasswordForm.confirmPassword = this.value">' +
-            '</div>' +
-        '</div>' +
-        '<div style="display: flex; gap: 0.75rem; margin-top: 1rem;">' +
-            '<button onclick="changeOwnPassword()" class="btn btn-success">Modifier mon mot de passe</button>' +
-            '<button onclick="toggleChangeOwnPasswordForm()" class="btn btn-secondary">Annuler</button>' +
-        '</div>' +
-    '</div>';
-}
-            dataCard.innerHTML = dataHtml;
-            container.appendChild(dataCard);
             
-            // Formulaire ajout utilisateur
-            if (appState.showUserForm) {
-                var userFormCard = document.createElement('div');
-                userFormCard.className = 'card';
-                var userFormHtml = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Ajouter un nouveau commercial</h3>';
-                userFormHtml += '<div class="form-grid">';
-                userFormHtml += '<div class="form-group">' +
-                    '<label class="form-label">Nom d\'utilisateur *</label>' +
-                    '<input type="text" class="form-input" placeholder="Ex: marie" ' +
-                        'value="' + appState.newUserForm.username + '" ' +
-                        'onchange="appState.newUserForm.username = this.value">' +
-                '</div>';
-                userFormHtml += '<div class="form-group">' +
-                    '<label class="form-label">Nom complet *</label>' +
-                    '<input type="text" class="form-input" placeholder="Ex: Marie Dupont" ' +
-                        'value="' + appState.newUserForm.name + '" ' +
-                        'onchange="appState.newUserForm.name = this.value">' +
-                '</div>';
-                userFormHtml += '<div class="form-group">' +
-                    '<label class="form-label">Mot de passe *</label>' +
-                    '<input type="text" class="form-input" placeholder="Ex: marie123" ' +
-                        'value="' + appState.newUserForm.password + '" ' +
-                        'onchange="appState.newUserForm.password = this.value">' +
-                '</div>';
-                userFormHtml += '<div class="form-group">' +
-                    '<label class="form-label">Agence *</label>' +
-                    '<input type="text" class="form-input" placeholder="Ex: Lille" ' +
-                        'value="' + appState.newUserForm.agence + '" ' +
-                        'onchange="appState.newUserForm.agence = this.value">' +
-                '</div>';
-                userFormHtml += '<div class="form-group" style="grid-column: 1 / -1;">' +
-                    '<label class="form-label">Permanences (séparées par des virgules)</label>' +
-                    '<input type="text" class="form-input" placeholder="Ex: Arras, Béthune, Valenciennes" ' +
-                        'value="' + appState.newUserForm.permanences + '" ' +
-                        'onchange="appState.newUserForm.permanences = this.value">' +
-                '</div>';
-                userFormHtml += '</div>';
-                userFormHtml += '<div style="display: flex; gap: 0.75rem; margin-top: 1rem;">' +
-                    '<button onclick="addNewUser()" class="btn btn-success">Ajouter le commercial</button>' +
-                    '<button onclick="cancelUserForm()" class="btn btn-secondary">Annuler</button>' +
-                '</div>';
-                userFormCard.innerHTML = userFormHtml;
-                container.appendChild(userFormCard);
-            }
+        
             
             // Gestion des contrats
             var contractCard = document.createElement('div');
@@ -1748,12 +1665,6 @@ if (appState.showChangeOwnPasswordForm) {
             }
         }
 
-        // Fonctions de gestion
-        function toggleUserForm() {
-            appState.showUserForm = !appState.showUserForm;
-            render();
-        }
-
         function toggleContractForm() {
             appState.showContractForm = !appState.showContractForm;
             render();
@@ -1774,14 +1685,6 @@ if (appState.showChangeOwnPasswordForm) {
             render();
         }
 
-        function cancelUserForm() {
-            appState.showUserForm = false;
-            appState.newUserForm = { username: '', name: '', password: '', agence: '', permanences: '' };
-            render();
-        }
-            function addNewUser() {
-    alert('Ajout d\'utilisateur non implémenté avec Firebase Auth pour le moment');
-}
 
         function cancelContractForm() {
             appState.showContractForm = false;
@@ -2051,28 +1954,7 @@ if (appState.showChangeOwnPasswordForm) {
         render();
     }
 }
-
-async function changeOwnPassword() {
-    if (!appState.changeOwnPasswordForm.currentPassword || !appState.changeOwnPasswordForm.newPassword || !appState.changeOwnPasswordForm.confirmPassword) {
-        alert('Veuillez remplir tous les champs');
-        return;
-    }
-// NOUVEAU
-alert('Changement de mot de passe Firebase Auth non implémenté pour le moment');
-return;
-}
             
-function cancelPasswordForm() {
-    appState.editingPassword = null;
-    appState.showPasswordForm = false;
-    appState.passwordForm = { newPassword: '', confirmPassword: '' };
-    render();
-}
-            function toggleChangeOwnPasswordForm() {
-    appState.showChangeOwnPasswordForm = !appState.showChangeOwnPasswordForm;
-    appState.changeOwnPasswordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
-    render();
-}
         function exportData() {
             var dataToExport = {
                 ventes: appState.ventes,
@@ -2259,13 +2141,11 @@ function init() {
         window.exportToCSV = exportToCSV;
         window.exportData = exportData;
         window.showImportDialog = showImportDialog;
-        window.toggleUserForm = toggleUserForm;
         window.showCommentaire = showCommentaire;
         window.toggleContractForm = toggleContractForm;
         window.toggleTypeVenteForm = toggleTypeVenteForm;
         window.toggleOrigineForm = toggleOrigineForm;
         window.toggleRattachementForm = toggleRattachementForm;
-        window.cancelUserForm = cancelUserForm;
         window.cancelContractForm = cancelContractForm;
         window.cancelTypeVenteForm = cancelTypeVenteForm;
         window.cancelOrigineForm = cancelOrigineForm;
@@ -2280,9 +2160,6 @@ function init() {
         window.deleteRattachement = deleteRattachement;
         window.cancelEdit = cancelEdit;
         window.debugFirebaseState = debugFirebaseState;
-window.toggleChangeOwnPasswordForm = toggleChangeOwnPasswordForm;
-window.changeOwnPassword = changeOwnPassword;
-window.cancelPasswordForm = cancelPasswordForm;
         window.appState = appState;
         window.render = render;
         // Démarrage
