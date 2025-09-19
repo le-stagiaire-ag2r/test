@@ -1779,6 +1779,9 @@ if (appState.showChangeOwnPasswordForm) {
             appState.newUserForm = { username: '', name: '', password: '', agence: '', permanences: '' };
             render();
         }
+            function addNewUser() {
+    alert('Ajout d\'utilisateur non implémenté avec Firebase Auth pour le moment');
+}
 
         function cancelContractForm() {
             appState.showContractForm = false;
@@ -2059,21 +2062,6 @@ alert('Changement de mot de passe Firebase Auth non implémenté pour le moment'
 return;
     }
 
-    if (appState.changeOwnPasswordForm.newPassword !== appState.changeOwnPasswordForm.confirmPassword) {
-        alert('Les nouveaux mots de passe ne correspondent pas');
-        return;
-    }
-
-    if (appState.changeOwnPasswordForm.newPassword.length < 4) {
-        alert('Le nouveau mot de passe doit contenir au moins 4 caractères');
-        return;
-    }
-
-  alert('Changement de mot de passe Firebase Auth non implémenté pour le moment');
-return;
-    
-}
-
 function cancelPasswordForm() {
     appState.editingPassword = null;
     appState.showPasswordForm = false;
@@ -2088,7 +2076,7 @@ function cancelPasswordForm() {
         function exportData() {
             var dataToExport = {
                 ventes: appState.ventes,
-                users: appState.users,
+                users: appState.userRoles,
                 contrats: appState.contrats,
                 typesVente: appState.typesVente,
                 origines: appState.origines,
