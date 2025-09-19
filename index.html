@@ -325,7 +325,7 @@ console.log('Authentification gérée par Firebase Auth');
                 snapshot.forEach((doc) => {
                     firebaseVentes.push({ id: doc.id, ...doc.data() });
                 });
-                
+            
                 appState.ventes = firebaseVentes;
                 invalidateCache();
                 
@@ -359,7 +359,7 @@ appState.typesVente = firebaseTypesVente;
         render();
     }
 });
-         
+}        
 
      async function saveToFirebase(vente) {
     if (!db) return false;
