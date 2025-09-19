@@ -703,7 +703,7 @@ function getFilteredVentes() {
     var password = document.getElementById('password').value;
     
     var user = appState.users[username];
-    if (user && user.password === btoa(password)) {
+    if (user && user.password === password) {
         appState.currentUser = JSON.parse(JSON.stringify(user));
         appState.currentUser.username = username;
         render();
