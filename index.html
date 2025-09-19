@@ -131,7 +131,50 @@ import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, o
     appId: "1:532494330267:web:89bb6d3e6611e6efa3593e",
     measurementId: "G-1MYECDKJEF"
   };
-
+// État de l'application
+var appState = {
+    users: {},
+    contrats: [],
+    typesVente: [],
+    origines: [],
+    rattachements: [],
+    currentUser: null,
+    currentView: 'dashboard',
+    selectedMonth: new Date().getMonth() + 1,
+    selectedYear: new Date().getFullYear(),
+    selectedCommercial: 'tous',
+    viewMode: 'mensuel',
+    ventes: [],
+    editingId: null,
+    searchTerm: '',
+    permanencesSortBy: 'ventes',
+    sortBy: 'dateCreation',
+    sortOrder: 'desc',
+    filteredVentesCache: null,
+    lastFilterState: null,
+    showContractForm: false,
+    showTypeVenteForm: false,
+    showOrigineForm: false,
+    showRattachementForm: false,
+    showUserForm: false,
+    editingUser: null,
+    showPasswordForm: false,
+    showChangeOwnPasswordForm: false,
+    editingPassword: null,
+    passwordForm: { newPassword: '', confirmPassword: '' },
+    changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: '' },
+    newContract: '',
+    newTypeVente: '',
+    newOrigine: '',
+    newRattachement: '',
+    newUserForm: { username: '', name: '', password: '', agence: '', permanences: '' },
+    editUserForm: { permanences: '' },
+    formData: {
+        commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
+        vente: '', rattachement: '', origine: '', contrat: '',
+        dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
+    }
+};
         // Variables Firebase
         let firebaseApp = null;
         let db = null;
@@ -396,50 +439,7 @@ async function deleteFromFirebase(venteId) {
         return false;
     }
 }
-// État de l'application
-var appState = {
-    users: {},
-    contrats: [],
-    typesVente: [],
-    origines: [],
-    rattachements: [],
-    currentUser: null,
-    currentView: 'dashboard',
-    selectedMonth: new Date().getMonth() + 1,
-    selectedYear: new Date().getFullYear(),
-    selectedCommercial: 'tous',
-    viewMode: 'mensuel',
-    ventes: [],
-    editingId: null,
-    searchTerm: '',
-    permanencesSortBy: 'ventes',
-    sortBy: 'dateCreation',
-    sortOrder: 'desc',
-    filteredVentesCache: null,
-    lastFilterState: null,
-    showContractForm: false,
-    showTypeVenteForm: false,
-    showOrigineForm: false,
-    showRattachementForm: false,
-    showUserForm: false,
-    editingUser: null,
-    showPasswordForm: false,
-    showChangeOwnPasswordForm: false,
-    editingPassword: null,
-    passwordForm: { newPassword: '', confirmPassword: '' },
-    changeOwnPasswordForm: { currentPassword: '', newPassword: '', confirmPassword: '' },
-    newContract: '',
-    newTypeVente: '',
-    newOrigine: '',
-    newRattachement: '',
-    newUserForm: { username: '', name: '', password: '', agence: '', permanences: '' },
-    editUserForm: { permanences: '' },
-    formData: {
-        commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
-        vente: '', rattachement: '', origine: '', contrat: '',
-        dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
-    }
-};  
+
 function invalidateCache() {
     // Invalider le cache des ventes filtrées
     appState.filteredVentesCache = null;
