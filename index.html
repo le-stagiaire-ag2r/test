@@ -219,7 +219,7 @@ var appState = {
                     }, 3000);
                 } else {
                     statusElement.className += ' firebase-error';
-                    statusElement.textContent = '💾 Mode local';
+                    statusElement.textContent = '❌ Erreur Firebase';
                     // Masquer après 5 secondes
                     setTimeout(() => {
                         if (statusElement) statusElement.style.display = 'none';
@@ -237,7 +237,7 @@ async function syncWithFirebase() {
         ventesSnapshot.forEach((doc) => {
             firebaseVentes.push({ id: doc.id, ...doc.data() });
         });
-        appState.ventes = firebaseVentes; // Toujours utiliser Firebase
+        appState.ventes = firebaseVentes;
         console.log('Ventes chargées depuis Firebase:', firebaseVentes.length);
 
         // UTILISATEURS : Firebase = source unique de vérité  
@@ -253,7 +253,7 @@ async function syncWithFirebase() {
                 permanences: userData.permanences || []
             };
         });
-        appState.users = firebaseUsers; // Toujours utiliser Firebase
+        appState.users = firebaseUsers;
         console.log('Utilisateurs chargés depuis Firebase:', Object.keys(firebaseUsers).length);
 
         // CONFIGURATION : Firebase = source unique de vérité
@@ -281,10 +281,15 @@ async function syncWithFirebase() {
         
     } catch (error) {
         console.error('Erreur de synchronisation Firebase:', error);
-        // En cas d'erreur, garder l'état vide plutôt que des données locales
+        // En cas d'erreur Firebase, garder l'état vide
+        appState.ventes = [];
+        appState.users = {};
+        appState.contrats = [];
+        appState.typesVente = [];
+        appState.origines = [];
+        appState.rattachements = [];
     }
 }
-        // Écoute des changements en temps réel
         function setupRealtimeListeners() {
             if (!db) return;
             
@@ -501,58 +506,6 @@ function validateVenteData(venteData) {
     } 
     return errors;
 }
-        function cleanOrphanVentes() {
-    var commerciauxExistants = [];
-    
-    // Récupérer tous les noms des commerciaux existants
-    var usernames = Object.keys(appState.users);
-    for (var i = 0; i < usernames.length; i++) {
-        var user = appState.users[usernames[i]];
-        if (user.type === 'commercial') {
-            commerciauxExistants.push(user.name);
-        }
-    }
-    
-    // Identifier les ventes orphelines
-    var ventesOrphelines = [];
-    var ventesValides = [];
-    
-    for (var i = 0; i < appState.ventes.length; i++) {
-        var vente = appState.ventes[i];
-        if (commerciauxExistants.indexOf(vente.commercial) === -1) {
-            ventesOrphelines.push(vente);
-        } else {
-            ventesValides.push(vente);
-        }
-    }
-    
-    if (ventesOrphelines.length > 0) {
-        var commerciauxOrphelins = [];
-        for (var i = 0; i < ventesOrphelines.length; i++) {
-            var commercial = ventesOrphelines[i].commercial;
-            if (commerciauxOrphelins.indexOf(commercial) === -1) {
-                commerciauxOrphelins.push(commercial);
-            }
-        }
-        
-        var message = 'Attention : ' + ventesOrphelines.length + ' ventes appartiennent à des commerciaux supprimés :\n\n';
-        message += commerciauxOrphelins.join(', ') + '\n\n';
-        message += 'Voulez-vous :\n';
-        message += '- OK : Conserver ces ventes (elles resteront visibles)\n';
-        message += '- Annuler : Supprimer définitivement ces ventes orphelines';
-        
-        if (confirm(message)) {
-            return appState.ventes;
-        } else {
-            appState.ventes = ventesValides;
-            invalidateCache();
-            alert(ventesOrphelines.length + ' ventes orphelines supprimées.');
-            return ventesValides;
-        }
-    }
-    
-    return appState.ventes;
-}
 
 function getVentesForCommercial(commercialName) {
     return appState.ventes.filter(function(vente) {
@@ -745,20 +698,19 @@ function getFilteredVentes() {
             };
         }
 
-        // Fonctions d'action
-        function handleLogin() {
-            var username = document.getElementById('username').value.toLowerCase();
-            var password = document.getElementById('password').value;
-            
-           var user = appState.users[username];
-if (user && user.password === btoa(password)) {  // Seulement les mots de passe encodés
-                appState.currentUser = JSON.parse(JSON.stringify(user));
-                appState.currentUser.username = username;
-                render();
-            } else {
-                alert('Nom d\'utilisateur ou mot de passe incorrect');
-            }
-        }
+      function handleLogin() {
+    var username = document.getElementById('username').value.toLowerCase();
+    var password = document.getElementById('password').value;
+    
+    var user = appState.users[username];
+    if (user && user.password === btoa(password)) {
+        appState.currentUser = JSON.parse(JSON.stringify(user));
+        appState.currentUser.username = username;
+        render();
+    } else {
+        alert('Nom d\'utilisateur ou mot de passe incorrect. Veuillez attendre que les données se chargent depuis Firebase.');
+    }
+}
 
         function handleLogout() {
             appState.currentUser = null;
@@ -818,7 +770,7 @@ if (validationErrors.length > 0) {
                         await updateInFirebase(venteFinal);
                         console.log('✅ Vente modifiée dans Firebase');
                     } catch (error) {
-                        console.log('⚠️ Modification Firebase échouée, mode local activé');
+                        console.log('⚠️ Modification Firebase échouée');
                     }
                 }
             } else {
@@ -833,7 +785,7 @@ if (validationErrors.length > 0) {
                         await saveToFirebase(venteFinal);
                         console.log('✅ Vente sauvegardée dans Firebase');
                     } catch (error) {
-                        console.log('⚠️ Sauvegarde Firebase échouée, mode local activé');
+                        console.log('⚠️ Sauvegarde Firebase échouée');
                     }
                 }
             }
@@ -863,7 +815,7 @@ if (validationErrors.length > 0) {
                         await deleteFromFirebase(id);
                         console.log('✅ Vente supprimée de Firebase');
                     } catch (error) {
-                        console.log('⚠️ Suppression Firebase échouée, mode local activé');
+                        console.log('⚠️ Suppression Firebase échouée');
                     }
                 }
                 
@@ -2588,16 +2540,16 @@ function cancelPasswordForm() {
         }
 function init() {
     try {
-    // Initialiser avec des données vides - Firebase sera la source unique
-appState.ventes = [];
-appState.users = {};
-appState.contrats = [];
-appState.typesVente = [];
-appState.origines = [];
-appState.rattachements = [];
-        setTimeout(() => {
-            initFirebase();
-        }, 100);
+        // État de l'app : Firebase uniquement, pas de données par défaut
+        appState.ventes = [];
+        appState.users = {};
+        appState.contrats = [];
+        appState.typesVente = [];
+        appState.origines = [];
+        appState.rattachements = [];
+        
+        // Initialiser Firebase immédiatement
+        initFirebase();
         render();
     } catch (error) {
         console.error('Erreur d\'initialisation:', error);
