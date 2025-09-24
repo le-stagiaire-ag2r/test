@@ -189,14 +189,43 @@ var appState = {
                 // Écouter les changements en temps réel
                 setupRealtimeListeners();
                // Écouter l'état d'authentification
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+// Écouter l'état d'authentification
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        // Utilisateur connecté - récupérer ses rôles
+        try {
+            const userRolesSnapshot = await getDocs(collection(db, 'userRoles'));
+            let userRole = null;
+            userRolesSnapshot.forEach((doc) => {
+                if (doc.data().email === user.email) {
+                    userRole = doc.data();
+                }
+            });
+            
+            if (userRole) {
+                appState.currentUser = {
+                    email: user.email,
+                    uid: user.uid,
+                    ...userRole
+                };
+            } else {
+                // Utilisateur sans rôle défini
+                appState.currentUser = null;
+                alert('Accès non autorisé. Contactez l\'administrateur.');
+                await signOut(auth);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération des rôles:', error);
+            appState.currentUser = null;
+        }
+    } else {
+        // Utilisateur déconnecté
+        appState.currentUser = null;
     }
-  }
-}
+    
+    appState.isAuthenticating = false;
+    render();
+});
             } catch (error) {
                 console.error('❌ Erreur Firebase:', error);
                 firebaseStatus = 'error';
