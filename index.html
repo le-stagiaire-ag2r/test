@@ -1435,8 +1435,24 @@ html += '<div class="form-group" style="grid-column: 1 / -1;">' +
                     var vente = filteredVentes[i];
           
                     // Vérifier les permissions avant d'afficher les actions
-    var canEdit = (appState.currentUser.type === 'admin' || 
-                   (vente.commercial === appState.currentUser.name && appState.currentUser.type === 'commercial'));
+   var canEdit = false;
+
+if (appState.currentUser.type === 'admin') {
+    canEdit = true;
+} else if (appState.currentUser.type === 'commercial') {
+    var currentUserName = appState.currentUser.name.toLowerCase().trim();
+    var venteCommercial = (vente.commercial || '').toLowerCase().trim();
+    canEdit = (currentUserName === venteCommercial);
+    
+    // Debug
+    if (!canEdit) {
+        console.log('Pas d\'autorisation pour:', {
+            userRole: appState.currentUser.type,
+            userName: appState.currentUser.name,
+            venteCommercial: vente.commercial
+        });
+    }
+}
 html += '<tr>';
                     
                     if (appState.currentUser.type === 'admin') {
