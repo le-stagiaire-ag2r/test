@@ -270,7 +270,14 @@ async function syncWithFirebase() {
         });
         appState.ventes = firebaseVentes;
         console.log('Ventes chargées depuis Firebase:', firebaseVentes.length);
-
+// CHARGER TOUS LES USERROLES
+const userRolesSnapshot = await getDocs(collection(db, 'userRoles'));
+appState.userRoles = {};
+userRolesSnapshot.forEach((doc) => {
+    const userData = doc.data();
+    appState.userRoles[userData.email] = userData;
+});
+console.log('UserRoles chargés:', Object.keys(appState.userRoles).length);
     // Les utilisateurs sont maintenant gérés par Firebase Auth
 console.log('Authentification gérée par Firebase Auth');
 
