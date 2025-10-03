@@ -1482,47 +1482,39 @@ html += '<tr>';
         '<td style="font-weight: 500; color: #7c3aed;">' + pna + '</td>' +
         '<td>' + vente.dateEffet + '</td>' +
         '<td style="text-align: right;">';
-                    
- if (canEdit) {
-    html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">';
-    if (canEdit) {
-  if (canEdit) {
-    html += '<button class="btn btn-secondary edit-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>' +
-            '<button class="btn btn-danger delete-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>';
-}
-    
-    html += '</div>';
-}
-                    
-                    html += '</td></tr>';
+
+                    if (canEdit) {
+                    html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">';
+                    html += '<button class="btn btn-secondary edit-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>';
+                    html += '<button class="btn btn-danger delete-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>';
+                    html += '</div>';
                 }
                 
-                html += '</tbody></table></div>';
+                html += '</td></tr>';
             }
             
-            card.innerHTML = html;
-            container.appendChild(card);
+            html += '</tbody></table></div>';
         }
-card.innerHTML = html;
-            
-            // Attacher les événements aux boutons
-            setTimeout(() => {
-                card.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        editVente(parseInt(btn.dataset.id));
-                    });
+        
+        card.innerHTML = html;
+        
+        // Attacher les événements aux boutons
+        setTimeout(() => {
+            card.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    editVente(parseInt(btn.dataset.id));
                 });
-                
-                card.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        handleDelete(parseInt(btn.dataset.id));
-                    });
+            });
+            
+            card.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    handleDelete(parseInt(btn.dataset.id));
                 });
-            }, 0);
-            
-            container.appendChild(card);
-        }
-            
+            });
+        }, 0);
+        
+        container.appendChild(card);
+    }
         function renderGestion(container) {
             if (appState.currentUser.type !== 'admin') {
                 var card = document.createElement('div');
