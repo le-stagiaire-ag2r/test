@@ -1507,22 +1507,21 @@ html += '<tr>';
         
         card.innerHTML = html;
         
-        // Attacher les événements aux boutons
-        setTimeout(() => {
-            card.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    editVente(parseInt(btn.dataset.id));
-                });
-            });
-            
-            card.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    handleDelete(parseInt(btn.dataset.id));
-                });
-            });
-        }, 0);
-        
-        container.appendChild(card);
+      setTimeout(() => {
+    card.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            editVente(btn.dataset.id);  // ← Sans parseInt
+        });
+    });
+    
+    card.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            handleDelete(btn.dataset.id);  // ← Sans parseInt
+        });
+    });
+}, 100);
+
+container.appendChild(card);
     }
         function renderGestion(container) {
             if (appState.currentUser.type !== 'admin') {
