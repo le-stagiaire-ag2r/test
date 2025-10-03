@@ -393,21 +393,18 @@ async function updateInFirebase(vente) {
     if (!db) return false;
     
     try {
-        const ventesSnapshot = await getDocs(collection(db, 'ventes'));
-        let docId = null;
-        ventesSnapshot.forEach((doc) => {
-            if (doc.data().id === vente.id) {
-                docId = doc.id;
-            }
-        });
+        // Utiliser directement l'ID de la vente comme ID du document Firebase
+        const docRef = doc(db, 'ventes', vente.id);
         
-        if (docId) {
-            await updateDoc(doc(db, 'ventes', docId), vente);
-            return true;
-        }
-        return false;
+        // Créer une copie sans l'ID pour la mise à jour
+        const venteToUpdate = { ...vente };
+        delete venteToUpdate.id;
+        
+        await updateDoc(docRef, venteToUpdate);
+        console.log('✅ Vente modifiée dans Firebase:', vente.id);
+        return true;
     } catch (error) {
-        console.error('Erreur modification Firebase:', error);
+        console.error('❌ Erreur modification Firebase:', error);
         return false;
     }
 }
