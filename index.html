@@ -418,24 +418,33 @@ async function deleteFromFirebase(venteId) {
     
     try {
         const ventesSnapshot = await getDocs(collection(db, 'ventes'));
-        let docId = null;
-        ventesSnapshot.forEach((doc) => {
-            if (doc.data().id === venteId) {
-                docId = doc.id;
+        let docIdToDelete = null;
+        
+        ventesSnapshot.forEach((docSnap) => {
+            // L'ID Firebase du document EST l'ID de la vente qu'on cherche
+            // car dans syncWithFirebase ligne 271, on fait: { id: doc.id, ...doc.data() }
+            const data = docSnap.data();
+            
+            // Chercher soit par l'ID Firebase, soit par un champ id si présent
+            if (docSnap.id === venteId || (data.id && data.id === venteId)) {
+                docIdToDelete = docSnap.id;
             }
         });
         
-        if (docId) {
-            await deleteDoc(doc(db, 'ventes', docId));
+        if (docIdToDelete) {
+            await deleteDoc(doc(db, 'ventes', docIdToDelete));
+            console.log('✅ Document supprimé:', docIdToDelete);
             return true;
+        } else {
+            console.error('❌ Document non trouvé pour venteId:', venteId);
+            return false;
         }
-        return false;
     } catch (error) {
         console.error('Erreur suppression Firebase:', error);
         return false;
     }
 }
-
+        
 function invalidateCache() {
     // Invalider le cache des ventes filtrées
     appState.filteredVentesCache = null;
