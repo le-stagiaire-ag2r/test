@@ -1486,8 +1486,9 @@ html += '<tr>';
  if (canEdit) {
     html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">';
     if (canEdit) {
-    html += '<button onclick="editVente(' + vente.id + ')" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>' +
-            '<button onclick="handleDelete(' + vente.id + ')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>';
+  if (canEdit) {
+    html += '<button class="btn btn-secondary edit-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>' +
+            '<button class="btn btn-danger delete-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>';
 }
     
     html += '</div>';
@@ -1502,7 +1503,25 @@ html += '<tr>';
             card.innerHTML = html;
             container.appendChild(card);
         }
+card.innerHTML = html;
 
+// Attacher les événements aux boutons
+setTimeout(() => {
+    card.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            editVente(parseInt(btn.dataset.id));
+        });
+    });
+    
+    card.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            handleDelete(parseInt(btn.dataset.id));
+        });
+    });
+}, 0);
+
+container.appendChild(card);
+            
         function renderGestion(container) {
             if (appState.currentUser.type !== 'admin') {
                 var card = document.createElement('div');
