@@ -1492,12 +1492,13 @@ html += '<tr>';
         '<td>' + vente.dateEffet + '</td>' +
         '<td style="text-align: right;">';
 
-                    if (canEdit) {
-                    html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">';
-                    html += '<button class="btn btn-secondary edit-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>';
-                    html += '<button class="btn btn-danger delete-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>';
-                    html += '</div>';
-                }
+                   if (canEdit) {
+    html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">';
+    html += '<button class="btn btn-secondary edit-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>';
+    html += '<button class="btn btn-danger delete-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>';
+    html += '</div>';
+}
+                
                 
                 html += '</td></tr>';
             }
