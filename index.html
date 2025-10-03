@@ -102,6 +102,16 @@
             background: #fee2e2;
             color: #991b1b;
         }
+        @keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
         @media (max-width: 768px) {
             .header-content { flex-direction: column; align-items: stretch; }
             .nav-buttons { justify-content: center; }
@@ -871,39 +881,48 @@ if (appState.isAuthenticating) {
             app.appendChild(container);
         }
 
-        function renderLogin() {
-            var app = document.getElementById('app');
-            var html = '<div class="login-container">' +
-                '<div class="login-card">' +
-                    '<h1 class="login-title">Suivi des Ventes - Connexion</h1>' +
-                    '<form onsubmit="event.preventDefault(); handleLogin();">' +
-                        '<div class="form-space">' +
-                            '<label class="form-label">Email</label>' +
-                          '<input type="email" id="email" class="form-input" placeholder="Votre email" required autocomplete="email">' +
-                        '</div>' +
-                        '<div class="form-space">' +
-                            '<label class="form-label">Mot de passe</label>' +
-                        '<input type="password" id="password" class="form-input" placeholder="Votre mot de passe" required autocomplete="current-password">' +
-                        '</div>' +
-                        '<button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>' +
-                    '</form>' +
-                    '<div class="test-accounts">' +
-                        '<h3>Comptes de test :</h3>' +
-                      '<div class="test-accounts">' +
-   '<div class="test-accounts">' +
-    '<h3>Connexion :</h3>' +
-    '<div style="font-size: 0.875rem; color: #6b7280;">' +
-        'Utilisez vos identifiants professionnels' +
-    '</div>' +
-'</div>' +
-                        '<div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.5rem;">' +
-                            '(Tous les commerciaux : prénom + 123)' +
-                        '</div>' +
-                    '</div>' +
+       function renderLogin() {
+    var app = document.getElementById('app');
+    var html = '<div style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; padding: 1rem;">' +
+        '<div style="background: white; padding: 3rem; border-radius: 1.5rem; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 440px; animation: slideUp 0.5s ease-out;">' +
+            '<div style="text-align: center; margin-bottom: 2.5rem;">' +
+                '<div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">📊</div>' +
+                '<h1 style="font-size: 1.75rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">Suivi des Ventes</h1>' +
+                '<p style="color: #6b7280; font-size: 0.95rem;">Connectez-vous à votre espace</p>' +
+            '</div>' +
+            '<form onsubmit="event.preventDefault(); handleLogin();">' +
+                '<div style="margin-bottom: 1.5rem;">' +
+                    '<label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📧 Email</label>' +
+                    '<input type="email" id="email" placeholder="votre.email@company.com" required autocomplete="email" ' +
+                        'style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.95rem; transition: all 0.2s; outline: none;" ' +
+                        'onfocus="this.style.borderColor=\'#667eea\'; this.style.boxShadow=\'0 0 0 3px rgba(102, 126, 234, 0.1)\';" ' +
+                        'onblur="this.style.borderColor=\'#e5e7eb\'; this.style.boxShadow=\'none\';">' +
                 '</div>' +
-            '</div>';
-            app.innerHTML = html;
-        }
+                '<div style="margin-bottom: 2rem;">' +
+                    '<label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">🔒 Mot de passe</label>' +
+                    '<input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" ' +
+                        'style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.95rem; transition: all 0.2s; outline: none;" ' +
+                        'onfocus="this.style.borderColor=\'#667eea\'; this.style.boxShadow=\'0 0 0 3px rgba(102, 126, 234, 0.1)\';" ' +
+                        'onblur="this.style.borderColor=\'#e5e7eb\'; this.style.boxShadow=\'none\';">' +
+                '</div>' +
+                '<button type="submit" style="width: 100%; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 0.75rem; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);" ' +
+                    'onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 6px 20px rgba(102, 126, 234, 0.5)\';" ' +
+                    'onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 4px 15px rgba(102, 126, 234, 0.4)\';">' +
+                    '🚀 Se connecter' +
+                '</button>' +
+            '</form>' +
+            '<div style="margin-top: 2rem; padding: 1.25rem; background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 100%); border-radius: 1rem; border: 1px solid #e0e7ff;">' +
+                '<div style="font-size: 0.875rem; font-weight: 600; color: #4c51bf; margin-bottom: 0.75rem;">💡 Accès commercial</div>' +
+                '<div style="font-size: 0.8rem; color: #6b7280; line-height: 1.5;">' +
+                    'Utilisez vos identifiants professionnels<br>' +
+                    '<span style="color: #9ca3af; font-size: 0.75rem;">Format : prénom + 123</span>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    app.innerHTML = html;
+}
 
         function renderHeader() {
             var app = document.getElementById('app');
