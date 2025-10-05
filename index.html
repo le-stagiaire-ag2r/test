@@ -203,6 +203,90 @@
     to { transform: rotate(360deg); }
 }
 
+/* Modal de confirmation */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.2s ease-out;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.modal-icon-danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.modal-body {
+    color: #6b7280;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 768px) {
+    
         @media (max-width: 768px) {
             .header-content { flex-direction: column; align-items: stretch; }
             .nav-buttons { justify-content: center; }
@@ -904,28 +988,35 @@ if (validationErrors.length > 0) {
             render();
         }
 
-    async function handleDelete(id) {
-            if (confirm('Supprimer définitivement cette vente ?')) {
-                // Supprimer localement
-                appState.ventes = appState.ventes.filter(function(v) {
-                    return v.id !== id;
-                });
-                
-                // Supprimer dans Firebase
-                if (db) {
-                    try {
-                        await deleteFromFirebase(id);
-                        console.log('✅ Vente supprimée de Firebase');
-                    } catch (error) {
-                        console.log('⚠️ Suppression Firebase échouée');
-                    }
+   async function handleDelete(id) {
+    showConfirmModal(
+        'Supprimer la vente',
+        'Êtes-vous sûr de vouloir supprimer définitivement cette vente ? Cette action est irréversible.',
+        async () => {
+            showLoading();
+            
+            // Supprimer localement
+            appState.ventes = appState.ventes.filter(function(v) {
+                return v.id !== id;
+            });
+            
+            // Supprimer dans Firebase
+            if (db) {
+                try {
+                    await deleteFromFirebase(id);
+                    console.log('✅ Vente supprimée de Firebase');
+                } catch (error) {
+                    console.log('⚠️ Suppression Firebase échouée');
                 }
-                
-                invalidateCache();
-                showNotification('Vente supprimée avec succès', 'success');
-                render();
             }
+            
+            invalidateCache();
+            hideLoading();
+            showNotification('Vente supprimée avec succès', 'success');
+            render();
         }
+    );
+}
 
         function setView(view) {
             appState.currentView = view;
@@ -2005,117 +2096,144 @@ dataCard.innerHTML = dataHtml;
     showNotification('Rattachement ajouté avec succès', 'success');
     render();
 }
-       async function deleteContract(contractToDelete) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer le contrat "' + contractToDelete + '" ?')) {
-        appState.contrats = appState.contrats.filter(function(c) {
-            return c !== contractToDelete;
-        });
-        invalidateCache();
+   async function deleteContract(contractToDelete) {
+    showConfirmModal(
+        'Supprimer le contrat',
+        `Êtes-vous sûr de vouloir supprimer le contrat "${contractToDelete}" ?`,
+        async () => {
+            showLoading();
+            
+            appState.contrats = appState.contrats.filter(function(c) {
+                return c !== contractToDelete;
+            });
+            invalidateCache();
 
-        // Supprimer de Firebase
-        if (db) {
-            try {
-                const configSnapshot = await getDocs(collection(db, 'config'));
-         for (const doc of configSnapshot.docs) {
-    const data = doc.data();
-    if (data.type === 'contrat' && data.value === contractToDelete) {
-        await deleteDoc(doc.ref);
-        console.log('✅ Contrat supprimé de Firebase');
-        break;
-    }
-}
-                console.log('✅ Contrat supprimé de Firebase');
-            } catch (error) {
-                console.log('⚠️ Suppression Firebase échouée pour le contrat');
+            // Supprimer de Firebase
+            if (db) {
+                try {
+                    const configSnapshot = await getDocs(collection(db, 'config'));
+                    for (const doc of configSnapshot.docs) {
+                        const data = doc.data();
+                        if (data.type === 'contrat' && data.value === contractToDelete) {
+                            await deleteDoc(doc.ref);
+                            console.log('✅ Contrat supprimé de Firebase');
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    console.log('⚠️ Suppression Firebase échouée pour le contrat');
+                }
             }
-        }
 
-        showNotification('Contrat supprimé avec succès', 'success');
-        render();
-    }
+            hideLoading();
+            showNotification('Contrat supprimé avec succès', 'success');
+            render();
+        }
+    );
 }
-        async function deleteTypeVente(typeToDelete) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer le type de vente "' + typeToDelete + '" ?')) {
-        appState.typesVente = appState.typesVente.filter(function(t) {
-            return t !== typeToDelete;
-        });
-       invalidateCache();
-        
-        if (db) {
-            try {
-                const configSnapshot = await getDocs(collection(db, 'config'));
-            for (const doc of configSnapshot.docs) {
-    const data = doc.data();
-    if (data.type === 'typeVente' && data.value === typeToDelete) {
-        await deleteDoc(doc.ref);
-        break;
-    }
-}
-                console.log('✅ Type de vente supprimé de Firebase');
-            } catch (error) {
-                console.log('⚠️ Suppression Firebase échouée pour le type de vente');
+    async function deleteTypeVente(typeToDelete) {
+    showConfirmModal(
+        'Supprimer le type de vente',
+        `Êtes-vous sûr de vouloir supprimer le type de vente "${typeToDelete}" ?`,
+        async () => {
+            showLoading();
+            
+            appState.typesVente = appState.typesVente.filter(function(t) {
+                return t !== typeToDelete;
+            });
+            invalidateCache();
+            
+            if (db) {
+                try {
+                    const configSnapshot = await getDocs(collection(db, 'config'));
+                    for (const doc of configSnapshot.docs) {
+                        const data = doc.data();
+                        if (data.type === 'typeVente' && data.value === typeToDelete) {
+                            await deleteDoc(doc.ref);
+                            console.log('✅ Type de vente supprimé de Firebase');
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    console.log('⚠️ Suppression Firebase échouée pour le type de vente');
+                }
             }
+
+            hideLoading();
+            showNotification('Type de vente supprimé avec succès', 'success');
+            render();
         }
-
-        showNotification('Type de vente supprimé avec succès', 'success');
-        render();
-    }
+    );
 }
 
-        async function deleteOrigine(origineToDelete) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer l\'origine "' + origineToDelete + '" ?')) {
-        appState.origines = appState.origines.filter(function(o) {
-            return o !== origineToDelete;
-        });
-        invalidateCache();
+async function deleteOrigine(origineToDelete) {
+    showConfirmModal(
+        'Supprimer l\'origine',
+        `Êtes-vous sûr de vouloir supprimer l'origine "${origineToDelete}" ?`,
+        async () => {
+            showLoading();
+            
+            appState.origines = appState.origines.filter(function(o) {
+                return o !== origineToDelete;
+            });
+            invalidateCache();
 
-        if (db) {
-            try {
-                const configSnapshot = await getDocs(collection(db, 'config'));
-              for (const doc of configSnapshot.docs) {
-    const data = doc.data();
-    if (data.type === 'origine' && data.value === origineToDelete) {
-        await deleteDoc(doc.ref);
-        break;
-    }
-}
-                console.log('✅ Origine supprimée de Firebase');
-            } catch (error) {
-                console.log('⚠️ Suppression Firebase échouée pour l\'origine');
+            if (db) {
+                try {
+                    const configSnapshot = await getDocs(collection(db, 'config'));
+                    for (const doc of configSnapshot.docs) {
+                        const data = doc.data();
+                        if (data.type === 'origine' && data.value === origineToDelete) {
+                            await deleteDoc(doc.ref);
+                            console.log('✅ Origine supprimée de Firebase');
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    console.log('⚠️ Suppression Firebase échouée pour l\'origine');
+                }
             }
+
+            hideLoading();
+            showNotification('Origine supprimée avec succès', 'success');
+            render();
         }
-
-        showNotification('Origine supprimée avec succès', 'success');
-        render();
-    }
+    );
 }
 
-       async function deleteRattachement(rattachementToDelete) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer le rattachement "' + rattachementToDelete + '" ?')) {
-        appState.rattachements = appState.rattachements.filter(function(r) {
-            return r !== rattachementToDelete;
-        });
-        invalidateCache();
+async function deleteRattachement(rattachementToDelete) {
+    showConfirmModal(
+        'Supprimer le rattachement',
+        `Êtes-vous sûr de vouloir supprimer le rattachement "${rattachementToDelete}" ?`,
+        async () => {
+            showLoading();
+            
+            appState.rattachements = appState.rattachements.filter(function(r) {
+                return r !== rattachementToDelete;
+            });
+            invalidateCache();
 
-        if (db) {
-            try {
-                const configSnapshot = await getDocs(collection(db, 'config'));
-             for (const doc of configSnapshot.docs) {
-    const data = doc.data();
-    if (data.type === 'rattachement' && data.value === rattachementToDelete) {
-        await deleteDoc(doc.ref);
-        break;
-    }
-}
-                console.log('✅ Rattachement supprimé de Firebase');
-            } catch (error) {
-                console.log('⚠️ Suppression Firebase échouée pour le rattachement');
+            if (db) {
+                try {
+                    const configSnapshot = await getDocs(collection(db, 'config'));
+                    for (const doc of configSnapshot.docs) {
+                        const data = doc.data();
+                        if (data.type === 'rattachement' && data.value === rattachementToDelete) {
+                            await deleteDoc(doc.ref);
+                            console.log('✅ Rattachement supprimé de Firebase');
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    console.log('⚠️ Suppression Firebase échouée pour le rattachement');
+                }
             }
-        }
 
-        showNotification('Rattachement supprimé avec succès', 'success');
-        render();
-    }
+            hideLoading();
+            showNotification('Rattachement supprimé avec succès', 'success');
+            render();
+        }
+    );
 }
             
         function exportData() {
@@ -2210,6 +2328,56 @@ dataCard.innerHTML = dataHtml;
             };
             input.click();
         }
+}
+
+// Modal de confirmation
+function showConfirmModal(title, message, onConfirm) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-header">
+            <div class="modal-icon modal-icon-danger">⚠️</div>
+            <div class="modal-title">${title}</div>
+        </div>
+        <div class="modal-body">${message}</div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="modal-cancel">Annuler</button>
+            <button class="btn btn-danger" id="modal-confirm">Confirmer</button>
+        </div>
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    // Gestion des clics
+    document.getElementById('modal-cancel').onclick = () => {
+        overlay.remove();
+    };
+    
+    document.getElementById('modal-confirm').onclick = () => {
+        overlay.remove();
+        onConfirm();
+    };
+    
+    // Fermer en cliquant sur l'overlay
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            overlay.remove();
+        }
+    };
+    
+    // Fermer avec Escape
+    const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+            overlay.remove();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
 
         function exportToCSV() {
             var ventesToExport = getFilteredVentes();
