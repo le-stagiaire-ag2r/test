@@ -355,12 +355,6 @@ var appState = {
                 auth = getAuth(firebaseApp);
                 firebaseStatus = 'connected';
                 console.log('✅ Firebase connecté');
-                
-                // Synchroniser les données existantes si Firebase est connecté
-                await syncWithFirebase();
-                
-                // Écouter les changements en temps réel
-                setupRealtimeListeners();
 // Écouter l'état d'authentification
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -380,6 +374,8 @@ onAuthStateChanged(auth, async (user) => {
                     uid: user.uid,
                     ...userRole
                 };
+                await syncWithFirebase();
+                setupRealtimeListeners();
             } else {
                 // Utilisateur sans rôle défini
                 appState.currentUser = null;
