@@ -171,11 +171,6 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // Import Firebase
-        const { initializeApp } = window.firebase;
-        const { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } = window.firebaseFirestore;
-        const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } = window.firebaseAuth;
-
         const firebaseConfig = {
             apiKey: "AIzaSyCskhBW5hoqNYl8dA9mW0tnZRh4FrznGAE",
             authDomain: "suivi-ventes-ag2r-37eeb.firebaseapp.com",
@@ -187,9 +182,9 @@
         };
 
         // Initialisation Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
         // ========== COMPOSANTS UTILITAIRES ==========
         
@@ -251,7 +246,7 @@
                 setLoading(true);
 
                 try {
-                    await signInWithEmailAndPassword(auth, email, password);
+                    await auth.signInWithEmailAndPassword(email, password);
                     // onAuthStateChanged gérera la connexion
                 } catch (error) {
                     alert('Email ou mot de passe incorrect');
@@ -1443,10 +1438,10 @@
 
             // Authentification
             useEffect(() => {
-                const unsubscribe = onAuthStateChanged(auth, async (user) => {
+                const unsubscribe = auth.onAuthStateChanged(async (user) => {
                     if (user) {
                         try {
-                            const userRolesSnapshot = await getDocs(collection(db, 'userRoles'));
+                            const userRolesSnapshot = await db.collection('userRoles').get();
                             let userRole = null;
                             let allUsers = {};
 
@@ -1469,7 +1464,7 @@
                             } else {
                                 setCurrentUser(null);
                                 showNotification('Accès non autorisé', 'error');
-                                await signOut(auth);
+                                await auth.signOut();
                             }
                         } catch (error) {
                             console.error('Erreur récupération rôles:', error);
@@ -1490,7 +1485,7 @@
                 if (!currentUser) return;
 
                 // Écoute en temps réel des ventes
-                const unsubscribeVentes = onSnapshot(collection(db, 'ventes'), (snapshot) => {
+                const unsubscribeVentes = db.collection('ventes').onSnapshot((snapshot) => {
                     const firebaseVentes = [];
                     snapshot.forEach((doc) => {
                         firebaseVentes.push({ id: doc.id, ...doc.data() });
@@ -1499,7 +1494,7 @@
                 });
 
                 // Écoute en temps réel de la config
-                const unsubscribeConfig = onSnapshot(collection(db, 'config'), (snapshot) => {
+                const unsubscribeConfig = db.collection('config').onSnapshot((snapshot) => {
                     const newConfig = {
                         contrats: [],
                         typesVente: [],
@@ -1555,7 +1550,7 @@
 
             const handleLogout = async () => {
                 try {
-                    await signOut(auth);
+                    await auth.signOut();
                 } catch (error) {
                     console.error('Erreur déconnexion:', error);
                 }
@@ -1567,14 +1562,13 @@
                 try {
                     if (editingVente) {
                         // Mise à jour
-                        const docRef = doc(db, 'ventes', venteData.id);
                         const { id, ...dataToUpdate } = venteData;
-                        await updateDoc(docRef, dataToUpdate);
+                        await db.collection('ventes').doc(venteData.id).update(dataToUpdate);
                         showNotification('Vente modifiée avec succès', 'success');
                     } else {
                         // Création
                         const { id, ...dataToSave } = venteData;
-                        await addDoc(collection(db, 'ventes'), dataToSave);
+                        await db.collection('ventes').add(dataToSave);
                         showNotification('Vente ajoutée avec succès', 'success');
                     }
 
@@ -1601,7 +1595,7 @@
                         setLoading(true);
                         
                         try {
-                            await deleteDoc(doc(db, 'ventes', venteId));
+                            await db.collection('ventes').doc(venteId).delete();
                             showNotification('Vente supprimée avec succès', 'success');
                         } catch (error) {
                             console.error('Erreur suppression:', error);
@@ -1620,13 +1614,13 @@
 
                 try {
                     // Supprimer les anciennes valeurs de ce type
-                    const configSnapshot = await getDocs(collection(db, 'config'));
+                    const configSnapshot = await db.collection('config').get();
                     const deletePromises = [];
                     
                     configSnapshot.forEach((docSnap) => {
                         const data = docSnap.data();
                         if (data.type === configType) {
-                            deletePromises.push(deleteDoc(docSnap.ref));
+                            deletePromises.push(docSnap.ref.delete());
                         }
                     });
 
@@ -1634,7 +1628,7 @@
 
                     // Ajouter les nouvelles valeurs
                     const addPromises = newValues.map(value => 
-                        addDoc(collection(db, 'config'), {
+                        db.collection('config').add({
                             type: configType,
                             value: value,
                             dateCreation: new Date().toISOString()
@@ -1788,11 +1782,5 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script>
-        // Exposer Firebase pour React
-        window.firebase = firebase;
-        window.firebaseFirestore = firebase.firestore;
-        window.firebaseAuth = firebase.auth;
-    </script>
 </body>
 </html>
