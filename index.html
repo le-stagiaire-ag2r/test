@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi des Ventes - Assurance</title>
+    <title>Suivi des Ventes - Assurance (React)</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <style>
-     * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #f9fafb; color: #111827;
@@ -57,17 +63,15 @@
         .table th { background: #f9fafb; font-weight: 600; font-size: 0.875rem; color: #374151; }
         .table tr:hover { background: #f9fafb; }
         .login-container { 
-            min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem;
+            min-height: 100vh; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            display: flex; align-items: center; justify-content: center; padding: 1rem;
         }
         .login-card { 
-            background: white; padding: 2rem; border-radius: 0.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px;
+            background: white; padding: 3rem; border-radius: 1.5rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 440px;
+            animation: slideUp 0.5s ease-out;
         }
-        .login-title { font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 1.5rem; color: #1f2937; }
-        .form-space { margin-bottom: 1rem; }
-        .test-accounts { margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem; }
-        .test-accounts h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: #1f2937; }
-        .test-accounts div { font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem; }
         .progress-bar { 
             width: 100%; height: 0.5rem; background: #e5e7eb; border-radius: 0.25rem;
             margin-top: 0.5rem; overflow: hidden;
@@ -80,207 +84,81 @@
         .badge-blue { background: #dbeafe; color: #1e40af; }
         .badge-green { background: #d1fae5; color: #065f46; }
         .badge-yellow { background: #fef3c7; color: #92400e; }
-        .firebase-status {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .firebase-connecting {
-            background: #fef3c7;
-            color: #92400e;
+        
+        .notification {
+            position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem;
+            border-radius: 0.75rem; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 10000; animation: slideIn 0.3s ease-out;
+            max-width: 400px; display: flex; align-items: center; gap: 0.75rem;
         }
-        .firebase-connected {
-            background: #d1fae5;
-            color: #065f46;
+        .notification-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .notification-error { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+        .notification-info { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-        .firebase-error {
-            background: #fee2e2;
-            color: #991b1b;
+        
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); display: flex;
+            align-items: center; justify-content: center; z-index: 9999;
         }
-     
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ===== AJOUTE LE CODE DES NOTIFICATIONS ICI ===== */
-/* Système de notifications */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 1rem 1.5rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    z-index: 10000;
-    animation: slideIn 0.3s ease-out;
-    max-width: 400px;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.notification-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-}
-
-.notification-error {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-}
-
-.notification-info {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-}
-
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-
-.spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Modal de confirmation */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10001;
-    animation: fadeIn 0.2s ease-out;
-}
-
-.modal {
-    background: white;
-    padding: 2rem;
-    border-radius: 1rem;
-    max-width: 450px;
-    width: 90%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: scaleIn 0.2s ease-out;
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.modal-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    flex-shrink: 0;
-}
-
-.modal-icon-danger {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.modal-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.modal-body {
-    color: #6b7280;
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-}
-
-.modal-footer {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: flex-end;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6); display: flex;
+            align-items: center; justify-content: center; z-index: 10001;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .modal {
+            background: white; padding: 2rem; border-radius: 1rem;
+            max-width: 450px; width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: scaleIn 0.2s ease-out;
+        }
+        .modal-header {
+            display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;
+        }
+        .modal-icon {
+            width: 48px; height: 48px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; flex-shrink: 0;
+        }
+        .modal-icon-danger { background: #fee2e2; color: #dc2626; }
+        .modal-title { font-size: 1.25rem; font-weight: 600; color: #1f2937; }
+        .modal-body { color: #6b7280; line-height: 1.5; margin-bottom: 1.5rem; }
+        .modal-footer { display: flex; gap: 0.75rem; justify-content: flex-end; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
         @media (max-width: 768px) {
             .header-content { flex-direction: column; align-items: stretch; }
             .nav-buttons { justify-content: center; }
             .form-grid { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .firebase-status { position: static; margin-top: 1rem; text-align: center; }
         }
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr; }
@@ -288,2229 +166,1633 @@
     </style>
 </head>
 <body>
-    <div id="app"></div>
+    <div id="root"></div>
 
-    <script type="module">
-        // Configuration Firebase
-       import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
- const firebaseConfig = {
-    apiKey: "AIzaSyCskhBW5hoqNYl8dA9mW0tnZRh4FrznGAE",
-    authDomain: "suivi-ventes-ag2r-37eeb.firebaseapp.com",
-    projectId: "suivi-ventes-ag2r-37eeb",
-    storageBucket: "suivi-ventes-ag2r-37eeb.firebasestorage.app",
-    messagingSenderId: "532494330267",
-    appId: "1:532494330267:web:89bb6d3e6611e6efa3593e",
-    measurementId: "G-1MYECDKJEF"
-  };
-// État de l'application
-var appState = {
-    userRoles: {},
-    contrats: [],
-    typesVente: [],
-    origines: [],
-    rattachements: [],
-    isAuthenticating: true,
-    currentUser: null,
-    currentView: 'dashboard',
-    selectedMonth: new Date().getMonth() + 1,
-    selectedYear: new Date().getFullYear(),
-    selectedCommercial: 'tous',
-    viewMode: 'mensuel',
-    ventes: [],
-    editingId: null,
-    searchTerm: '',
-    permanencesSortBy: 'ventes',
-    sortBy: 'dateCreation',
-    sortOrder: 'desc',
-    filteredVentesCache: null,
-    lastFilterState: null,
-    showContractForm: false,
-    showTypeVenteForm: false,
-    showOrigineForm: false,
-    showRattachementForm: false,
-    newContract: '',
-    newTypeVente: '',
-    newOrigine: '',
-    newRattachement: '',
-    formData: {
-        commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
-        vente: '', rattachement: '', origine: '', contrat: '',
-        dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
-    }
-};
-        // Variables Firebase
-        let firebaseApp = null;
-        let db = null;
-        let auth = null;
-        let firebaseStatus = 'connecting';
+        // Import Firebase
+        const { initializeApp } = window.firebase;
+        const { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } = window.firebaseFirestore;
+        const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } = window.firebaseAuth;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCskhBW5hoqNYl8dA9mW0tnZRh4FrznGAE",
+            authDomain: "suivi-ventes-ag2r-37eeb.firebaseapp.com",
+            projectId: "suivi-ventes-ag2r-37eeb",
+            storageBucket: "suivi-ventes-ag2r-37eeb.firebasestorage.app",
+            messagingSenderId: "532494330267",
+            appId: "1:532494330267:web:89bb6d3e6611e6efa3593e",
+            measurementId: "G-1MYECDKJEF"
+        };
 
         // Initialisation Firebase
-        async function initFirebase() {
-            try {
-                firebaseApp = initializeApp(firebaseConfig);
-                db = getFirestore(firebaseApp);
-                auth = getAuth(firebaseApp);
-                firebaseStatus = 'connected';
-                console.log('✅ Firebase connecté');
-// Écouter l'état d'authentification
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        // Utilisateur connecté - récupérer ses rôles
-        try {
-            const userRolesSnapshot = await getDocs(collection(db, 'userRoles'));
-            let userRole = null;
-            userRolesSnapshot.forEach((doc) => {
-                if (doc.data().email === user.email) {
-                    userRole = doc.data();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // ========== COMPOSANTS UTILITAIRES ==========
+        
+        function Notification({ message, type, onClose }) {
+            useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+
+            const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+
+            return (
+                <div className={`notification notification-${type}`}>
+                    <span style={{ fontSize: '1.5rem' }}>{icon}</span>
+                    <span style={{ flex: 1 }}>{message}</span>
+                </div>
+            );
+        }
+
+        function LoadingOverlay() {
+            return (
+                <div className="loading-overlay">
+                    <div className="spinner"></div>
+                </div>
+            );
+        }
+
+        function ConfirmModal({ title, message, onConfirm, onCancel }) {
+            return (
+                <div className="modal-overlay" onClick={onCancel}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div className="modal-icon modal-icon-danger">⚠️</div>
+                            <div className="modal-title">{title}</div>
+                        </div>
+                        <div className="modal-body">{message}</div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={onCancel}>
+                                Annuler
+                            </button>
+                            <button className="btn btn-danger" onClick={onConfirm}>
+                                Confirmer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ========== PAGE DE CONNEXION ==========
+        
+        function LoginPage({ onLogin }) {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    // onAuthStateChanged gérera la connexion
+                } catch (error) {
+                    alert('Email ou mot de passe incorrect');
                 }
-            });
-            
-            if (userRole) {
-                appState.currentUser = {
-                    email: user.email,
-                    uid: user.uid,
-                    ...userRole
-                };
-                await syncWithFirebase();
-                setupRealtimeListeners();
-            } else {
-                // Utilisateur sans rôle défini
-                appState.currentUser = null;
-                showNotification('Accès non autorisé. Contactez l\'administrateur.');
-                await signOut(auth);
-            }
-        } catch (error) {
-            console.error('Erreur lors de la récupération des rôles:', error);
-            appState.currentUser = null;
-        }
-    } else {
-        // Utilisateur déconnecté
-        appState.currentUser = null;
-    }
-    
-    appState.isAuthenticating = false;
-    render();
-});
-            } catch (error) {
-                console.error('❌ Erreur Firebase:', error);
-                firebaseStatus = 'error';
-                db = null;
-            }
-            updateFirebaseStatusDisplay();
-        }
 
-        // Mise à jour de l'affichage du statut Firebase
-        function updateFirebaseStatusDisplay() {
-            const statusElement = document.querySelector('.firebase-status');
-            if (statusElement) {
-                statusElement.className = 'firebase-status';
-                if (firebaseStatus === 'connecting') {
-                    statusElement.className += ' firebase-connecting';
-                    statusElement.textContent = '🔄 Connexion Firebase...';
-                } else if (firebaseStatus === 'connected') {
-                    statusElement.className += ' firebase-connected';
-                    statusElement.textContent = '☁️ Synchronisé';
-                    // Masquer après 3 secondes
-                    setTimeout(() => {
-                        if (statusElement) statusElement.style.display = 'none';
-                    }, 3000);
-                } else {
-                    statusElement.className += ' firebase-error';
-                    statusElement.textContent = '❌ Erreur Firebase';
-                    // Masquer après 5 secondes
-                    setTimeout(() => {
-                        if (statusElement) statusElement.style.display = 'none';
-                    }, 5000);
-                }
-            }
-        }
-async function syncWithFirebase() {
-    if (!db) return;
-    
-    try {
-        // VENTES : Firebase = source unique de vérité
-        const ventesSnapshot = await getDocs(collection(db, 'ventes'));
-        const firebaseVentes = [];
-        ventesSnapshot.forEach((doc) => {
-            firebaseVentes.push({ id: doc.id, ...doc.data() });
-        });
-        appState.ventes = firebaseVentes;
-        console.log('Ventes chargées depuis Firebase:', firebaseVentes.length);
-// CHARGER TOUS LES USERROLES
-const userRolesSnapshot = await getDocs(collection(db, 'userRoles'));
-appState.userRoles = {};
-userRolesSnapshot.forEach((doc) => {
-    const userData = doc.data();
-    appState.userRoles[userData.email] = userData;
-});
-console.log('UserRoles chargés:', Object.keys(appState.userRoles).length);
-    // Les utilisateurs sont maintenant gérés par Firebase Auth
-console.log('Authentification gérée par Firebase Auth');
-
-        // CONFIGURATION : Firebase = source unique de vérité
-        const configSnapshot = await getDocs(collection(db, 'config'));
-        const firebaseContrats = [];
-        const firebaseOrigines = [];
-        const firebaseTypesVente = [];
-        const firebaseRattachements = [];
-
-        configSnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.type === 'contrat') firebaseContrats.push(data.value);
-            else if (data.type === 'origine') firebaseOrigines.push(data.value);
-            else if (data.type === 'typeVente') firebaseTypesVente.push(data.value);
-            else if (data.type === 'rattachement') firebaseRattachements.push(data.value);
-        });
-
-        appState.contrats = firebaseContrats;
-        appState.origines = firebaseOrigines;
-        appState.typesVente = firebaseTypesVente;
-        appState.rattachements = firebaseRattachements;
-        console.log('Configuration chargée depuis Firebase');
-
-        invalidateCache();
-        
-    } catch (error) {
-        console.error('Erreur de synchronisation Firebase:', error);
-        // En cas d'erreur Firebase, garder l'état vide
-        appState.ventes = [];
-        appState.userRoles = {};
-        appState.contrats = [];
-        appState.typesVente = [];
-        appState.origines = [];
-        appState.rattachements = [];
-    }
-}
-        function setupRealtimeListeners() {
-            if (!db) return;
-            
-            onSnapshot(collection(db, 'ventes'), (snapshot) => {
-                const firebaseVentes = [];
-                snapshot.forEach((doc) => {
-                    firebaseVentes.push({ id: doc.id, ...doc.data() });
-                });
-            
-                appState.ventes = firebaseVentes;
-                invalidateCache();
-                
-                // Re-render si l'utilisateur est connecté
-                if (appState.currentUser) {
-                    render();
-                }
-            });
-            // Écouter les changements de configuration
-onSnapshot(collection(db, 'config'), (snapshot) => {
-    const firebaseContrats = [];
-    const firebaseOrigines = [];
-    const firebaseTypesVente = [];
-    const firebaseRattachements = [];
-
-    snapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.type === 'contrat') firebaseContrats.push(data.value);
-        else if (data.type === 'origine') firebaseOrigines.push(data.value);
-        else if (data.type === 'typeVente') firebaseTypesVente.push(data.value);
-        else if (data.type === 'rattachement') firebaseRattachements.push(data.value);
-    });
-
-   appState.contrats = firebaseContrats;
-appState.origines = firebaseOrigines;
-appState.typesVente = firebaseTypesVente;
-    appState.rattachements = firebaseRattachements;
-
-    invalidateCache();
-    if (appState.currentUser) {
-        render();
-    }
-});
-}        
-
-     async function saveToFirebase(vente) {
-    if (!db) return false;
-    
-    try {
-        const venteToSave = { ...vente };
-        delete venteToSave.id;
-        
-        await addDoc(collection(db, 'ventes'), venteToSave);
-        return true;
-    } catch (error) {
-        console.error('Erreur sauvegarde Firebase:', error);
-        return false;
-    }
-}
-function debugFirebaseState() {
-    console.log('=== DEBUG FIREBASE ===');
-    console.log('DB connecté:', !!db);
-    console.log('Status Firebase:', firebaseStatus);
-    console.log('Ventes locales:', appState.ventes.length);
-   console.log('Rôles utilisateurs locaux:', Object.keys(appState.userRoles).length);
-    
-    if (db) {
-        getDocs(collection(db, 'ventes')).then(snapshot => {
-            console.log('Ventes Firebase:', snapshot.size);
-        });
-    }
-    console.log('=== FIN DEBUG ===');
-}
-
-// Mise à jour dans Firebase
-async function updateInFirebase(vente) {
-    if (!db) return false;
-    
-    try {
-        // Utiliser directement l'ID de la vente comme ID du document Firebase
-        const docRef = doc(db, 'ventes', vente.id);
-        
-        // Créer une copie sans l'ID pour la mise à jour
-        const venteToUpdate = { ...vente };
-        delete venteToUpdate.id;
-        
-        await updateDoc(docRef, venteToUpdate);
-        console.log('✅ Vente modifiée dans Firebase:', vente.id);
-        return true;
-    } catch (error) {
-        console.error('❌ Erreur modification Firebase:', error);
-        return false;
-    }
-}
-
-// Suppression dans Firebase
-async function deleteFromFirebase(venteId) {
-    if (!db) return false;
-    
-    try {
-        const ventesSnapshot = await getDocs(collection(db, 'ventes'));
-        let docIdToDelete = null;
-        
-        ventesSnapshot.forEach((docSnap) => {
-            // L'ID Firebase du document EST l'ID de la vente qu'on cherche
-            // car dans syncWithFirebase ligne 271, on fait: { id: doc.id, ...doc.data() }
-            const data = docSnap.data();
-            
-            // Chercher soit par l'ID Firebase, soit par un champ id si présent
-            if (docSnap.id === venteId || (data.id && data.id === venteId)) {
-                docIdToDelete = docSnap.id;
-            }
-        });
-        
-        if (docIdToDelete) {
-            await deleteDoc(doc(db, 'ventes', docIdToDelete));
-            console.log('✅ Document supprimé:', docIdToDelete);
-            return true;
-        } else {
-            console.error('❌ Document non trouvé pour venteId:', venteId);
-            return false;
-        }
-    } catch (error) {
-        console.error('Erreur suppression Firebase:', error);
-        return false;
-    }
-}
-        
-function invalidateCache() {
-    // Invalider le cache des ventes filtrées
-    appState.filteredVentesCache = null;
-    appState.lastFilterState = null;
-}
-function validateVenteData(venteData) {
-    var errors = [];
-    
-    // Validation des champs requis
-    if (!venteData.nom || venteData.nom.trim().length < 2) {
-        errors.push("Le nom doit contenir au moins 2 caractères");
-    }
-    if (!venteData.prenom || venteData.prenom.trim().length < 2) {
-        errors.push("Le prénom doit contenir au moins 2 caractères");
-    }
-    
-    // Validation de l'âge
-    if (venteData.age && (isNaN(venteData.age) || venteData.age < 0 || venteData.age > 120)) {
-        errors.push("L'âge doit être entre 0 et 120 ans");
-    }
-    
-    // Validation des montants
-    if (!venteData.chiffreAffaires || isNaN(venteData.chiffreAffaires) || venteData.chiffreAffaires <= 0) {
-        errors.push("Le chiffre d'affaires doit être un montant positif");
-    }
-    if (!venteData.pna || isNaN(venteData.pna) || venteData.pna <= 0) {
-        errors.push("Le PNA doit être un montant positif");
-    }
-    
-    // Validation des dates
-    if (venteData.dateEffet) {
-        var dateEffet = new Date(venteData.dateEffet);
-        var today = new Date();
-        var maxDate = new Date(today.getFullYear() + 2, today.getMonth(), today.getDate());
-        
-        if (dateEffet > maxDate) {
-            errors.push("La date d'effet ne peut pas être à plus de 2 ans dans le futur");
-        }
-    }
-    
-    if (venteData.jourRdv) {
-        var dateRdv = new Date(venteData.jourRdv);
-        var minDate = new Date(2020, 0, 1);
-        var maxDate = new Date();
-        maxDate.setDate(maxDate.getDate() + 30);
-        
-        if (dateRdv < minDate || dateRdv > maxDate) {
-            errors.push("La date du RDV doit être entre 2020 et dans les 30 prochains jours");
-        }
-    }
-   // Validation du numéro de personne (si fourni)
-    if (venteData.numeroPersonne && venteData.numeroPersonne.length > 20) {
-        errors.push("Le numéro de personne ne peut pas dépasser 20 caractères");
-    }
-
-    // Validation du commentaire
-    if (venteData.commentaire && venteData.commentaire.length > 500) {
-        errors.push("Le commentaire ne peut pas dépasser 500 caractères");
-    } 
-    return errors;
-}
-
-function getVentesForCommercial(commercialName) {
-    return appState.ventes.filter(function(vente) {
-        return vente.commercial === commercialName;
-    });
-}
-
-        function getRattachementOptions() {
-            var options = [];
-            
-            if (appState.currentUser && appState.currentUser.type === 'commercial') {
-                // Ajouter l'agence du commercial
-                options.push(appState.currentUser.agence);
-                // Ajouter ses permanences
-                options = options.concat(appState.currentUser.permanences);
-           } else if (appState.formData.commercial) {
-    // Mode admin - trouver le commercial sélectionné
-    var userEmails = Object.keys(appState.userRoles);
-    var user = null;
-    for (var i = 0; i < userEmails.length; i++) {
-        var email = userEmails[i];
-        if (appState.userRoles[email].name === appState.formData.commercial) {
-            user = appState.userRoles[email];
-            break;
-        }
-    }
-    if (user && user.type === 'commercial') {
-        options.push(user.agence);
-        options = options.concat(user.permanences);
-    }
-}
-            // Ajouter les rattachements personnalisés de l'admin
-            options = options.concat(appState.rattachements);
-            
-            // Supprimer les doublons
-            var uniqueOptions = [];
-            for (var i = 0; i < options.length; i++) {
-                if (uniqueOptions.indexOf(options[i]) === -1) {
-                    uniqueOptions.push(options[i]);
-                }
-            }
-            
-            return uniqueOptions;
-        }
-
-function getFilteredVentes() {
-    // Créer une clé de cache basée sur les filtres actuels
-    var currentFilterState = JSON.stringify({
-        commercial: appState.selectedCommercial,
-        month: appState.selectedMonth,
-        year: appState.selectedYear,
-        viewMode: appState.viewMode,
-        searchTerm: appState.searchTerm,
-        sortBy: appState.sortBy,
-        sortOrder: appState.sortOrder,
-        userType: appState.currentUser ? appState.currentUser.type : null,
-        userName: appState.currentUser ? appState.currentUser.name : null,
-        ventesLength: appState.ventes.length
-    });
-    
-    // Si le cache est valide, le retourner
-    if (appState.filteredVentesCache && appState.lastFilterState === currentFilterState) {
-        return appState.filteredVentesCache;
-    }
-    
-    // Sinon, recalculer
-    var filtered = appState.ventes.slice();
-    
-    // Filtre par commercial
-    if (appState.currentUser && appState.currentUser.type === 'commercial') {
-        filtered = filtered.filter(function(v) {
-            return v.commercial === appState.currentUser.name;
-        });
-    }
-    else if (appState.currentUser && appState.currentUser.type === 'admin' && appState.selectedCommercial !== 'tous') {
-        filtered = filtered.filter(function(v) {
-            return v.commercial === appState.selectedCommercial;
-        });
-    }
-    
-    // Filtre par période
-    filtered = filtered.filter(function(v) {
-        if (!v.jourRdv) return false;
-        var date = new Date(v.jourRdv);
-        if (appState.viewMode === 'annuel') {
-            return date.getFullYear() === appState.selectedYear;
-        } else {
-            return date.getMonth() + 1 === appState.selectedMonth && date.getFullYear() === appState.selectedYear;
-        }
-    });
-    
-    // NOUVEAU: Filtre par recherche
-    if (appState.searchTerm && appState.searchTerm.trim()) {
-        var searchLower = appState.searchTerm.toLowerCase().trim();
-        filtered = filtered.filter(function(v) {
-            return (v.nom && v.nom.toLowerCase().includes(searchLower)) ||
-                   (v.prenom && v.prenom.toLowerCase().includes(searchLower)) ||
-                   (v.commercial && v.commercial.toLowerCase().includes(searchLower)) ||
-                   (v.contrat && v.contrat.toLowerCase().includes(searchLower)) ||
-                   (v.rattachement && v.rattachement.toLowerCase().includes(searchLower)) ||
-                   (v.origine && v.origine.toLowerCase().includes(searchLower));
-        });
-    }
-    
-    // NOUVEAU: Tri
-    filtered.sort(function(a, b) {
-        var aVal = a[appState.sortBy] || '';
-        var bVal = b[appState.sortBy] || '';
-        
-        // Tri numérique pour les montants
-        if (appState.sortBy === 'chiffreAffaires' || appState.sortBy === 'pna') {
-            aVal = parseFloat(aVal) || 0;
-            bVal = parseFloat(bVal) || 0;
-        }
-        // Tri par date
-        else if (appState.sortBy === 'dateCreation' || appState.sortBy === 'jourRdv' || appState.sortBy === 'dateEffet') {
-            aVal = new Date(aVal || 0);
-            bVal = new Date(bVal || 0);
-        }
-        // Tri alphabétique
-        else {
-            aVal = String(aVal).toLowerCase();
-            bVal = String(bVal).toLowerCase();
-        }
-        
-        if (aVal < bVal) return appState.sortOrder === 'asc' ? -1 : 1;
-        if (aVal > bVal) return appState.sortOrder === 'asc' ? 1 : -1;
-        return 0;
-    });
-   // Mettre en cache le résultat
-    appState.filteredVentesCache = filtered;
-    appState.lastFilterState = currentFilterState; 
-    return filtered;
-}
-
-        function getStats() {
-            var ventesFiltered = getFilteredVentes();
-            var totalVentes = ventesFiltered.length;
-            var totalCA = 0;
-            var totalPNA = 0;
-            
-            for (var i = 0; i < ventesFiltered.length; i++) {
-                totalCA += parseFloat(ventesFiltered[i].chiffreAffaires) || 0;
-                totalPNA += parseFloat(ventesFiltered[i].pna) || 0;
-            }
-            
-            var telVsFaceAFace = { "Tél": 0, "Face à face": 0 };
-            var ventesParCommercial = {};
-            var ventesParOrigine = {};
-            var ventesParLieu = {};
-            var ventesParProduit = {};
-            
-            for (var i = 0; i < ventesFiltered.length; i++) {
-                var v = ventesFiltered[i];
-                
-                if (v.vente) telVsFaceAFace[v.vente]++;
-                
-                if (!ventesParCommercial[v.commercial]) {
-                    ventesParCommercial[v.commercial] = { ventes: 0, ca: 0, pna: 0 };
-                }
-                ventesParCommercial[v.commercial].ventes++;
-                ventesParCommercial[v.commercial].ca += parseFloat(v.chiffreAffaires) || 0;
-                ventesParCommercial[v.commercial].pna += parseFloat(v.pna) || 0;
-                
-                if (v.origine && v.origine.trim()) {
-                    if (!ventesParOrigine[v.origine]) ventesParOrigine[v.origine] = 0;
-                    ventesParOrigine[v.origine]++;
-                }
-                
-                if (v.rattachement && v.rattachement.trim()) {
-                    if (!ventesParLieu[v.rattachement]) ventesParLieu[v.rattachement] = 0;
-                    ventesParLieu[v.rattachement]++;
-                }
-                
-                if (v.contrat && v.contrat.trim()) {
-                    if (!ventesParProduit[v.contrat]) ventesParProduit[v.contrat] = 0;
-                    ventesParProduit[v.contrat]++;
-                }
-            }
-            
-            return { 
-                totalVentes: totalVentes, 
-                totalCA: totalCA, 
-                totalPNA: totalPNA, 
-                telVsFaceAFace: telVsFaceAFace, 
-                ventesParCommercial: ventesParCommercial,
-                ventesParOrigine: ventesParOrigine,
-                ventesParLieu: ventesParLieu,
-                ventesParProduit: ventesParProduit
+                setLoading(false);
             };
+
+            return (
+                <div className="login-container">
+                    <div className="login-card">
+                        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                            <div style={{ 
+                                width: '80px', height: '80px', 
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                borderRadius: '50%', margin: '0 auto 1.5rem',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '2.5rem'
+                            }}>
+                                📊
+                            </div>
+                            <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1f2937', marginBottom: '0.5rem' }}>
+                                Suivi des Ventes
+                            </h1>
+                            <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
+                                Connectez-vous à votre espace
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleSubmit}>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+                                    📧 Email
+                                </label>
+                                <input
+                                    type="email"
+                                    className="form-input"
+                                    style={{ width: '100%' }}
+                                    placeholder="votre.email@company.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: '2rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+                                    🔒 Mot de passe
+                                </label>
+                                <input
+                                    type="password"
+                                    className="form-input"
+                                    style={{ width: '100%' }}
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}
+                                disabled={loading}
+                            >
+                                {loading ? '🔄 Connexion...' : '🚀 Se connecter'}
+                            </button>
+                        </form>
+
+                        <div style={{ 
+                            marginTop: '2rem', padding: '1.25rem',
+                            background: 'linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 100%)',
+                            borderRadius: '1rem', border: '1px solid #e0e7ff'
+                        }}>
+                            <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#4c51bf', marginBottom: '0.75rem' }}>
+                                💡 Accès commercial
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: '#6b7280', lineHeight: '1.5' }}>
+                                Utilisez vos identifiants professionnels
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
-   async function handleLogin() {
-    var email = document.getElementById('email').value;
-    var password = document.getElementById('password').value;
-    
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        // Firebase gère automatiquement la connexion
-    } catch (error) {
-        showNotification('Email ou mot de passe incorrect', 'error');
-    }
-}
+        // ========== HEADER ==========
+        
+        function Header({ currentUser, currentView, setCurrentView, filters, setFilters, onLogout, onExport, ventesCount }) {
+            const commerciaux = Object.keys(currentUser.allUsers || {})
+                .filter(email => currentUser.allUsers[email].type === 'commercial')
+                .map(email => currentUser.allUsers[email]);
 
-      async function handleLogout() {
-    try {
-        await signOut(auth);
-        // Firebase gère automatiquement la déconnexion
-    } catch (error) {
-        console.error('Erreur déconnexion:', error);
-    }
-}
+            return (
+                <div className="header">
+                    <div className="container">
+                        <div className="header-content">
+                            <div>
+                                <h1>Suivi des Ventes - Assurance</h1>
+                                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                                    Connecté : <strong>{currentUser.name}</strong>
+                                    {currentUser.type === 'commercial' && ` (${currentUser.agence})`}
+                                    <span style={{ color: '#059669', marginLeft: '1rem' }}>✓ Sauvegarde automatique</span>
+                                </p>
+                            </div>
 
-        function resetForm() {
-            appState.formData = {
-                commercial: '', nom: '', prenom: '', age: '', numeroPersonne: '',
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>📅</span>
+                                    
+                                    <select 
+                                        className="form-select" 
+                                        style={{ padding: '0.25rem 0.5rem' }}
+                                        value={filters.viewMode}
+                                        onChange={(e) => setFilters({ ...filters, viewMode: e.target.value })}
+                                    >
+                                        <option value="mensuel">Vue mensuelle</option>
+                                        <option value="annuel">Vue annuelle</option>
+                                    </select>
+
+                                    {filters.viewMode === 'mensuel' && (
+                                        <select 
+                                            className="form-select" 
+                                            style={{ padding: '0.25rem 0.5rem' }}
+                                            value={filters.month}
+                                            onChange={(e) => setFilters({ ...filters, month: parseInt(e.target.value) })}
+                                        >
+                                            {Array.from({ length: 12 }, (_, i) => {
+                                                const name = new Date(0, i).toLocaleDateString('fr-FR', { month: 'long' });
+                                                return <option key={i} value={i + 1}>{name}</option>;
+                                            })}
+                                        </select>
+                                    )}
+
+                                    <select 
+                                        className="form-select" 
+                                        style={{ padding: '0.25rem 0.5rem' }}
+                                        value={filters.year}
+                                        onChange={(e) => setFilters({ ...filters, year: parseInt(e.target.value) })}
+                                    >
+                                        <option value="2023">2023</option>
+                                        <option value="2024">2024</option>
+                                        <option value="2025">2025</option>
+                                    </select>
+
+                                    {currentUser.type === 'admin' && (
+                                        <>
+                                            <span style={{ marginLeft: '0.5rem' }}>👤</span>
+                                            <select 
+                                                className="form-select" 
+                                                style={{ padding: '0.25rem 0.5rem' }}
+                                                value={filters.commercial}
+                                                onChange={(e) => setFilters({ ...filters, commercial: e.target.value })}
+                                            >
+                                                <option value="tous">Tous les commerciaux</option>
+                                                {commerciaux.map(c => (
+                                                    <option key={c.email} value={c.name}>{c.name}</option>
+                                                ))}
+                                            </select>
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="nav-buttons">
+                                    <button 
+                                        className={`btn ${currentView === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
+                                        onClick={() => setCurrentView('dashboard')}
+                                    >
+                                        📊 Dashboard
+                                    </button>
+
+                                    {currentUser.type === 'commercial' && (
+                                        <>
+                                            <button 
+                                                className={`btn ${currentView === 'saisie' ? 'btn-primary' : 'btn-secondary'}`}
+                                                onClick={() => setCurrentView('saisie')}
+                                            >
+                                                ➕ Nouvelle vente
+                                            </button>
+                                            <button 
+                                                className={`btn ${currentView === 'liste' ? 'btn-primary' : 'btn-secondary'}`}
+                                                onClick={() => setCurrentView('liste')}
+                                            >
+                                                👁️ Mes ventes ({ventesCount})
+                                            </button>
+                                        </>
+                                    )}
+
+                                    {currentUser.type === 'admin' && (
+                                        <>
+                                            <button 
+                                                className={`btn ${currentView === 'liste' ? 'btn-primary' : 'btn-secondary'}`}
+                                                onClick={() => setCurrentView('liste')}
+                                            >
+                                                👁️ Toutes les ventes ({ventesCount})
+                                            </button>
+                                            <button 
+                                                className={`btn ${currentView === 'gestion' ? 'btn-primary' : 'btn-secondary'}`}
+                                                onClick={() => setCurrentView('gestion')}
+                                            >
+                                                ⚙️ Gestion
+                                            </button>
+                                        </>
+                                    )}
+
+                                    <button className="btn btn-success" onClick={onExport}>
+                                        💾 Export CSV
+                                    </button>
+
+                                    <button className="btn btn-danger" onClick={onLogout}>
+                                        🚪 Déconnexion
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ========== DASHBOARD ==========
+        
+        function Dashboard({ ventes, currentUser }) {
+            const stats = useMemo(() => {
+                const totalVentes = ventes.length;
+                const totalCA = ventes.reduce((sum, v) => sum + (parseFloat(v.chiffreAffaires) || 0), 0);
+                const totalPNA = ventes.reduce((sum, v) => sum + (parseFloat(v.pna) || 0), 0);
+
+                const telVsFaceAFace = { "Tél": 0, "Face à face": 0 };
+                const ventesParOrigine = {};
+                const ventesParLieu = {};
+                const ventesParProduit = {};
+                const ventesParCommercial = {};
+
+                ventes.forEach(v => {
+                    if (v.vente) telVsFaceAFace[v.vente]++;
+                    if (v.origine) ventesParOrigine[v.origine] = (ventesParOrigine[v.origine] || 0) + 1;
+                    if (v.rattachement) ventesParLieu[v.rattachement] = (ventesParLieu[v.rattachement] || 0) + 1;
+                    if (v.contrat) ventesParProduit[v.contrat] = (ventesParProduit[v.contrat] || 0) + 1;
+                    
+                    if (!ventesParCommercial[v.commercial]) {
+                        ventesParCommercial[v.commercial] = { ventes: 0, ca: 0, pna: 0 };
+                    }
+                    ventesParCommercial[v.commercial].ventes++;
+                    ventesParCommercial[v.commercial].ca += parseFloat(v.chiffreAffaires) || 0;
+                    ventesParCommercial[v.commercial].pna += parseFloat(v.pna) || 0;
+                });
+
+                return {
+                    totalVentes,
+                    totalCA,
+                    totalPNA,
+                    telVsFaceAFace,
+                    ventesParOrigine,
+                    ventesParLieu,
+                    ventesParProduit,
+                    ventesParCommercial
+                };
+            }, [ventes]);
+
+            const statsData = [
+                { label: 'Total ventes', value: stats.totalVentes, color: '#2563eb' },
+                { label: 'CA Total', value: `${stats.totalCA.toFixed(2)}€`, color: '#059669' },
+                { label: 'PNA Total', value: `${stats.totalPNA.toFixed(2)}€`, color: '#7c3aed' },
+                { label: 'CA Moyen', value: `${stats.totalVentes > 0 ? (stats.totalCA / stats.totalVentes).toFixed(2) : '0'}€`, color: '#ea580c' }
+            ];
+
+            return (
+                <div className="container" style={{ paddingTop: '1.5rem' }}>
+                    {/* Stats principales */}
+                    <div className="stats-grid">
+                        {statsData.map((stat, i) => (
+                            <div key={i} className="stat-card">
+                                <div className="stat-label">{stat.label}</div>
+                                <div className="stat-value" style={{ color: stat.color }}>
+                                    {stat.value}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Tél vs Face à face */}
+                    <div className="card">
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                            Répartition Tél vs Face à face
+                        </h3>
+                        <div style={{ display: 'grid', gap: '1rem' }}>
+                            {Object.entries(stats.telVsFaceAFace).map(([type, count]) => {
+                                const percentage = stats.totalVentes > 0 ? ((count / stats.totalVentes) * 100).toFixed(1) : 0;
+                                const color = type === 'Tél' ? '#3b82f6' : '#10b981';
+
+                                return (
+                                    <div key={type}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                                            <span>{type}</span>
+                                            <span>{count} ventes ({percentage}%)</span>
+                                        </div>
+                                        <div className="progress-bar">
+                                            <div className="progress-fill" style={{ width: `${percentage}%`, backgroundColor: color }}></div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Performance par Commercial (Admin only) */}
+                    {currentUser.type === 'admin' && (
+                        <div className="card">
+                            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                                Performance par Commercial
+                            </h3>
+                            <div style={{ overflowX: 'auto' }}>
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Commercial</th>
+                                            <th style={{ textAlign: 'right' }}>Ventes</th>
+                                            <th style={{ textAlign: 'right' }}>CA Total</th>
+                                            <th style={{ textAlign: 'right' }}>PNA Total</th>
+                                            <th style={{ textAlign: 'right' }}>CA Moyen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {Object.entries(stats.ventesParCommercial)
+                                            .sort((a, b) => b[1].ventes - a[1].ventes)
+                                            .map(([commercial, data]) => (
+                                                <tr key={commercial}>
+                                                    <td style={{ fontWeight: '500' }}>{commercial}</td>
+                                                    <td style={{ textAlign: 'right' }}>{data.ventes}</td>
+                                                    <td style={{ textAlign: 'right', color: '#059669', fontWeight: '500' }}>
+                                                        {data.ca.toFixed(2)}€
+                                                    </td>
+                                                    <td style={{ textAlign: 'right', color: '#7c3aed', fontWeight: '500' }}>
+                                                        {data.pna.toFixed(2)}€
+                                                    </td>
+                                                    <td style={{ textAlign: 'right' }}>
+                                                        {data.ventes > 0 ? (data.ca / data.ventes).toFixed(2) : '0'}€
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Performance par Produit */}
+                    <div className="card">
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                            Performance par Produit
+                        </h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                            {Object.entries(stats.ventesParProduit)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 9)
+                                .map(([produit, count]) => (
+                                    <div key={produit} style={{ padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                        <div style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', color: '#1f2937' }}>
+                                            {produit}
+                                        </div>
+                                        <div style={{ fontSize: '1.125rem', fontWeight: '700', color: '#2563eb' }}>
+                                            {count} ventes
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ========== FORMULAIRE SAISIE ==========
+        
+        function SaisieVente({ currentUser, config, onSubmit, onCancel, editingVente }) {
+            const [formData, setFormData] = useState({
+                nom: '', prenom: '', age: '', numeroPersonne: '',
                 vente: '', rattachement: '', origine: '', contrat: '',
                 dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
-            };
-            appState.editingId = null;
-        }
-function cancelEdit() {
-    resetForm();
-    setView('liste'); 
-}
-      // Fonction de soumission modifiée pour Firebase
-        async function handleSubmit() {
-           showLoading();
-            var commercial = appState.currentUser.type === 'commercial' ? appState.currentUser.name : appState.formData.commercial;
-            
-            if (!commercial || !appState.formData.nom || !appState.formData.prenom || !appState.formData.vente || 
-    !appState.formData.rattachement || !appState.formData.origine || !appState.formData.contrat || 
-    !appState.formData.dateEffet || !appState.formData.chiffreAffaires || !appState.formData.pna) {
-    hideLoading();
-    showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-    return;
-}
+            });
 
-// Validation des données
-var venteFinal = JSON.parse(JSON.stringify(appState.formData));
-venteFinal.commercial = commercial;
-var validationErrors = validateVenteData(venteFinal);
-
-if (validationErrors.length > 0) {
-     hideLoading();
-    showNotification('Erreurs de validation : ' + validationErrors.join(', '), 'error');
-    return;
-}
-            
-            if (appState.editingId) {
-                // MODIFICATION existante
-                for (var i = 0; i < appState.ventes.length; i++) {
-                    if (appState.ventes[i].id === appState.editingId) {
-                        venteFinal.id = appState.editingId;
-                        venteFinal.dateCreation = appState.ventes[i].dateCreation;
-                        venteFinal.dateModification = new Date().toLocaleString('fr-FR');
-                        appState.ventes[i] = venteFinal;
-                        break;
-                    }
+            useEffect(() => {
+                if (editingVente) {
+                    setFormData(editingVente);
                 }
+            }, [editingVente]);
+
+            const rattachementOptions = useMemo(() => {
+                let options = [];
+                if (currentUser.type === 'commercial') {
+                    options.push(currentUser.agence);
+                    options = options.concat(currentUser.permanences || []);
+                }
+                options = options.concat(config.rattachements || []);
+                return [...new Set(options)];
+            }, [currentUser, config.rattachements]);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
                 
-                // Mettre à jour dans Firebase
-                if (db) {
-                    try {
-                        await updateInFirebase(venteFinal);
-                        console.log('✅ Vente modifiée dans Firebase');
-                    } catch (error) {
-                        console.log('⚠️ Modification Firebase échouée');
-                    }
-                }
-            } else {
-                // Nouvelle vente
-                venteFinal.id = Date.now();
-                venteFinal.dateCreation = new Date().toLocaleString('fr-FR');
-                appState.ventes.push(venteFinal);
-                
-                // Sauvegarder dans Firebase
-                if (db) {
-                    try {
-                        await saveToFirebase(venteFinal);
-                        console.log('✅ Vente sauvegardée dans Firebase');
-                    } catch (error) {
-                        console.log('⚠️ Sauvegarde Firebase échouée');
-                    }
-                }
-            }
-            
-            resetForm();
-            invalidateCache();
-            showNotification(appState.editingId ? 'Vente modifiée avec succès' : 'Vente ajoutée avec succès', 'success');
-            hideLoading();
-            render();
-        }
-        function handleEdit(vente) {
-            appState.formData = JSON.parse(JSON.stringify(vente));
-            appState.editingId = vente.id;
-            appState.currentView = 'saisie';
-            render();
-        }
-
-   async function handleDelete(id) {
-    showConfirmModal(
-        'Supprimer la vente',
-        'Êtes-vous sûr de vouloir supprimer définitivement cette vente ? Cette action est irréversible.',
-        async () => {
-            showLoading();
-            
-            // Supprimer localement
-            appState.ventes = appState.ventes.filter(function(v) {
-                return v.id !== id;
-            });
-            
-            // Supprimer dans Firebase
-            if (db) {
-                try {
-                    await deleteFromFirebase(id);
-                    console.log('✅ Vente supprimée de Firebase');
-                } catch (error) {
-                    console.log('⚠️ Suppression Firebase échouée');
-                }
-            }
-            
-            invalidateCache();
-            hideLoading();
-            showNotification('Vente supprimée avec succès', 'success');
-            render();
-        }
-    );
-}
-
-        function setView(view) {
-            appState.currentView = view;
-            if (view !== 'saisie') resetForm();
-            render();
-        }
-
-        function updateFormField(field, value) {
-            appState.formData[field] = value;
-            if (field === 'commercial') appState.formData.rattachement = '';
-        }
-
-        // Fonctions de rendu avec DOM
-        function render() {
-            var app = document.getElementById('app');
-            // Afficher un état de chargement pendant l'authentification
-if (appState.isAuthenticating) {
-    app.innerHTML = '<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">' +
-        '<div style="text-align: center;">' +
-            '<div style="font-size: 1.5rem; margin-bottom: 1rem;">🔄 Chargement...</div>' +
-            '<div style="color: #6b7280;">Vérification de l\'authentification</div>' +
-        '</div>' +
-    '</div>';
-    return;
-}
-            
-            if (!appState.currentUser) {
-                renderLogin();
-                return;
-            }
-            
-            // Clear le contenu
-            app.innerHTML = '';
-            
-            // Ajouter le header
-            renderHeader();
-            
-            // Ajouter le contenu principal
-            var container = document.createElement('div');
-            container.className = 'container';
-            container.style.paddingTop = '1.5rem';
-            
-            if (appState.currentView === 'dashboard') renderDashboard(container);
-            else if (appState.currentView === 'saisie') renderSaisie(container);
-            else if (appState.currentView === 'liste') renderListe(container);
-            else if (appState.currentView === 'gestion') renderGestion(container);
-            
-            app.appendChild(container);
-        }
-
-       function renderLogin() {
-    var app = document.getElementById('app');
-    var html = '<div style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; padding: 1rem;">' +
-        '<div style="background: white; padding: 3rem; border-radius: 1.5rem; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 440px; animation: slideUp 0.5s ease-out;">' +
-            '<div style="text-align: center; margin-bottom: 2.5rem;">' +
-                '<div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">📊</div>' +
-                '<h1 style="font-size: 1.75rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">Suivi des Ventes</h1>' +
-                '<p style="color: #6b7280; font-size: 0.95rem;">Connectez-vous à votre espace</p>' +
-            '</div>' +
-            '<form onsubmit="event.preventDefault(); handleLogin();">' +
-                '<div style="margin-bottom: 1.5rem;">' +
-                    '<label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">📧 Email</label>' +
-                    '<input type="email" id="email" placeholder="votre.email@company.com" required autocomplete="email" ' +
-                        'style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.95rem; transition: all 0.2s; outline: none;" ' +
-                        'onfocus="this.style.borderColor=\'#667eea\'; this.style.boxShadow=\'0 0 0 3px rgba(102, 126, 234, 0.1)\';" ' +
-                        'onblur="this.style.borderColor=\'#e5e7eb\'; this.style.boxShadow=\'none\';">' +
-                '</div>' +
-                '<div style="margin-bottom: 2rem;">' +
-                    '<label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">🔒 Mot de passe</label>' +
-                    '<input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" ' +
-                        'style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.75rem; font-size: 0.95rem; transition: all 0.2s; outline: none;" ' +
-                        'onfocus="this.style.borderColor=\'#667eea\'; this.style.boxShadow=\'0 0 0 3px rgba(102, 126, 234, 0.1)\';" ' +
-                        'onblur="this.style.borderColor=\'#e5e7eb\'; this.style.boxShadow=\'none\';">' +
-                '</div>' +
-                '<button type="submit" style="width: 100%; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 0.75rem; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);" ' +
-                    'onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 6px 20px rgba(102, 126, 234, 0.5)\';" ' +
-                    'onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 4px 15px rgba(102, 126, 234, 0.4)\';">' +
-                    '🚀 Se connecter' +
-                '</button>' +
-            '</form>' +
-            '<div style="margin-top: 2rem; padding: 1.25rem; background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 100%); border-radius: 1rem; border: 1px solid #e0e7ff;">' +
-                '<div style="font-size: 0.875rem; font-weight: 600; color: #4c51bf; margin-bottom: 0.75rem;">💡 Accès commercial</div>' +
-                '<div style="font-size: 0.8rem; color: #6b7280; line-height: 1.5;">' +
-                    'Utilisez vos identifiants professionnels<br>' +
-                    '<span style="color: #9ca3af; font-size: 0.75rem;">Format : prénom + 123</span>' +
-                '</div>' +
-            '</div>' +
-        '</div>' +
-    '</div>';
-    
-    app.innerHTML = html;
-}
-
-        function renderHeader() {
-            var app = document.getElementById('app');
-            var filteredVentes = getFilteredVentes();
-            
-            var monthOptions = '';
-            for (var i = 0; i < 12; i++) {
-                var name = new Date(0, i).toLocaleDateString('fr-FR', { month: 'long' });
-                var selected = appState.selectedMonth === i + 1 ? 'selected' : '';
-                monthOptions += '<option value="' + (i + 1) + '" ' + selected + '>' + name + '</option>';
-            }
-            
-            var yearOptions = '';
-            var years = [2023, 2024, 2025];
-            for (var i = 0; i < years.length; i++) {
-                var selected = appState.selectedYear === years[i] ? 'selected' : '';
-                yearOptions += '<option value="' + years[i] + '" ' + selected + '>' + years[i] + '</option>';
-            }
-         var commercialOptions = '';
-if (appState.currentUser.type === 'admin') {
-    commercialOptions = '<select onchange="appState.selectedCommercial = this.value; render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
-        '<option value="tous"' + (appState.selectedCommercial === 'tous' ? ' selected' : '') + '>Tous les commerciaux</option>';
-    
-    // Récupérer tous les commerciaux depuis userRoles
-    var commerciaux = Object.keys(appState.userRoles).filter(function(email) {
-        return appState.userRoles[email].type === 'commercial';
-    });
-    
-    for (var i = 0; i < commerciaux.length; i++) {
-        var email = commerciaux[i];
-        var user = appState.userRoles[email];
-        var selected = appState.selectedCommercial === user.name ? ' selected' : '';
-        commercialOptions += '<option value="' + user.name + '"' + selected + '>' + user.name + '</option>';
-    }
-    
-    commercialOptions += '</select>';
-}
-            var commercialButtons = '';
-            if (appState.currentUser.type === 'commercial') {
-                commercialButtons = 
-                    '<button onclick="setView(\'saisie\')" class="btn ' + (appState.currentView === 'saisie' ? 'btn-primary' : 'btn-secondary') + '">' +
-                        '➕ Nouvelle vente' +
-                    '</button>' +
-                    '<button onclick="setView(\'liste\')" class="btn ' + (appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary') + '">' +
-                        '👁️ Mes ventes (' + filteredVentes.length + ')' +
-                    '</button>';
-            }
-            
-            var adminButtons = '';
-            if (appState.currentUser.type === 'admin') {
-                adminButtons = 
-                    '<button onclick="setView(\'liste\')" class="btn ' + (appState.currentView === 'liste' ? 'btn-primary' : 'btn-secondary') + '">' +
-                        '👁️ Toutes les ventes (' + filteredVentes.length + ')' +
-                    '</button>' +
-                    '<button onclick="setView(\'gestion\')" class="btn ' + (appState.currentView === 'gestion' ? 'btn-primary' : 'btn-secondary') + '">' +
-                        '⚙️ Gestion' +
-                    '</button>';
-            }
-            
-            var statusIndicator = '<div class="firebase-status"></div>';
-            
-            var html = '<div class="header">' +
-                statusIndicator +
-                '<div class="container">' +
-                    '<div class="header-content">' +
-                        '<div>' +
-                            '<h1>Suivi des Ventes - Assurance</h1>' +
-                            '<p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">' +
-                                'Connecté : <strong>' + appState.currentUser.name + '</strong>' +
-                                (appState.currentUser.type === 'commercial' ? ' (' + appState.currentUser.agence + ')' : '') +
-                                '<span style="color: #059669; margin-left: 1rem;">✓ Sauvegarde automatique</span>' +
-                            '</p>' +
-                        '</div>' +
-                        '<div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">' +
-                            '<div style="display: flex; align-items: center; gap: 0.5rem;">' +
-                                '<span>📅</span>' +
-                               '<select onchange="appState.viewMode = this.value; render();" class="form-select" style="padding: 0.25rem 0.5rem; margin-right: 0.5rem;">' +
-    '<option value="mensuel"' + (appState.viewMode === 'mensuel' ? ' selected' : '') + '>Vue mensuelle</option>' +
-    '<option value="annuel"' + (appState.viewMode === 'annuel' ? ' selected' : '') + '>Vue annuelle</option>' +
-'</select>' +
-(appState.viewMode === 'mensuel' ? 
-    '<select onchange="appState.selectedMonth = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
-                                 monthOptions +
-'</select>' : '') +
-                                '<select onchange="appState.selectedYear = parseInt(this.value); render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
-                                    yearOptions +
-                               '</select>' +
-    (appState.currentUser.type === 'admin' ? 
-        '<span style="margin-left: 0.5rem;">👤</span>' + commercialOptions : '') +
-'</div>' +
-                            '<div class="nav-buttons">' +
-                                '<button onclick="setView(\'dashboard\')" class="btn ' + (appState.currentView === 'dashboard' ? 'btn-primary' : 'btn-secondary') + '">' +
-                                    '📊 Dashboard' +
-                                '</button>' +
-                                commercialButtons +
-                                adminButtons +
-                              '<div style="display: flex; gap: 0.25rem;">' +
-    '<button onclick="exportToCSV()" class="btn btn-success" title="Export du mois sélectionné">' +
-        '💾 Export CSV' +
-    '</button>' +        
-'</div>' +
-                                '<button onclick="handleLogout()" class="btn btn-danger">' +
-                                    '🚪 Déconnexion' +
-                                '</button>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
-            '</div>';
-            
-            var headerDiv = document.createElement('div');
-            headerDiv.innerHTML = html;
-            app.appendChild(headerDiv);
-            
-            // Mettre à jour le statut Firebase après le rendu
-            updateFirebaseStatusDisplay();
-        }
-
-        function renderDashboard(container) {
-   var stats = getStats();
-   var filteredVentes = getFilteredVentes();
-   
-   // Stats principales
-   var statsGrid = document.createElement('div');
-   statsGrid.className = 'stats-grid';
-   
-   var statsData = [
-       { label: 'Total ventes', value: stats.totalVentes, color: '#2563eb' },
-       { label: 'CA Total', value: stats.totalCA.toFixed(2) + '€', color: '#059669' },
-       { label: 'PNA Total', value: stats.totalPNA.toFixed(2) + '€', color: '#7c3aed' },
-       { label: 'CA Moyen', value: (stats.totalVentes > 0 ? (stats.totalCA / stats.totalVentes).toFixed(2) : '0') + '€', color: '#ea580c' }
-   ];
-   
-   for (var i = 0; i < statsData.length; i++) {
-       var statCard = document.createElement('div');
-       statCard.className = 'stat-card';
-       statCard.innerHTML = 
-           '<div class="stat-label">' + statsData[i].label + '</div>' +
-           '<div class="stat-value" style="color: ' + statsData[i].color + ';">' + statsData[i].value + '</div>';
-       statsGrid.appendChild(statCard);
-   }
-   
-   container.appendChild(statsGrid);
-   
-   // Répartition Tél vs Face à face
-   var telCard = document.createElement('div');
-   telCard.className = 'card';
-   var telContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Répartition Tél vs Face à face</h3>';
-   telContent += '<div style="display: grid; gap: 1rem;">';
-   
-   var telTypes = Object.keys(stats.telVsFaceAFace);
-   for (var i = 0; i < telTypes.length; i++) {
-       var type = telTypes[i];
-       var count = stats.telVsFaceAFace[type];
-       var percentage = stats.totalVentes > 0 ? (count / stats.totalVentes * 100).toFixed(1) : 0;
-       var color = type === 'Tél' ? '#3b82f6' : '#10b981';
-       
-       telContent += '<div>' +
-           '<div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">' +
-               '<span>' + type + '</span>' +
-               '<span>' + count + ' ventes (' + percentage + '%)</span>' +
-           '</div>' +
-           '<div class="progress-bar">' +
-               '<div class="progress-fill" style="width: ' + percentage + '%; background-color: ' + color + ';"></div>' +
-           '</div>' +
-       '</div>';
-   }
-   
-   telContent += '</div>';
-   telCard.innerHTML = telContent;
-   container.appendChild(telCard);
-   
-   // Stats des Permanences (pour commerciaux et admin)
-   var permanencesCard = document.createElement('div');
-   permanencesCard.className = 'card';
-   var permanencesContent = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">' +
-    '<h3 style="font-size: 1.125rem; font-weight: 600;">Performance par Permanence</h3>';
-
-if (appState.currentUser.type === 'admin') {
-    permanencesContent += '<select onchange="appState.permanencesSortBy = this.value; render();" class="form-select" style="padding: 0.25rem 0.5rem;">' +
-        '<option value="ventes"' + (appState.permanencesSortBy === 'ventes' ? ' selected' : '') + '>Plus de ventes</option>' +
-        '<option value="pna"' + (appState.permanencesSortBy === 'pna' ? ' selected' : '') + '>Plus de PNA</option>' +
-        '<option value="alphabetique"' + (appState.permanencesSortBy === 'alphabetique' ? ' selected' : '') + '>Ordre alphabétique</option>' +
-    '</select>';
-}
-
-permanencesContent += '</div>';
-   permanencesContent += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">';
-
-   var permanencesStats = {};
-   var agencesStats = {};
-
-   // Calculer les stats par permanence ET par agence (rattachement de base)
-   for (var i = 0; i < filteredVentes.length; i++) {
-       var vente = filteredVentes[i];
-       if (vente.rattachement && vente.rattachement.trim()) {
-         // Vérifier si c'est une agence
-var isAgence = false;
-var userEmails = Object.keys(appState.userRoles);
-for (var j = 0; j < userEmails.length; j++) {
-    var userRole = appState.userRoles[userEmails[j]];
-    if (userRole.type === 'commercial' && userRole.agence === vente.rattachement) {
-        isAgence = true;
-        break;
-    }
-}
-           
-           var pnaAmount = parseFloat(vente.pna) || 0;
-           
-           if (isAgence) {
-               // C'est une agence (rattachement de base)
-               if (!agencesStats[vente.rattachement]) {
-                   agencesStats[vente.rattachement] = { ventes: 0, pna: 0 };
-               }
-               agencesStats[vente.rattachement].ventes++;
-               agencesStats[vente.rattachement].pna += pnaAmount;
-           } else {
-               // C'est une permanence
-               if (!permanencesStats[vente.rattachement]) {
-                   permanencesStats[vente.rattachement] = { ventes: 0, pna: 0 };
-               }
-               permanencesStats[vente.rattachement].ventes++;
-               permanencesStats[vente.rattachement].pna += pnaAmount;
-           }
-       }
-   }
-
-   // Afficher d'abord les agences (rattachements de base)
-   var agencesList = Object.keys(agencesStats);
-   if (appState.permanencesSortBy === 'ventes') {
-    agencesList.sort(function(a, b) {
-        return agencesStats[b].ventes - agencesStats[a].ventes;
-    });
-} else if (appState.permanencesSortBy === 'pna') {
-    agencesList.sort(function(a, b) {
-        return agencesStats[b].pna - agencesStats[a].pna;
-    });
-} else if (appState.permanencesSortBy === 'alphabetique') {
-    agencesList.sort();
-}
-
-   for (var i = 0; i < agencesList.length; i++) {
-       var agence = agencesList[i];
-       var agenceData = agencesStats[agence];
-       
-       permanencesContent += '<div style="padding: 1rem; background: #e0f2fe; border-radius: 0.5rem; border-left: 4px solid #0277bd;">' +
-           '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">' +
-               agence +
-               '<span class="badge badge-blue" style="margin-left: 0.5rem;">Agence</span>' +
-           '</div>' +
-           '<div style="font-size: 1.125rem; font-weight: 700; color: #1f2937;">' + agenceData.ventes + ' ventes</div>' +
-           '<div style="font-size: 0.875rem; color: #0277bd; font-weight: 500;">PNA: ' + agenceData.pna.toFixed(2) + '€</div>' +
-       '</div>';
-   }
-
-   // Ensuite afficher les permanences
-   var permanencesList = Object.keys(permanencesStats);
-   if (appState.permanencesSortBy === 'ventes') {
-    permanencesList.sort(function(a, b) {
-        return permanencesStats[b].ventes - permanencesStats[a].ventes;
-    });
-} else if (appState.permanencesSortBy === 'pna') {
-    permanencesList.sort(function(a, b) {
-        return permanencesStats[b].pna - permanencesStats[a].pna;
-    });
-} else if (appState.permanencesSortBy === 'alphabetique') {
-    permanencesList.sort();
-}
-
-   for (var i = 0; i < permanencesList.length; i++) {
-       var permanence = permanencesList[i];
-       var permanenceData = permanencesStats[permanence];
-       
-       permanencesContent += '<div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
-           '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">' +
-               permanence +
-               '<span class="badge badge-yellow" style="margin-left: 0.5rem;">Permanence</span>' +
-           '</div>' +
-           '<div style="font-size: 1.125rem; font-weight: 700; color: #1f2937;">' + permanenceData.ventes + ' ventes</div>' +
-           '<div style="font-size: 0.875rem; color: #7c3aed; font-weight: 500;">PNA: ' + permanenceData.pna.toFixed(2) + '€</div>' +
-       '</div>';
-   }
-
-   if (agencesList.length === 0 && permanencesList.length === 0) {
-       permanencesContent += '<div style="grid-column: 1 / -1; text-align: center; color: #6b7280; padding: 2rem;">' +
-           'Aucune vente pour cette période' +
-       '</div>';
-   }
-
-   permanencesContent += '</div>';
-   permanencesCard.innerHTML = permanencesContent;
-   container.appendChild(permanencesCard);
-
-   // Performance par Commercial (Admin seulement)
-   if (appState.currentUser.type === 'admin') {
-       var commercialCard = document.createElement('div');
-       commercialCard.className = 'card';
-       var commercialContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Commercial</h3>';
-       commercialContent += '<div style="overflow-x: auto;">';
-       commercialContent += '<table class="table">';
-       commercialContent += '<thead><tr><th>Commercial</th><th style="text-align: right;">Ventes</th><th style="text-align: right;">CA Total</th><th style="text-align: right;">PNA Total</th><th style="text-align: right;">CA Moyen</th></tr></thead>';
-       commercialContent += '<tbody>';
-       
-       var commerciaux = Object.keys(stats.ventesParCommercial);
-       commerciaux.sort(function(a, b) {
-           return stats.ventesParCommercial[b].ventes - stats.ventesParCommercial[a].ventes;
-       });
-       
-       for (var i = 0; i < commerciaux.length; i++) {
-           var commercial = commerciaux[i];
-           var data = stats.ventesParCommercial[commercial];
-           var caMoyen = data.ventes > 0 ? (data.ca / data.ventes).toFixed(2) : '0';
-           
-           commercialContent += '<tr>' +
-               '<td style="font-weight: 500;">' + commercial + '</td>' +
-               '<td style="text-align: right;">' + data.ventes + '</td>' +
-               '<td style="text-align: right; color: #059669; font-weight: 500;">' + data.ca.toFixed(2) + '€</td>' +
-               '<td style="text-align: right; color: #7c3aed; font-weight: 500;">' + data.pna.toFixed(2) + '€</td>' +
-               '<td style="text-align: right;">' + caMoyen + '€</td>' +
-           '</tr>';
-       }
-       
-       commercialContent += '</tbody></table></div>';
-       commercialCard.innerHTML = commercialContent;
-       container.appendChild(commercialCard);
-   }
-   
-   // Performance par Produit
-   var produitCard = document.createElement('div');
-   produitCard.className = 'card';
-   var produitContent = '<h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Performance par Produit</h3>';
-   produitContent += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">';
-   
-   var produits = Object.keys(stats.ventesParProduit);
-   produits.sort(function(a, b) {
-       return stats.ventesParProduit[b] - stats.ventesParProduit[a];
-   });
-   produits = produits.slice(0, 9);
-   
-  for (var i = 0; i < produits.length; i++) {
-    var produit = produits[i];
-    var count = stats.ventesParProduit[produit];
-    
-    produitContent += '<div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
-        '<div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: #1f2937;">' + produit + '</div>' +
-        '<div style="font-size: 1.125rem; font-weight: 700; color: #2563eb;">' + count + ' ventes</div>' +
-    '</div>';
-}
-   
-   produitContent += '</div>';
-   produitCard.innerHTML = produitContent;
-   container.appendChild(produitCard);
-} 
-        function renderSaisie(container) {
-            if (appState.currentUser.type !== 'commercial') {
-                var card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = '<p>Accès non autorisé</p>';
-                container.appendChild(card);
-                return;
-            }
-            
-            var card = document.createElement('div');
-            card.className = 'card';
-            
-            var html = '<h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">' +
-                (appState.editingId ? 'Modifier la vente' : 'Nouvelle vente') +
-            '</h2>';
-            
-            html += '<form onsubmit="event.preventDefault(); handleSubmit();">';
-            html += '<div class="form-grid">';
-            
-            // Champs du formulaire
-            var fields = [
-                { name: 'nom', label: 'Nom *', type: 'text', required: true },
-                { name: 'prenom', label: 'Prénom *', type: 'text', required: true },
-                { name: 'age', label: 'Âge', type: 'number' },
-                { name: 'numeroPersonne', label: 'Numéro personne', type: 'text' }
-            ];
-            
-            for (var i = 0; i < fields.length; i++) {
-                var field = fields[i];
-                html += '<div class="form-group">' +
-                    '<label class="form-label">' + field.label + '</label>' +
-                    '<input type="' + field.type + '" class="form-input" value="' + (appState.formData[field.name] || '') + '" ' +
-                        'onchange="updateFormField(\'' + field.name + '\', this.value)" ' + (field.required ? 'required' : '') + '>' +
-                '</div>';
-            }
-            
-            // Type de vente
-            html += '<div class="form-group">' +
-                '<label class="form-label">Type de vente *</label>' +
-                '<select class="form-select" onchange="updateFormField(\'vente\', this.value)" required>' +
-                    '<option value="">Sélectionner</option>';
-            
-            for (var i = 0; i < appState.typesVente.length; i++) {
-                var selected = appState.formData.vente === appState.typesVente[i] ? 'selected' : '';
-                html += '<option value="' + appState.typesVente[i] + '" ' + selected + '>' + appState.typesVente[i] + '</option>';
-            }
-            
-            html += '</select></div>';
-            
-            // Rattachement
-            html += '<div class="form-group">' +
-                '<label class="form-label">Rattachement *</label>' +
-                '<select class="form-select" onchange="updateFormField(\'rattachement\', this.value)" required>' +
-                    '<option value="">Sélectionner</option>';
-            
-            var rattachementOptions = getRattachementOptions();
-            for (var i = 0; i < rattachementOptions.length; i++) {
-                var selected = appState.formData.rattachement === rattachementOptions[i] ? 'selected' : '';
-                html += '<option value="' + rattachementOptions[i] + '" ' + selected + '>' + rattachementOptions[i] + '</option>';
-            }
-            
-            html += '</select></div>';
-            
-            // Origine
-            html += '<div class="form-group">' +
-                '<label class="form-label">Origine *</label>' +
-                '<select class="form-select" onchange="updateFormField(\'origine\', this.value)" required>' +
-                    '<option value="">Sélectionner</option>';
-            
-            for (var i = 0; i < appState.origines.length; i++) {
-                var selected = appState.formData.origine === appState.origines[i] ? 'selected' : '';
-                html += '<option value="' + appState.origines[i] + '" ' + selected + '>' + appState.origines[i] + '</option>';
-            }
-            
-            html += '</select></div>';
-            
-            // Contrat
-            html += '<div class="form-group">' +
-                '<label class="form-label">Contrat *</label>' +
-                '<select class="form-select" onchange="updateFormField(\'contrat\', this.value)" required>' +
-                    '<option value="">Sélectionner</option>';
-            
-            for (var i = 0; i < appState.contrats.length; i++) {
-                var selected = appState.formData.contrat === appState.contrats[i] ? 'selected' : '';
-                html += '<option value="' + appState.contrats[i] + '" ' + selected + '>' + appState.contrats[i] + '</option>';
-            }
-            
-            html += '</select></div>';
-            
-            // Autres champs
-            var otherFields = [
-                { name: 'dateEffet', label: 'Date effet *', type: 'date', required: true },
-                { name: 'chiffreAffaires', label: 'Chiffre d\'affaires (€) *', type: 'number', step: '0.01', required: true },
-                { name: 'pna', label: 'PNA (€) *', type: 'number', step: '0.01', required: true },
-                { name: 'jourRdv', label: 'Jour du RDV', type: 'date' }
-            ];
-            // Champ commentaire séparé
-html += '<div class="form-group" style="grid-column: 1 / -1;">' +
-    '<label class="form-label">Commentaire (facultatif)</label>' +
-    '<textarea class="form-input" placeholder="Notes, contexte, remarques..." style="min-height: 80px; resize: vertical;" ' +
-        'onchange="updateFormField(\'commentaire\', this.value)">' + (appState.formData.commentaire || '') + '</textarea>' +
-'</div>';
-            for (var i = 0; i < otherFields.length; i++) {
-                var field = otherFields[i];
-                var stepAttr = field.step ? ' step="' + field.step + '"' : '';
-                html += '<div class="form-group">' +
-                    '<label class="form-label">' + field.label + '</label>' +
-                    '<input type="' + field.type + '" class="form-input" value="' + (appState.formData[field.name] || '') + '" ' +
-                        'onchange="updateFormField(\'' + field.name + '\', this.value)" ' + (field.required ? 'required' : '') + stepAttr + '>' +
-                '</div>';
-            }
-            
-            html += '</div>';
-            
-            html += '<div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">' +
-                '<button type="submit" class="btn btn-primary">' +
-                    (appState.editingId ? 'Modifier la vente' : 'Enregistrer la vente') +
-                '</button>';
-            
-           if (appState.editingId) {
-    html += '<button type="button" onclick="cancelEdit();" class="btn btn-secondary">' +
-        'Annuler' +
-    '</button>';
-}
-            html += '</div></form>';
-            
-            card.innerHTML = html;
-            container.appendChild(card);
-        }
-
-        function renderListe(container) {
-            var filteredVentes = getFilteredVentes();
-            var periodeName = appState.viewMode === 'annuel' ? 
-    'Année ' + appState.selectedYear : 
-    new Date(0, appState.selectedMonth - 1).toLocaleDateString('fr-FR', { month: 'long' }) + ' ' + appState.selectedYear;
-            
-            var card = document.createElement('div');
-            card.className = 'card';
-            
-            var html = '<div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1rem;">' +
-    '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">' +
-        '<div>' +
-            '<h2 style="font-size: 1.25rem; font-weight: 600;">' +
-                (appState.currentUser.type === 'commercial' ? 'Mes ventes' : 'Liste des ventes') + 
-                ' (' + filteredVentes.length + ')' +
-            '</h2>' +
-            '<p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">' +
-                'Période : ' + periodeName +
-            '</p>' +
-        '</div>' +
-        '<div style="display: flex; gap: 0.75rem; align-items: center;">' +
-            '<input type="text" placeholder="Rechercher..." class="form-input" style="width: 200px;" ' +
-                'value="' + appState.searchTerm + '" ' +
-                'onchange="appState.searchTerm = this.value; render();" ' +
-                'oninput="appState.searchTerm = this.value; render();">' +
-            '<select class="form-select" onchange="appState.sortBy = this.value; render();">' +
-                '<option value="dateCreation"' + (appState.sortBy === 'dateCreation' ? ' selected' : '') + '>Date création</option>' +
-                '<option value="nom"' + (appState.sortBy === 'nom' ? ' selected' : '') + '>Nom client</option>' +
-                '<option value="chiffreAffaires"' + (appState.sortBy === 'chiffreAffaires' ? ' selected' : '') + '>Chiffre d\'affaires</option>' +
-                '<option value="pna"' + (appState.sortBy === 'pna' ? ' selected' : '') + '>PNA</option>' +
-                '<option value="dateEffet"' + (appState.sortBy === 'dateEffet' ? ' selected' : '') + '>Date effet</option>' +
-            '</select>' +
-            '<button onclick="appState.sortOrder = appState.sortOrder === \'asc\' ? \'desc\' : \'asc\'; render();" ' +
-                'class="btn btn-secondary" style="padding: 0.5rem;">' +
-                (appState.sortOrder === 'asc' ? '↑' : '↓') +
-            '</button>' +
-        '</div>' +
-    '</div>' +
-'</div>';
-            
-            if (filteredVentes.length === 0) {
-                html += '<div style="padding: 2rem; text-align: center; color: #6b7280;">' +
-                    '<div style="font-size: 1.125rem; margin-bottom: 0.5rem;">Aucune vente pour cette période</div>' +
-                    '<div style="font-size: 0.875rem;">Cliquez sur "Nouvelle vente" pour commencer</div>' +
-                '</div>';
-            } else {
-                html += '<div style="overflow-x: auto;">' +
-                    '<table class="table">' +
-                        '<thead><tr>';
-                
-                if (appState.currentUser.type === 'admin') {
-                    html += '<th>Commercial</th>';
-                }
-                
-                html += '<th>Client</th><th>Contrat</th><th>Type</th><th>Rattachement</th><th>CA (€)</th><th>PNA (€)</th><th>Date effet</th><th style="text-align: right;">Actions</th>' +
-                        '</tr></thead><tbody>';
-                
-                for (var i = 0; i < filteredVentes.length; i++) {
-                    var vente = filteredVentes[i];
-          
-                    // Vérifier les permissions avant d'afficher les actions
-   var canEdit = false;
-
-if (appState.currentUser.type === 'admin') {
-    canEdit = true;
-} else if (appState.currentUser.type === 'commercial') {
-    var currentUserName = appState.currentUser.name.toLowerCase().trim();
-    var venteCommercial = (vente.commercial || '').toLowerCase().trim();
-    canEdit = (currentUserName === venteCommercial);
-    
-    // Debug
-    if (!canEdit) {
-        console.log('Pas d\'autorisation pour:', {
-            userRole: appState.currentUser.type,
-            userName: appState.currentUser.name,
-            venteCommercial: vente.commercial
-        });
-    }
-}
-html += '<tr>';
-                    
-                    if (appState.currentUser.type === 'admin') {
-                        html += '<td style="font-weight: 500;">' + vente.commercial + '</td>';
-                    }
-                    
-                    var badgeClass = vente.vente === 'Tél' ? 'badge-blue' : 'badge-green';
-                    var ca = parseFloat(vente.chiffreAffaires || 0).toFixed(2);
-                    var pna = parseFloat(vente.pna || 0).toFixed(2);
-                    
-     html += '<td>' + vente.nom + ' ' + vente.prenom + 
-        (vente.commentaire && vente.commentaire.trim() ? 
-            ' <span onclick="showCommentaire(' + vente.id + ')" style="cursor: pointer; color: #2563eb;" title="Voir commentaire">💬</span>' : 
-            '') + 
-        '</td>' +
-        '<td>' + vente.contrat + '</td>' +
-        '<td><span class="badge ' + badgeClass + '">' + vente.vente + '</span></td>' +
-        '<td>' + vente.rattachement + '</td>' +
-        '<td style="font-weight: 500; color: #059669;">' + ca + '</td>' +
-        '<td style="font-weight: 500; color: #7c3aed;">' + pna + '</td>' +
-        '<td>' + vente.dateEffet + '</td>' +
-        '<td style="text-align: right;">';
-
-                   if (canEdit) {
-    html += '<div style="display: flex; justify-content: flex-end; gap: 0.5rem;">';
-    html += '<button class="btn btn-secondary edit-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Modifier">✏️</button>';
-    html += '<button class="btn btn-danger delete-btn" data-id="' + vente.id + '" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer">🗑️</button>';
-    html += '</div>';
-}
-                
-                
-                html += '</td></tr>';
-            }
-            
-            html += '</tbody></table></div>';
-        }
-        
-        card.innerHTML = html;
-        
-      setTimeout(() => {
-    card.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            editVente(btn.dataset.id);  // ← Sans parseInt
-        });
-    });
-    
-    card.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            handleDelete(btn.dataset.id);  // ← Sans parseInt
-        });
-    });
-}, 100);
-
-container.appendChild(card);
-    }
-        function renderGestion(container) {
-            if (appState.currentUser.type !== 'admin') {
-                var card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = '<p>Accès non autorisé</p>';
-                container.appendChild(card);
-                return;
-            }
-            
-            // Gestion des données
-            var dataCard = document.createElement('div');
-            dataCard.className = 'card';
-               var dataHtml = '<h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">Gestion des Données & Sécurité</h2>' +
-    '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">' +
-        '<button onclick="exportData()" class="btn btn-primary" style="padding: 1rem;">💾 Backup Complet</button>' +
-        '<button onclick="showImportDialog()" class="btn btn-success" style="padding: 1rem;">📁 Importer Backup</button>' +
-    '</div>';
-dataCard.innerHTML = dataHtml;
-container.appendChild(dataCard);
-            
-        
-            
-            // Gestion des contrats
-            var contractCard = document.createElement('div');
-            contractCard.className = 'card';
-            var contractHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
-                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Types de Contrats</h3>' +
-                '<button onclick="toggleContractForm()" class="btn btn-primary">➕ Ajouter un contrat</button>' +
-            '</div>';
-            
-            if (appState.showContractForm) {
-                contractHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
-                    '<div style="display: flex; gap: 0.75rem;">' +
-                        '<input type="text" placeholder="Nom du nouveau contrat" class="form-input" style="flex: 1;" ' +
-                            'value="' + appState.newContract + '" onchange="appState.newContract = this.value" ' +
-                            'onkeypress="if(event.key===\'Enter\') addContract()">' +
-                        '<button onclick="addContract()" class="btn btn-success">Ajouter</button>' +
-                        '<button onclick="cancelContractForm()" class="btn btn-secondary">Annuler</button>' +
-                    '</div>' +
-                '</div>';
-            }
-            
-            contractHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
-            
-            for (var i = 0; i < appState.contrats.length; i++) {
-                var contrat = appState.contrats[i];
-                contractHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
-                    '<span style="font-size: 0.875rem; flex: 1;">' + contrat + '</span>' +
-                    '<button onclick="deleteContract(\'' + contrat.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer ce contrat">🗑️</button>' +
-                '</div>';
-            }
-            
-            contractHtml += '</div>';
-            
-            if (appState.contrats.length === 0) {
-                contractHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun contrat configuré</p>';
-            }
-            
-            contractCard.innerHTML = contractHtml;
-            container.appendChild(contractCard);
-            
-            // Gestion des Types de Vente
-            var typeVenteCard = document.createElement('div');
-            typeVenteCard.className = 'card';
-            var typeVenteHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
-                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Types de Vente</h3>' +
-                '<button onclick="toggleTypeVenteForm()" class="btn btn-primary">➕ Ajouter un type</button>' +
-            '</div>';
-            
-            if (appState.showTypeVenteForm) {
-                typeVenteHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
-                    '<div style="display: flex; gap: 0.75rem;">' +
-                        '<input type="text" placeholder="Nom du nouveau type de vente" class="form-input" style="flex: 1;" ' +
-                            'value="' + appState.newTypeVente + '" onchange="appState.newTypeVente = this.value" ' +
-                            'onkeypress="if(event.key===\'Enter\') addTypeVente()">' +
-                        '<button onclick="addTypeVente()" class="btn btn-success">Ajouter</button>' +
-                        '<button onclick="cancelTypeVenteForm()" class="btn btn-secondary">Annuler</button>' +
-                    '</div>' +
-                '</div>';
-            }
-            
-            typeVenteHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
-            
-            for (var i = 0; i < appState.typesVente.length; i++) {
-                var typeVente = appState.typesVente[i];
-                typeVenteHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
-                    '<span style="font-size: 0.875rem; flex: 1;">' + typeVente + '</span>' +
-                    '<button onclick="deleteTypeVente(\'' + typeVente.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer ce type">🗑️</button>' +
-                '</div>';
-            }
-            
-            typeVenteHtml += '</div>';
-            
-            if (appState.typesVente.length === 0) {
-                typeVenteHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun type de vente configuré</p>';
-            }
-            
-            typeVenteCard.innerHTML = typeVenteHtml;
-            container.appendChild(typeVenteCard);
-            
-            // Gestion des Origines
-            var origineCard = document.createElement('div');
-            origineCard.className = 'card';
-            var origineHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
-                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Origines</h3>' +
-                '<button onclick="toggleOrigineForm()" class="btn btn-primary">➕ Ajouter une origine</button>' +
-            '</div>';
-            
-            if (appState.showOrigineForm) {
-                origineHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
-                    '<div style="display: flex; gap: 0.75rem;">' +
-                        '<input type="text" placeholder="Nom de la nouvelle origine" class="form-input" style="flex: 1;" ' +
-                            'value="' + appState.newOrigine + '" onchange="appState.newOrigine = this.value" ' +
-                            'onkeypress="if(event.key===\'Enter\') addOrigine()">' +
-                        '<button onclick="addOrigine()" class="btn btn-success">Ajouter</button>' +
-                        '<button onclick="cancelOrigineForm()" class="btn btn-secondary">Annuler</button>' +
-                    '</div>' +
-                '</div>';
-            }
-            
-            origineHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
-            
-            for (var i = 0; i < appState.origines.length; i++) {
-                var origine = appState.origines[i];
-                origineHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
-                    '<span style="font-size: 0.875rem; flex: 1;">' + origine + '</span>' +
-                    '<button onclick="deleteOrigine(\'' + origine.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer cette origine">🗑️</button>' +
-                '</div>';
-            }
-            
-            origineHtml += '</div>';
-            
-            if (appState.origines.length === 0) {
-                origineHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucune origine configurée</p>';
-            }
-            
-            origineCard.innerHTML = origineHtml;
-            container.appendChild(origineCard);
-            
-            // Gestion des Rattachements
-            var rattachementCard = document.createElement('div');
-            rattachementCard.className = 'card';
-            var rattachementHtml = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">' +
-                '<h3 style="font-size: 1.125rem; font-weight: 600;">Gestion des Rattachements</h3>' +
-                '<button onclick="toggleRattachementForm()" class="btn btn-primary">➕ Ajouter un rattachement</button>' +
-            '</div>';
-            
-            rattachementHtml += '<p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">Les agences et permanences des commerciaux sont automatiquement disponibles. Ajoutez ici des rattachements supplémentaires.</p>';
-            
-            if (appState.showRattachementForm) {
-                rattachementHtml += '<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">' +
-                    '<div style="display: flex; gap: 0.75rem;">' +
-                        '<input type="text" placeholder="Nom du nouveau rattachement" class="form-input" style="flex: 1;" ' +
-                            'value="' + appState.newRattachement + '" onchange="appState.newRattachement = this.value" ' +
-                            'onkeypress="if(event.key===\'Enter\') addRattachement()">' +
-                        '<button onclick="addRattachement()" class="btn btn-success">Ajouter</button>' +
-                        '<button onclick="cancelRattachementForm()" class="btn btn-secondary">Annuler</button>' +
-                    '</div>' +
-                '</div>';
-            }
-            
-            rattachementHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem;">';
-            
-            for (var i = 0; i < appState.rattachements.length; i++) {
-                var rattachement = appState.rattachements[i];
-                rattachementHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">' +
-                    '<span style="font-size: 0.875rem; flex: 1;">' + rattachement + '</span>' +
-                    '<button onclick="deleteRattachement(\'' + rattachement.replace(/'/g, "\\'") + '\')" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Supprimer ce rattachement">🗑️</button>' +
-                '</div>';
-            }
-            
-            rattachementHtml += '</div>';
-            
-            if (appState.rattachements.length === 0) {
-                rattachementHtml += '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucun rattachement personnalisé configuré</p>';
-            }
-            
-            rattachementCard.innerHTML = rattachementHtml;
-            container.appendChild(rattachementCard);
-            
-dataCard.innerHTML = dataHtml;
-            container.appendChild(dataCard);
-        }
-        // Fonctions helper pour la liste
-        function editVente(id) {
-            for (var i = 0; i < appState.ventes.length; i++) {
-                if (appState.ventes[i].id === id) {
-                    handleEdit(appState.ventes[i]);
-                    break;
-                }
-            }
-        }
-
-        function toggleContractForm() {
-            appState.showContractForm = !appState.showContractForm;
-            render();
-        }
-
-        function toggleTypeVenteForm() {
-            appState.showTypeVenteForm = !appState.showTypeVenteForm;
-            render();
-        }
-
-        function toggleOrigineForm() {
-            appState.showOrigineForm = !appState.showOrigineForm;
-            render();
-        }
-
-        function toggleRattachementForm() {
-            appState.showRattachementForm = !appState.showRattachementForm;
-            render();
-        }
-
-
-        function cancelContractForm() {
-            appState.showContractForm = false;
-            appState.newContract = '';
-            render();
-        }
-
-        function cancelTypeVenteForm() {
-            appState.showTypeVenteForm = false;
-            appState.newTypeVente = '';
-            render();
-        }
-
-        function cancelOrigineForm() {
-            appState.showOrigineForm = false;
-            appState.newOrigine = '';
-            render();
-        }
-
-        function cancelRattachementForm() {
-            appState.showRattachementForm = false;
-            appState.newRattachement = '';
-            render();
-        }
-
-       async function addContract() {
-    if (!appState.newContract.trim()) {
-        showNotification('Veuillez saisir un nom de contrat', 'error');
-        return;
-    }
-
-    if (appState.contrats.indexOf(appState.newContract.trim()) !== -1) {
-        showNotification('Ce contrat existe déjà', 'error');
-        return;
-    }
-
-    const contractValue = appState.newContract.trim();
-    appState.contrats.push(contractValue);
-    appState.newContract = '';
-    invalidateCache();
-
-    // Synchroniser avec Firebase
-    if (db) {
-        try {
-            await addDoc(collection(db, 'config'), {
-                type: 'contrat',
-                value: contractValue,
-                dateCreation: new Date().toISOString()
-            });
-            console.log('✅ Contrat synchronisé avec Firebase');
-        } catch (error) {
-            console.log('⚠️ Synchronisation Firebase échouée pour le contrat');
-        }
-    }
-
-    showNotification('Contrat ajouté avec succès', 'success');
-    render();
-}
-
-        async function addTypeVente() {
-    if (!appState.newTypeVente.trim()) {
-        showNotification('Veuillez saisir un nom de type de vente', 'error');
-        return;
-    }
-
-    if (appState.typesVente.indexOf(appState.newTypeVente.trim()) !== -1) {
-        showNotification('Ce type de vente existe déjà', 'error');
-        return;
-    }
-
-    const typeVenteValue = appState.newTypeVente.trim();
-    appState.typesVente.push(typeVenteValue);
-    appState.newTypeVente = '';
-    invalidateCache();
-
-    // Synchroniser avec Firebase
-    if (db) {
-        try {
-            await addDoc(collection(db, 'config'), {
-                type: 'typeVente',
-                value: typeVenteValue,
-                dateCreation: new Date().toISOString()
-            });
-            console.log('✅ Type de vente synchronisé avec Firebase');
-        } catch (error) {
-            console.log('⚠️ Synchronisation Firebase échouée pour le type de vente');
-        }
-    }
-
-    showNotification('Type de vente ajouté avec succès', 'success');
-    render();
-}
-       async function addOrigine() {
-    if (!appState.newOrigine.trim()) {
-        showNotification('Veuillez saisir un nom d\'origine', 'error');
-        return;
-    }
-
-    if (appState.origines.indexOf(appState.newOrigine.trim()) !== -1) {
-        showNotification('Cette origine existe déjà', 'error');
-        return;
-    }
-
-    const origineValue = appState.newOrigine.trim();
-    appState.origines.push(origineValue);
-    appState.newOrigine = '';
-    invalidateCache();
-
-    // Synchroniser avec Firebase
-    if (db) {
-        try {
-            await addDoc(collection(db, 'config'), {
-                type: 'origine',
-                value: origineValue,
-                dateCreation: new Date().toISOString()
-            });
-            console.log('✅ Origine synchronisée avec Firebase');
-        } catch (error) {
-            console.log('⚠️ Synchronisation Firebase échouée pour l\'origine');
-        }
-    }
-
-    showNotification('Origine ajoutée avec succès', 'success');
-    render();
-}
-       async function addRattachement() {
-    if (!appState.newRattachement.trim()) {
-        showNotification('Veuillez saisir un nom de rattachement', 'error');
-        return;
-    }
-
-    if (appState.rattachements.indexOf(appState.newRattachement.trim()) !== -1) {
-        showNotification('Ce rattachement existe déjà', 'error');
-        return;
-    }
-
-    const rattachementValue = appState.newRattachement.trim();
-    appState.rattachements.push(rattachementValue);
-    appState.newRattachement = '';
-    invalidateCache();
-
-    if (db) {
-        try {
-            await addDoc(collection(db, 'config'), {
-                type: 'rattachement',
-                value: rattachementValue,
-                dateCreation: new Date().toISOString()
-            });
-            console.log('✅ Rattachement synchronisé avec Firebase');
-        } catch (error) {
-            console.log('⚠️ Synchronisation Firebase échouée pour le rattachement');
-        }
-    }
-
-    showNotification('Rattachement ajouté avec succès', 'success');
-    render();
-}
-   async function deleteContract(contractToDelete) {
-    showConfirmModal(
-        'Supprimer le contrat',
-        `Êtes-vous sûr de vouloir supprimer le contrat "${contractToDelete}" ?`,
-        async () => {
-            showLoading();
-            
-            appState.contrats = appState.contrats.filter(function(c) {
-                return c !== contractToDelete;
-            });
-            invalidateCache();
-
-            // Supprimer de Firebase
-            if (db) {
-                try {
-                    const configSnapshot = await getDocs(collection(db, 'config'));
-                    for (const doc of configSnapshot.docs) {
-                        const data = doc.data();
-                        if (data.type === 'contrat' && data.value === contractToDelete) {
-                            await deleteDoc(doc.ref);
-                            console.log('✅ Contrat supprimé de Firebase');
-                            break;
-                        }
-                    }
-                } catch (error) {
-                    console.log('⚠️ Suppression Firebase échouée pour le contrat');
-                }
-            }
-
-            hideLoading();
-            showNotification('Contrat supprimé avec succès', 'success');
-            render();
-        }
-    );
-}
-    async function deleteTypeVente(typeToDelete) {
-    showConfirmModal(
-        'Supprimer le type de vente',
-        `Êtes-vous sûr de vouloir supprimer le type de vente "${typeToDelete}" ?`,
-        async () => {
-            showLoading();
-            
-            appState.typesVente = appState.typesVente.filter(function(t) {
-                return t !== typeToDelete;
-            });
-            invalidateCache();
-            
-            if (db) {
-                try {
-                    const configSnapshot = await getDocs(collection(db, 'config'));
-                    for (const doc of configSnapshot.docs) {
-                        const data = doc.data();
-                        if (data.type === 'typeVente' && data.value === typeToDelete) {
-                            await deleteDoc(doc.ref);
-                            console.log('✅ Type de vente supprimé de Firebase');
-                            break;
-                        }
-                    }
-                } catch (error) {
-                    console.log('⚠️ Suppression Firebase échouée pour le type de vente');
-                }
-            }
-
-            hideLoading();
-            showNotification('Type de vente supprimé avec succès', 'success');
-            render();
-        }
-    );
-}
-
-async function deleteOrigine(origineToDelete) {
-    showConfirmModal(
-        'Supprimer l\'origine',
-        `Êtes-vous sûr de vouloir supprimer l'origine "${origineToDelete}" ?`,
-        async () => {
-            showLoading();
-            
-            appState.origines = appState.origines.filter(function(o) {
-                return o !== origineToDelete;
-            });
-            invalidateCache();
-
-            if (db) {
-                try {
-                    const configSnapshot = await getDocs(collection(db, 'config'));
-                    for (const doc of configSnapshot.docs) {
-                        const data = doc.data();
-                        if (data.type === 'origine' && data.value === origineToDelete) {
-                            await deleteDoc(doc.ref);
-                            console.log('✅ Origine supprimée de Firebase');
-                            break;
-                        }
-                    }
-                } catch (error) {
-                    console.log('⚠️ Suppression Firebase échouée pour l\'origine');
-                }
-            }
-
-            hideLoading();
-            showNotification('Origine supprimée avec succès', 'success');
-            render();
-        }
-    );
-}
-
-async function deleteRattachement(rattachementToDelete) {
-    showConfirmModal(
-        'Supprimer le rattachement',
-        `Êtes-vous sûr de vouloir supprimer le rattachement "${rattachementToDelete}" ?`,
-        async () => {
-            showLoading();
-            
-            appState.rattachements = appState.rattachements.filter(function(r) {
-                return r !== rattachementToDelete;
-            });
-            invalidateCache();
-
-            if (db) {
-                try {
-                    const configSnapshot = await getDocs(collection(db, 'config'));
-                    for (const doc of configSnapshot.docs) {
-                        const data = doc.data();
-                        if (data.type === 'rattachement' && data.value === rattachementToDelete) {
-                            await deleteDoc(doc.ref);
-                            console.log('✅ Rattachement supprimé de Firebase');
-                            break;
-                        }
-                    }
-                } catch (error) {
-                    console.log('⚠️ Suppression Firebase échouée pour le rattachement');
-                }
-            }
-
-            hideLoading();
-            showNotification('Rattachement supprimé avec succès', 'success');
-            render();
-        }
-    );
-}
-            
-        function exportData() {
-            var dataToExport = {
-                ventes: appState.ventes,
-                users: appState.userRoles,
-                contrats: appState.contrats,
-                typesVente: appState.typesVente,
-                origines: appState.origines,
-                rattachements: appState.rattachements,
-                exportDate: new Date().toISOString()
-            };
-            
-            var blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
-            var link = document.createElement('a');
-            var url = URL.createObjectURL(blob);
-            link.href = url;
-            link.download = 'backup_sales_tracker_' + new Date().toISOString().split('T')[0] + '.json';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Backup créé avec succès', 'success');
-        }
-
-        function showImportDialog() {
-            var input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = function(e) {
-                var file = e.target.files[0];
-                if (!file) return;
-
-                var reader = new FileReader();
-                reader.onload = function(event) {
-               try {
-    var importedData = JSON.parse(event.target.result);
-    
-    // Vérification de base du format
-    if (!importedData || typeof importedData !== 'object') {
-        throw new Error('Format de fichier invalide');
-    }
-    // Vérification des propriétés essentielles
-    if (!importedData.ventes || !Array.isArray(importedData.ventes)) {
-        throw new Error('Le fichier ne contient pas de données de ventes valides');
-    }
-    
-    if (!importedData.users || typeof importedData.users !== 'object') {
-        throw new Error('Le fichier ne contient pas de données d\'utilisateurs valides');
-    }
-    // Validation et nettoyage des ventes
-    var validVentes = [];
-    var invalidCount = 0;
-    
-    if (importedData.ventes && Array.isArray(importedData.ventes)) {
-        for (var i = 0; i < importedData.ventes.length; i++) {
-            var vente = importedData.ventes[i];
-            var errors = validateVenteData(vente);
-            
-            if (errors.length === 0) {
-                validVentes.push(vente);
-            } else {
-                invalidCount++;
-                console.warn('Vente invalide ignorée:', vente, 'Erreurs:', errors);
-            }
-        }
-    }
-    
-    // Mise à jour des données
-    if (validVentes.length > 0) appState.ventes = validVentes;
-   if (importedData.users) appState.userRoles = importedData.users;
-    if (importedData.contrats) appState.contrats = importedData.contrats;
-    if (importedData.typesVente) appState.typesVente = importedData.typesVente;
-    if (importedData.origines) appState.origines = importedData.origines;
-    if (importedData.rattachements) appState.rattachements = importedData.rattachements;
-    
-    invalidateCache();
-    render();
-    
-    var message = 'Données importées avec succès !';
-    if (invalidCount > 0) {
-        message += '\n\n' + invalidCount + ' ventes invalides ont été ignorées.';
-    }
-    showNotification(message, 'success');
-    
-} catch (error) {
-    showNotification('Erreur lors de l\'import. Vérifiez le format du fichier.', 'error');
-    console.error('Erreur import:', error);
-}
+                const venteData = {
+                    ...formData,
+                    commercial: currentUser.name
                 };
-                reader.readAsText(file);
-            };
-            input.click();
-        }
-   
-// Modal de confirmation
-function showConfirmModal(title, message, onConfirm) {
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-    
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-        <div class="modal-header">
-            <div class="modal-icon modal-icon-danger">⚠️</div>
-            <div class="modal-title">${title}</div>
-        </div>
-        <div class="modal-body">${message}</div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" id="modal-cancel">Annuler</button>
-            <button class="btn btn-danger" id="modal-confirm">Confirmer</button>
-        </div>
-    `;
-    
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-    
-    // Gestion des clics
-    document.getElementById('modal-cancel').onclick = () => {
-        overlay.remove();
-    };
-    
-    document.getElementById('modal-confirm').onclick = () => {
-        overlay.remove();
-        onConfirm();
-    };
-    
-    // Fermer en cliquant sur l'overlay
-    overlay.onclick = (e) => {
-        if (e.target === overlay) {
-            overlay.remove();
-        }
-    };
-    
-    // Fermer avec Escape
-    const escapeHandler = (e) => {
-        if (e.key === 'Escape') {
-            overlay.remove();
-            document.removeEventListener('keydown', escapeHandler);
-        }
-    };
-    document.addEventListener('keydown', escapeHandler);
-}
 
-        function exportToCSV() {
-            var ventesToExport = getFilteredVentes();
-            if (ventesToExport.length === 0) {
-                showNotification('Aucune vente à exporter', 'info');
-                return;
-            }
-
-            var headers = [
-                'Commercial', 'Nom', 'Prénom', 'Âge', 'Numéro personne', 'Vente', 'Rattachement',
-                'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv'
-            ];
-            
-            // Utiliser le point-virgule pour Excel français
-            var csvContent = headers.join(';') + '\n';
-            
-            for (var i = 0; i < ventesToExport.length; i++) {
-                var vente = ventesToExport[i];
-                var row = [
-                    vente.commercial || '', vente.nom || '', vente.prenom || '', vente.age || '', vente.numeroPersonne || '',
-                    vente.vente || '', vente.rattachement || '', vente.origine || '', vente.contrat || '', vente.dateEffet || '',
-                    vente.chiffreAffaires || '', vente.pna || '', vente.jourRdv || ''
-                ];
-                csvContent += row.join(';') + '\n';
-            }
-
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            var url = URL.createObjectURL(blob);
-            link.href = url;
-          link.download = 'ventes_' + 
-    (appState.currentUser.type === 'commercial' ? 
-        appState.currentUser.name : 
-        (appState.selectedCommercial !== 'tous' ? appState.selectedCommercial : 'toutes')
-   ) + '_' + (appState.viewMode === 'annuel' ? appState.selectedYear : appState.selectedMonth + '-' + appState.selectedYear) + '.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        // Système de notifications
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    
-    const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
-    notification.innerHTML = `
-        <span style="font-size: 1.5rem;">${icon}</span>
-        <span style="flex: 1;">${message}</span>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// Loading overlay
-function showLoading() {
-    const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay';
-    overlay.id = 'loading-overlay';
-    overlay.innerHTML = '<div class="spinner"></div>';
-    document.body.appendChild(overlay);
-}
-
-function hideLoading() {
-    const overlay = document.getElementById('loading-overlay');
-    if (overlay) overlay.remove();
-}
-
-function init() {
-    try {
-        // État de l'app : Firebase uniquement, pas de données par défaut
-        appState.ventes = [];
-        appState.userRoles = {};
-        appState.contrats = [];
-        appState.typesVente = [];
-        appState.origines = [];
-        appState.rattachements = [];
-        
-        // Initialiser Firebase immédiatement
-        initFirebase();
-        render();
-    } catch (error) {
-        console.error('Erreur d\'initialisation:', error);
-        document.getElementById('app').innerHTML = 
-            '<div style="padding: 2rem; text-align: center; color: red;">' +
-                '<h2>Erreur de chargement</h2>' +
-                '<p>Veuillez recharger la page. Si le problème persiste, contactez le support.</p>' +
-                '<button onclick="location.reload()" style="padding: 0.5rem 1rem; margin-top: 1rem;">Recharger</button>' +
-            '</div>';
-    }
-}
-        // Événements
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !appState.currentUser) {
-                var usernameField = document.getElementById('username');
-                var passwordField = document.getElementById('password');
-                if (usernameField && passwordField && (document.activeElement === usernameField || document.activeElement === passwordField)) {
-                    handleLogin();
+                if (editingVente) {
+                    venteData.id = editingVente.id;
+                    venteData.dateCreation = editingVente.dateCreation;
+                    venteData.dateModification = new Date().toLocaleString('fr-FR');
+                } else {
+                    venteData.id = Date.now().toString();
+                    venteData.dateCreation = new Date().toLocaleString('fr-FR');
                 }
-            }
-        });
- 
-       function showCommentaire(venteId) {
-    for (var i = 0; i < appState.ventes.length; i++) {
-        if (appState.ventes[i].id === venteId) {
-            var commentaire = appState.ventes[i].commentaire || '';
-            var client = appState.ventes[i].nom + ' ' + appState.ventes[i].prenom;
-            showNotification('Commentaire pour ' + client + ' :\n\n' + commentaire);
-            break;
+
+                onSubmit(venteData);
+            };
+
+            return (
+                <div className="container" style={{ paddingTop: '1.5rem' }}>
+                    <div className="card">
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1.5rem' }}>
+                            {editingVente ? 'Modifier la vente' : 'Nouvelle vente'}
+                        </h2>
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label className="form-label">Nom *</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={formData.nom}
+                                        onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Prénom *</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={formData.prenom}
+                                        onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Âge</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={formData.age}
+                                        onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Numéro personne</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={formData.numeroPersonne}
+                                        onChange={(e) => setFormData({ ...formData, numeroPersonne: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Type de vente *</label>
+                                    <select
+                                        className="form-select"
+                                        value={formData.vente}
+                                        onChange={(e) => setFormData({ ...formData, vente: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Sélectionner</option>
+                                        {(config.typesVente || []).map(type => (
+                                            <option key={type} value={type}>{type}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Rattachement *</label>
+                                    <select
+                                        className="form-select"
+                                        value={formData.rattachement}
+                                        onChange={(e) => setFormData({ ...formData, rattachement: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Sélectionner</option>
+                                        {rattachementOptions.map(ratt => (
+                                            <option key={ratt} value={ratt}>{ratt}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Origine *</label>
+                                    <select
+                                        className="form-select"
+                                        value={formData.origine}
+                                        onChange={(e) => setFormData({ ...formData, origine: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Sélectionner</option>
+                                        {(config.origines || []).map(origine => (
+                                            <option key={origine} value={origine}>{origine}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Contrat *</label>
+                                    <select
+                                        className="form-select"
+                                        value={formData.contrat}
+                                        onChange={(e) => setFormData({ ...formData, contrat: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Sélectionner</option>
+                                        {(config.contrats || []).map(contrat => (
+                                            <option key={contrat} value={contrat}>{contrat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Date effet *</label>
+                                    <input
+                                        type="date"
+                                        className="form-input"
+                                        value={formData.dateEffet}
+                                        onChange={(e) => setFormData({ ...formData, dateEffet: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Chiffre d'affaires (€) *</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        className="form-input"
+                                        value={formData.chiffreAffaires}
+                                        onChange={(e) => setFormData({ ...formData, chiffreAffaires: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">PNA (€) *</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        className="form-input"
+                                        value={formData.pna}
+                                        onChange={(e) => setFormData({ ...formData, pna: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Jour du RDV</label>
+                                    <input
+                                        type="date"
+                                        className="form-input"
+                                        value={formData.jourRdv}
+                                        onChange={(e) => setFormData({ ...formData, jourRdv: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                    <label className="form-label">Commentaire (facultatif)</label>
+                                    <textarea
+                                        className="form-input"
+                                        style={{ minHeight: '80px', resize: 'vertical' }}
+                                        placeholder="Notes, contexte, remarques..."
+                                        value={formData.commentaire}
+                                        onChange={(e) => setFormData({ ...formData, commentaire: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+                                <button type="submit" className="btn btn-primary">
+                                    {editingVente ? 'Modifier la vente' : 'Enregistrer la vente'}
+                                </button>
+                                {editingVente && (
+                                    <button type="button" className="btn btn-secondary" onClick={onCancel}>
+                                        Annuler
+                                    </button>
+                                )}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
         }
-    }
-}
-        // Rendre les fonctions globales pour les onclick
-        window.handleLogin = handleLogin;
-        window.handleLogout = handleLogout;
-        window.handleSubmit = handleSubmit;
-        window.setView = setView;
-        window.updateFormField = updateFormField;
-        window.editVente = editVente;
-        window.handleDelete = handleDelete;
-        window.exportToCSV = exportToCSV;
-        window.exportData = exportData;
-        window.showImportDialog = showImportDialog;
-        window.showCommentaire = showCommentaire;
-        window.toggleContractForm = toggleContractForm;
-        window.toggleTypeVenteForm = toggleTypeVenteForm;
-        window.toggleOrigineForm = toggleOrigineForm;
-        window.toggleRattachementForm = toggleRattachementForm;
-        window.cancelContractForm = cancelContractForm;
-        window.cancelTypeVenteForm = cancelTypeVenteForm;
-        window.cancelOrigineForm = cancelOrigineForm;
-        window.cancelRattachementForm = cancelRattachementForm;
-        window.addContract = addContract;
-        window.addTypeVente = addTypeVente;
-        window.addOrigine = addOrigine;
-        window.addRattachement = addRattachement;
-        window.deleteContract = deleteContract;
-        window.deleteTypeVente = deleteTypeVente;
-        window.deleteOrigine = deleteOrigine;
-        window.deleteRattachement = deleteRattachement;
-        window.cancelEdit = cancelEdit;
-        window.debugFirebaseState = debugFirebaseState;
-        window.appState = appState;
-        window.render = render;
-        // Démarrage
-        init();
+
+        // ========== LISTE DES VENTES ==========
+        
+        function ListeVentes({ ventes, currentUser, filters, onEdit, onDelete }) {
+            const [searchTerm, setSearchTerm] = useState('');
+            const [sortBy, setSortBy] = useState('dateCreation');
+            const [sortOrder, setSortOrder] = useState('desc');
+
+            const filteredAndSortedVentes = useMemo(() => {
+                let filtered = ventes;
+
+                // Recherche
+                if (searchTerm.trim()) {
+                    const search = searchTerm.toLowerCase().trim();
+                    filtered = filtered.filter(v => 
+                        (v.nom && v.nom.toLowerCase().includes(search)) ||
+                        (v.prenom && v.prenom.toLowerCase().includes(search)) ||
+                        (v.commercial && v.commercial.toLowerCase().includes(search)) ||
+                        (v.contrat && v.contrat.toLowerCase().includes(search))
+                    );
+                }
+
+                // Tri
+                filtered.sort((a, b) => {
+                    let aVal = a[sortBy] || '';
+                    let bVal = b[sortBy] || '';
+
+                    if (sortBy === 'chiffreAffaires' || sortBy === 'pna') {
+                        aVal = parseFloat(aVal) || 0;
+                        bVal = parseFloat(bVal) || 0;
+                    } else if (sortBy === 'dateCreation' || sortBy === 'jourRdv' || sortBy === 'dateEffet') {
+                        aVal = new Date(aVal || 0);
+                        bVal = new Date(bVal || 0);
+                    } else {
+                        aVal = String(aVal).toLowerCase();
+                        bVal = String(bVal).toLowerCase();
+                    }
+
+                    if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+                    if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                return filtered;
+            }, [ventes, searchTerm, sortBy, sortOrder]);
+
+            const periodeName = filters.viewMode === 'annuel' 
+                ? `Année ${filters.year}`
+                : `${new Date(0, filters.month - 1).toLocaleDateString('fr-FR', { month: 'long' })} ${filters.year}`;
+
+            const canEdit = (vente) => {
+                if (currentUser.type === 'admin') return true;
+                if (currentUser.type === 'commercial') {
+                    return vente.commercial?.toLowerCase().trim() === currentUser.name?.toLowerCase().trim();
+                }
+                return false;
+            };
+
+            return (
+                <div className="container" style={{ paddingTop: '1.5rem' }}>
+                    <div className="card">
+                        <div style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem', marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <div>
+                                    <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>
+                                        {currentUser.type === 'commercial' ? 'Mes ventes' : 'Liste des ventes'} ({filteredAndSortedVentes.length})
+                                    </h2>
+                                    <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                                        Période : {periodeName}
+                                    </p>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Rechercher..."
+                                        className="form-input"
+                                        style={{ width: '200px' }}
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+
+                                    <select 
+                                        className="form-select"
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value)}
+                                    >
+                                        <option value="dateCreation">Date création</option>
+                                        <option value="nom">Nom client</option>
+                                        <option value="chiffreAffaires">Chiffre d'affaires</option>
+                                        <option value="pna">PNA</option>
+                                        <option value="dateEffet">Date effet</option>
+                                    </select>
+
+                                    <button
+                                        className="btn btn-secondary"
+                                        style={{ padding: '0.5rem' }}
+                                        onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                                    >
+                                        {sortOrder === 'asc' ? '↑' : '↓'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {filteredAndSortedVentes.length === 0 ? (
+                            <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                                <div style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>
+                                    Aucune vente pour cette période
+                                </div>
+                                <div style={{ fontSize: '0.875rem' }}>
+                                    {searchTerm ? 'Essayez une autre recherche' : 'Cliquez sur "Nouvelle vente" pour commencer'}
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{ overflowX: 'auto' }}>
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            {currentUser.type === 'admin' && <th>Commercial</th>}
+                                            <th>Client</th>
+                                            <th>Contrat</th>
+                                            <th>Type</th>
+                                            <th>Rattachement</th>
+                                            <th>CA (€)</th>
+                                            <th>PNA (€)</th>
+                                            <th>Date effet</th>
+                                            <th style={{ textAlign: 'right' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredAndSortedVentes.map(vente => (
+                                            <tr key={vente.id}>
+                                                {currentUser.type === 'admin' && (
+                                                    <td style={{ fontWeight: '500' }}>{vente.commercial}</td>
+                                                )}
+                                                <td>
+                                                    {vente.nom} {vente.prenom}
+                                                    {vente.commentaire && (
+                                                        <span 
+                                                            style={{ cursor: 'pointer', color: '#2563eb', marginLeft: '0.5rem' }}
+                                                            title={vente.commentaire}
+                                                        >
+                                                            💬
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td>{vente.contrat}</td>
+                                                <td>
+                                                    <span className={`badge ${vente.vente === 'Tél' ? 'badge-blue' : 'badge-green'}`}>
+                                                        {vente.vente}
+                                                    </span>
+                                                </td>
+                                                <td>{vente.rattachement}</td>
+                                                <td style={{ fontWeight: '500', color: '#059669' }}>
+                                                    {parseFloat(vente.chiffreAffaires || 0).toFixed(2)}
+                                                </td>
+                                                <td style={{ fontWeight: '500', color: '#7c3aed' }}>
+                                                    {parseFloat(vente.pna || 0).toFixed(2)}
+                                                </td>
+                                                <td>{vente.dateEffet}</td>
+                                                <td style={{ textAlign: 'right' }}>
+                                                    {canEdit(vente) && (
+                                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                                            <button
+                                                                className="btn btn-secondary"
+                                                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                                                                onClick={() => onEdit(vente)}
+                                                                title="Modifier"
+                                                            >
+                                                                ✏️
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-danger"
+                                                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                                                                onClick={() => onDelete(vente.id)}
+                                                                title="Supprimer"
+                                                            >
+                                                                🗑️
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ========== PAGE GESTION (Admin) ==========
+        
+        function GestionPage({ config, onUpdateConfig }) {
+            const [showContractForm, setShowContractForm] = useState(false);
+            const [showTypeVenteForm, setShowTypeVenteForm] = useState(false);
+            const [showOrigineForm, setShowOrigineForm] = useState(false);
+            const [showRattachementForm, setShowRattachementForm] = useState(false);
+
+            const [newContract, setNewContract] = useState('');
+            const [newTypeVente, setNewTypeVente] = useState('');
+            const [newOrigine, setNewOrigine] = useState('');
+            const [newRattachement, setNewRattachement] = useState('');
+
+            const handleAddContract = async () => {
+                if (!newContract.trim()) {
+                    alert('Veuillez saisir un nom de contrat');
+                    return;
+                }
+                if (config.contrats.includes(newContract.trim())) {
+                    alert('Ce contrat existe déjà');
+                    return;
+                }
+
+                const newContrats = [...config.contrats, newContract.trim()];
+                await onUpdateConfig('contrats', newContrats);
+                setNewContract('');
+                setShowContractForm(false);
+            };
+
+            const handleDeleteContract = async (contract) => {
+                const newContrats = config.contrats.filter(c => c !== contract);
+                await onUpdateConfig('contrats', newContrats);
+            };
+
+            const handleAddTypeVente = async () => {
+                if (!newTypeVente.trim()) {
+                    alert('Veuillez saisir un nom de type de vente');
+                    return;
+                }
+                if (config.typesVente.includes(newTypeVente.trim())) {
+                    alert('Ce type de vente existe déjà');
+                    return;
+                }
+
+                const newTypesVente = [...config.typesVente, newTypeVente.trim()];
+                await onUpdateConfig('typesVente', newTypesVente);
+                setNewTypeVente('');
+                setShowTypeVenteForm(false);
+            };
+
+            const handleDeleteTypeVente = async (type) => {
+                const newTypesVente = config.typesVente.filter(t => t !== type);
+                await onUpdateConfig('typesVente', newTypesVente);
+            };
+
+            const handleAddOrigine = async () => {
+                if (!newOrigine.trim()) {
+                    alert('Veuillez saisir un nom d\'origine');
+                    return;
+                }
+                if (config.origines.includes(newOrigine.trim())) {
+                    alert('Cette origine existe déjà');
+                    return;
+                }
+
+                const newOrigines = [...config.origines, newOrigine.trim()];
+                await onUpdateConfig('origines', newOrigines);
+                setNewOrigine('');
+                setShowOrigineForm(false);
+            };
+
+            const handleDeleteOrigine = async (origine) => {
+                const newOrigines = config.origines.filter(o => o !== origine);
+                await onUpdateConfig('origines', newOrigines);
+            };
+
+            const handleAddRattachement = async () => {
+                if (!newRattachement.trim()) {
+                    alert('Veuillez saisir un nom de rattachement');
+                    return;
+                }
+                if (config.rattachements.includes(newRattachement.trim())) {
+                    alert('Ce rattachement existe déjà');
+                    return;
+                }
+
+                const newRattachements = [...config.rattachements, newRattachement.trim()];
+                await onUpdateConfig('rattachements', newRattachements);
+                setNewRattachement('');
+                setShowRattachementForm(false);
+            };
+
+            const handleDeleteRattachement = async (ratt) => {
+                const newRattachements = config.rattachements.filter(r => r !== ratt);
+                await onUpdateConfig('rattachements', newRattachements);
+            };
+
+            return (
+                <div className="container" style={{ paddingTop: '1.5rem' }}>
+                    {/* Gestion des Contrats */}
+                    <div className="card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>
+                                Gestion des Types de Contrats
+                            </h3>
+                            <button 
+                                className="btn btn-primary"
+                                onClick={() => setShowContractForm(!showContractForm)}
+                            >
+                                ➕ Ajouter un contrat
+                            </button>
+                        </div>
+
+                        {showContractForm && (
+                            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Nom du nouveau contrat"
+                                        className="form-input"
+                                        style={{ flex: 1 }}
+                                        value={newContract}
+                                        onChange={(e) => setNewContract(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleAddContract()}
+                                    />
+                                    <button className="btn btn-success" onClick={handleAddContract}>
+                                        Ajouter
+                                    </button>
+                                    <button className="btn btn-secondary" onClick={() => {
+                                        setShowContractForm(false);
+                                        setNewContract('');
+                                    }}>
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '0.75rem' }}>
+                            {config.contrats.map(contrat => (
+                                <div key={contrat} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.875rem', flex: 1 }}>{contrat}</span>
+                                    <button
+                                        className="btn btn-danger"
+                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                                        onClick={() => {
+                                            if (window.confirm(`Supprimer le contrat "${contrat}" ?`)) {
+                                                handleDeleteContract(contrat);
+                                            }
+                                        }}
+                                        title="Supprimer ce contrat"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        {config.contrats.length === 0 && (
+                            <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>
+                                Aucun contrat configuré
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Gestion des Types de Vente */}
+                    <div className="card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>
+                                Gestion des Types de Vente
+                            </h3>
+                            <button 
+                                className="btn btn-primary"
+                                onClick={() => setShowTypeVenteForm(!showTypeVenteForm)}
+                            >
+                                ➕ Ajouter un type
+                            </button>
+                        </div>
+
+                        {showTypeVenteForm && (
+                            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Nom du nouveau type de vente"
+                                        className="form-input"
+                                        style={{ flex: 1 }}
+                                        value={newTypeVente}
+                                        onChange={(e) => setNewTypeVente(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleAddTypeVente()}
+                                    />
+                                    <button className="btn btn-success" onClick={handleAddTypeVente}>
+                                        Ajouter
+                                    </button>
+                                    <button className="btn btn-secondary" onClick={() => {
+                                        setShowTypeVenteForm(false);
+                                        setNewTypeVente('');
+                                    }}>
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '0.75rem' }}>
+                            {config.typesVente.map(type => (
+                                <div key={type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.875rem', flex: 1 }}>{type}</span>
+                                    <button
+                                        className="btn btn-danger"
+                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                                        onClick={() => {
+                                            if (window.confirm(`Supprimer le type de vente "${type}" ?`)) {
+                                                handleDeleteTypeVente(type);
+                                            }
+                                        }}
+                                        title="Supprimer ce type"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        {config.typesVente.length === 0 && (
+                            <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>
+                                Aucun type de vente configuré
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Gestion des Origines */}
+                    <div className="card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>
+                                Gestion des Origines
+                            </h3>
+                            <button 
+                                className="btn btn-primary"
+                                onClick={() => setShowOrigineForm(!showOrigineForm)}
+                            >
+                                ➕ Ajouter une origine
+                            </button>
+                        </div>
+
+                        {showOrigineForm && (
+                            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Nom de la nouvelle origine"
+                                        className="form-input"
+                                        style={{ flex: 1 }}
+                                        value={newOrigine}
+                                        onChange={(e) => setNewOrigine(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleAddOrigine()}
+                                    />
+                                    <button className="btn btn-success" onClick={handleAddOrigine}>
+                                        Ajouter
+                                    </button>
+                                    <button className="btn btn-secondary" onClick={() => {
+                                        setShowOrigineForm(false);
+                                        setNewOrigine('');
+                                    }}>
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '0.75rem' }}>
+                            {config.origines.map(origine => (
+                                <div key={origine} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.875rem', flex: 1 }}>{origine}</span>
+                                    <button
+                                        className="btn btn-danger"
+                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                                        onClick={() => {
+                                            if (window.confirm(`Supprimer l'origine "${origine}" ?`)) {
+                                                handleDeleteOrigine(origine);
+                                            }
+                                        }}
+                                        title="Supprimer cette origine"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        {config.origines.length === 0 && (
+                            <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>
+                                Aucune origine configurée
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Gestion des Rattachements */}
+                    <div className="card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>
+                                Gestion des Rattachements
+                            </h3>
+                            <button 
+                                className="btn btn-primary"
+                                onClick={() => setShowRattachementForm(!showRattachementForm)}
+                            >
+                                ➕ Ajouter un rattachement
+                            </button>
+                        </div>
+
+                        <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
+                            Les agences et permanences des commerciaux sont automatiquement disponibles. Ajoutez ici des rattachements supplémentaires.
+                        </p>
+
+                        {showRattachementForm && (
+                            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Nom du nouveau rattachement"
+                                        className="form-input"
+                                        style={{ flex: 1 }}
+                                        value={newRattachement}
+                                        onChange={(e) => setNewRattachement(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleAddRattachement()}
+                                    />
+                                    <button className="btn btn-success" onClick={handleAddRattachement}>
+                                        Ajouter
+                                    </button>
+                                    <button className="btn btn-secondary" onClick={() => {
+                                        setShowRattachementForm(false);
+                                        setNewRattachement('');
+                                    }}>
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '0.75rem' }}>
+                            {config.rattachements.map(ratt => (
+                                <div key={ratt} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.875rem', flex: 1 }}>{ratt}</span>
+                                    <button
+                                        className="btn btn-danger"
+                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                                        onClick={() => {
+                                            if (window.confirm(`Supprimer le rattachement "${ratt}" ?`)) {
+                                                handleDeleteRattachement(ratt);
+                                            }
+                                        }}
+                                        title="Supprimer ce rattachement"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        {config.rattachements.length === 0 && (
+                            <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>
+                                Aucun rattachement personnalisé configuré
+                            </p>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ========== APPLICATION PRINCIPALE ==========
+        
+        function App() {
+            const [currentUser, setCurrentUser] = useState(null);
+            const [isAuthenticating, setIsAuthenticating] = useState(true);
+            const [ventes, setVentes] = useState([]);
+            const [config, setConfig] = useState({
+                contrats: [],
+                typesVente: [],
+                origines: [],
+                rattachements: []
+            });
+            const [currentView, setCurrentView] = useState('dashboard');
+            const [filters, setFilters] = useState({
+                commercial: 'tous',
+                month: new Date().getMonth() + 1,
+                year: new Date().getFullYear(),
+                viewMode: 'mensuel'
+            });
+            const [notification, setNotification] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [confirmModal, setConfirmModal] = useState(null);
+            const [editingVente, setEditingVente] = useState(null);
+
+            // Authentification
+            useEffect(() => {
+                const unsubscribe = onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        try {
+                            const userRolesSnapshot = await getDocs(collection(db, 'userRoles'));
+                            let userRole = null;
+                            let allUsers = {};
+
+                            userRolesSnapshot.forEach((doc) => {
+                                const userData = doc.data();
+                                allUsers[userData.email] = userData;
+                                
+                                if (userData.email === user.email) {
+                                    userRole = userData;
+                                }
+                            });
+
+                            if (userRole) {
+                                setCurrentUser({
+                                    email: user.email,
+                                    uid: user.uid,
+                                    ...userRole,
+                                    allUsers
+                                });
+                            } else {
+                                setCurrentUser(null);
+                                showNotification('Accès non autorisé', 'error');
+                                await signOut(auth);
+                            }
+                        } catch (error) {
+                            console.error('Erreur récupération rôles:', error);
+                            setCurrentUser(null);
+                        }
+                    } else {
+                        setCurrentUser(null);
+                    }
+
+                    setIsAuthenticating(false);
+                });
+
+                return () => unsubscribe();
+            }, []);
+
+            // Charger les ventes et config
+            useEffect(() => {
+                if (!currentUser) return;
+
+                // Écoute en temps réel des ventes
+                const unsubscribeVentes = onSnapshot(collection(db, 'ventes'), (snapshot) => {
+                    const firebaseVentes = [];
+                    snapshot.forEach((doc) => {
+                        firebaseVentes.push({ id: doc.id, ...doc.data() });
+                    });
+                    setVentes(firebaseVentes);
+                });
+
+                // Écoute en temps réel de la config
+                const unsubscribeConfig = onSnapshot(collection(db, 'config'), (snapshot) => {
+                    const newConfig = {
+                        contrats: [],
+                        typesVente: [],
+                        origines: [],
+                        rattachements: []
+                    };
+
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        if (data.type === 'contrat') newConfig.contrats.push(data.value);
+                        else if (data.type === 'typeVente') newConfig.typesVente.push(data.value);
+                        else if (data.type === 'origine') newConfig.origines.push(data.value);
+                        else if (data.type === 'rattachement') newConfig.rattachements.push(data.value);
+                    });
+
+                    setConfig(newConfig);
+                });
+
+                return () => {
+                    unsubscribeVentes();
+                    unsubscribeConfig();
+                };
+            }, [currentUser]);
+
+            // Filtrer les ventes
+            const filteredVentes = useMemo(() => {
+                let filtered = ventes;
+
+                // Filtre par commercial
+                if (currentUser?.type === 'commercial') {
+                    filtered = filtered.filter(v => v.commercial === currentUser.name);
+                } else if (currentUser?.type === 'admin' && filters.commercial !== 'tous') {
+                    filtered = filtered.filter(v => v.commercial === filters.commercial);
+                }
+
+                // Filtre par période
+                filtered = filtered.filter(v => {
+                    if (!v.jourRdv) return false;
+                    const date = new Date(v.jourRdv);
+                    if (filters.viewMode === 'annuel') {
+                        return date.getFullYear() === filters.year;
+                    } else {
+                        return date.getMonth() + 1 === filters.month && date.getFullYear() === filters.year;
+                    }
+                });
+
+                return filtered;
+            }, [ventes, currentUser, filters]);
+
+            const showNotification = (message, type = 'info') => {
+                setNotification({ message, type });
+            };
+
+            const handleLogout = async () => {
+                try {
+                    await signOut(auth);
+                } catch (error) {
+                    console.error('Erreur déconnexion:', error);
+                }
+            };
+
+            const handleSubmitVente = async (venteData) => {
+                setLoading(true);
+
+                try {
+                    if (editingVente) {
+                        // Mise à jour
+                        const docRef = doc(db, 'ventes', venteData.id);
+                        const { id, ...dataToUpdate } = venteData;
+                        await updateDoc(docRef, dataToUpdate);
+                        showNotification('Vente modifiée avec succès', 'success');
+                    } else {
+                        // Création
+                        const { id, ...dataToSave } = venteData;
+                        await addDoc(collection(db, 'ventes'), dataToSave);
+                        showNotification('Vente ajoutée avec succès', 'success');
+                    }
+
+                    setEditingVente(null);
+                    setCurrentView('liste');
+                } catch (error) {
+                    console.error('Erreur sauvegarde:', error);
+                    showNotification('Erreur lors de la sauvegarde', 'error');
+                }
+
+                setLoading(false);
+            };
+
+            const handleEditVente = (vente) => {
+                setEditingVente(vente);
+                setCurrentView('saisie');
+            };
+
+            const handleDeleteVente = (venteId) => {
+                setConfirmModal({
+                    title: 'Supprimer la vente',
+                    message: 'Êtes-vous sûr de vouloir supprimer définitivement cette vente ? Cette action est irréversible.',
+                    onConfirm: async () => {
+                        setLoading(true);
+                        
+                        try {
+                            await deleteDoc(doc(db, 'ventes', venteId));
+                            showNotification('Vente supprimée avec succès', 'success');
+                        } catch (error) {
+                            console.error('Erreur suppression:', error);
+                            showNotification('Erreur lors de la suppression', 'error');
+                        }
+
+                        setLoading(false);
+                        setConfirmModal(null);
+                    },
+                    onCancel: () => setConfirmModal(null)
+                });
+            };
+
+            const handleUpdateConfig = async (configType, newValues) => {
+                setLoading(true);
+
+                try {
+                    // Supprimer les anciennes valeurs de ce type
+                    const configSnapshot = await getDocs(collection(db, 'config'));
+                    const deletePromises = [];
+                    
+                    configSnapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        if (data.type === configType) {
+                            deletePromises.push(deleteDoc(docSnap.ref));
+                        }
+                    });
+
+                    await Promise.all(deletePromises);
+
+                    // Ajouter les nouvelles valeurs
+                    const addPromises = newValues.map(value => 
+                        addDoc(collection(db, 'config'), {
+                            type: configType,
+                            value: value,
+                            dateCreation: new Date().toISOString()
+                        })
+                    );
+
+                    await Promise.all(addPromises);
+
+                    showNotification('Configuration mise à jour', 'success');
+                } catch (error) {
+                    console.error('Erreur mise à jour config:', error);
+                    showNotification('Erreur lors de la mise à jour', 'error');
+                }
+
+                setLoading(false);
+            };
+
+            const handleExportCSV = () => {
+                if (filteredVentes.length === 0) {
+                    showNotification('Aucune vente à exporter', 'info');
+                    return;
+                }
+
+                const headers = [
+                    'Commercial', 'Nom', 'Prénom', 'Âge', 'Numéro personne', 'Vente', 'Rattachement',
+                    'Origine', 'Contrat', 'Date effet', 'Chiffre d\'affaires', 'PNA', 'Jour du rdv'
+                ];
+
+                let csvContent = headers.join(';') + '\n';
+
+                filteredVentes.forEach(vente => {
+                    const row = [
+                        vente.commercial || '', vente.nom || '', vente.prenom || '', vente.age || '', 
+                        vente.numeroPersonne || '', vente.vente || '', vente.rattachement || '', 
+                        vente.origine || '', vente.contrat || '', vente.dateEffet || '',
+                        vente.chiffreAffaires || '', vente.pna || '', vente.jourRdv || ''
+                    ];
+                    csvContent += row.join(';') + '\n';
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.href = url;
+                
+                const filename = `ventes_${
+                    currentUser.type === 'commercial' ? currentUser.name : 
+                    (filters.commercial !== 'tous' ? filters.commercial : 'toutes')
+                }_${filters.viewMode === 'annuel' ? filters.year : `${filters.month}-${filters.year}`}.csv`;
+                
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showNotification('Export CSV créé avec succès', 'success');
+            };
+
+            if (isAuthenticating) {
+                return (
+                    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>🔄 Chargement...</div>
+                            <div style={{ color: '#6b7280' }}>Vérification de l'authentification</div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!currentUser) {
+                return <LoginPage />;
+            }
+
+            return (
+                <>
+                    <Header
+                        currentUser={currentUser}
+                        currentView={currentView}
+                        setCurrentView={(view) => {
+                            setCurrentView(view);
+                            if (view !== 'saisie') setEditingVente(null);
+                        }}
+                        filters={filters}
+                        setFilters={setFilters}
+                        onLogout={handleLogout}
+                        onExport={handleExportCSV}
+                        ventesCount={filteredVentes.length}
+                    />
+
+                    {currentView === 'dashboard' && (
+                        <Dashboard ventes={filteredVentes} currentUser={currentUser} />
+                    )}
+
+                    {currentView === 'saisie' && currentUser.type === 'commercial' && (
+                        <SaisieVente
+                            currentUser={currentUser}
+                            config={config}
+                            onSubmit={handleSubmitVente}
+                            onCancel={() => {
+                                setEditingVente(null);
+                                setCurrentView('liste');
+                            }}
+                            editingVente={editingVente}
+                        />
+                    )}
+
+                    {currentView === 'liste' && (
+                        <ListeVentes
+                            ventes={filteredVentes}
+                            currentUser={currentUser}
+                            filters={filters}
+                            onEdit={handleEditVente}
+                            onDelete={handleDeleteVente}
+                        />
+                    )}
+
+                    {currentView === 'gestion' && currentUser.type === 'admin' && (
+                        <GestionPage
+                            config={config}
+                            onUpdateConfig={handleUpdateConfig}
+                        />
+                    )}
+
+                    {notification && (
+                        <Notification
+                            message={notification.message}
+                            type={notification.type}
+                            onClose={() => setNotification(null)}
+                        />
+                    )}
+
+                    {loading && <LoadingOverlay />}
+
+                    {confirmModal && (
+                        <ConfirmModal
+                            title={confirmModal.title}
+                            message={confirmModal.message}
+                            onConfirm={confirmModal.onConfirm}
+                            onCancel={confirmModal.onCancel}
+                        />
+                    )}
+                </>
+            );
+        }
+
+        // Rendu de l'application
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+
+    <!-- Firebase SDK (nécessaire pour React) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script>
+        // Exposer Firebase pour React
+        window.firebase = firebase;
+        window.firebaseFirestore = firebase.firestore;
+        window.firebaseAuth = firebase.auth;
     </script>
 </body>
 </html>
