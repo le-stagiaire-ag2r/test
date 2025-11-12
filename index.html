@@ -533,42 +533,63 @@ function Dashboard({ ventes, currentUser }) {
         return { totalVentes, totalCA, totalPNA, telVsFaceAFace, ventesParOrigine, ventesParProduit, ventesParCommercial, ventesParMois };
     }, [ventes]);
 
-    useEffect(() => {
-        if (chartRefs.produits.current && Object.keys(stats.ventesParProduit).length > 0) {
-            const ctx = chartRefs.produits.current.getContext('2d');
-            const labels = Object.keys(stats.ventesParProduit).slice(0, 8);
-            const data = labels.map(l => stats.ventesParProduit[l]);
-            new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Ventes par Produit', data, backgroundColor: '#2563eb', borderColor: '#1d4ed8', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
-        }
-    }, [stats.ventesParProduit]);
+   // Graphique Produits
+useEffect(() => {
+    if (chartRefs.produits.current && Object.keys(stats.ventesParProduit).length > 0) {
+        const ctx = chartRefs.produits.current;
+        if (ctx.chart) ctx.chart.destroy();
+        ctx.chart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: Object.keys(stats.ventesParProduit).slice(0, 8), datasets: [{ label: 'Ventes par Produit', data: Object.keys(stats.ventesParProduit).slice(0, 8).map(l => stats.ventesParProduit[l]), backgroundColor: '#2563eb', borderColor: '#1d4ed8', borderWidth: 1 }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } }
+        });
+    }
+    return () => { if (chartRefs.produits.current?.chart) chartRefs.produits.current.chart.destroy(); };
+}, [stats.ventesParProduit]);
 
-    useEffect(() => {
-        if (chartRefs.origines.current && Object.keys(stats.ventesParOrigine).length > 0) {
-            const ctx = chartRefs.origines.current.getContext('2d');
-            const labels = Object.keys(stats.ventesParOrigine);
-            const data = labels.map(l => stats.ventesParOrigine[l]);
-            const colors = ['#2563eb', '#059669', '#7c3aed', '#ea580c', '#dc2626', '#f59e0b'];
-            new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors.slice(0, labels.length), borderColor: 'white', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } } });
-        }
-    }, [stats.ventesParOrigine]);
+// Graphique Origines
+useEffect(() => {
+    if (chartRefs.origines.current && Object.keys(stats.ventesParOrigine).length > 0) {
+        const ctx = chartRefs.origines.current;
+        if (ctx.chart) ctx.chart.destroy();
+        const colors = ['#2563eb', '#059669', '#7c3aed', '#ea580c', '#dc2626', '#f59e0b'];
+        ctx.chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels: Object.keys(stats.ventesParOrigine), datasets: [{ data: Object.keys(stats.ventesParOrigine).map(l => stats.ventesParOrigine[l]), backgroundColor: colors, borderColor: 'white', borderWidth: 2 }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+    return () => { if (chartRefs.origines.current?.chart) chartRefs.origines.current.chart.destroy(); };
+}, [stats.ventesParOrigine]);
 
-    useEffect(() => {
-        if (chartRefs.evolution.current && Object.keys(stats.ventesParMois).length > 0) {
-            const ctx = chartRefs.evolution.current.getContext('2d');
-            const mois = Object.keys(stats.ventesParMois).sort();
-            const data = mois.map(m => stats.ventesParMois[m]);
-            new Chart(ctx, { type: 'line', data: { labels: mois, datasets: [{ label: 'Évolution des ventes', data, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', tension: 0.4, fill: true, pointRadius: 5, pointBackgroundColor: '#2563eb' }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: true } } } });
-        }
-    }, [stats.ventesParMois]);
+// Graphique Evolution
+useEffect(() => {
+    if (chartRefs.evolution.current && Object.keys(stats.ventesParMois).length > 0) {
+        const ctx = chartRefs.evolution.current;
+        if (ctx.chart) ctx.chart.destroy();
+        const mois = Object.keys(stats.ventesParMois).sort();
+        ctx.chart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: mois, datasets: [{ label: 'Évolution des ventes', data: mois.map(m => stats.ventesParMois[m]), borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', tension: 0.4, fill: true, pointRadius: 5, pointBackgroundColor: '#2563eb' }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: true } } }
+        });
+    }
+    return () => { if (chartRefs.evolution.current?.chart) chartRefs.evolution.current.chart.destroy(); };
+}, [stats.ventesParMois]);
 
-    useEffect(() => {
-        if (chartRefs.taux.current) {
-            const ctx = chartRefs.taux.current.getContext('2d');
-            const labels = Object.keys(stats.telVsFaceAFace);
-            const data = labels.map(l => stats.telVsFaceAFace[l]);
-            new Chart(ctx, { type: 'pie', data: { labels, datasets: [{ data, backgroundColor: ['#3b82f6', '#10b981'], borderColor: 'white', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } } });
-        }
-    }, [stats.telVsFaceAFace]);
+// Graphique Taux
+useEffect(() => {
+    if (chartRefs.taux.current) {
+        const ctx = chartRefs.taux.current;
+        if (ctx.chart) ctx.chart.destroy();
+        ctx.chart = new Chart(ctx, {
+            type: 'pie',
+            data: { labels: Object.keys(stats.telVsFaceAFace), datasets: [{ data: Object.keys(stats.telVsFaceAFace).map(l => stats.telVsFaceAFace[l]), backgroundColor: ['#3b82f6', '#10b981'], borderColor: 'white', borderWidth: 2 }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+    return () => { if (chartRefs.taux.current?.chart) chartRefs.taux.current.chart.destroy(); };
+}, [stats.telVsFaceAFace]);
 
     const statsData = [
         { label: 'Total ventes', value: stats.totalVentes, color: '#2563eb' },
