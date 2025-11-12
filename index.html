@@ -965,11 +965,10 @@ function CommentModal({ vente, onClose }) {
 
         // ========== LISTE DES VENTES ==========
         
-        function ListeVentes({ ventes, currentUser, filters, onEdit, onDelete }) {
+        function ListeVentes({ ventes, currentUser, filters, onEdit, onDelete, selectedCommentVente, setSelectedCommentVente }) {
             const [searchTerm, setSearchTerm] = useState('');
             const [sortBy, setSortBy] = useState('dateCreation');
             const [sortOrder, setSortOrder] = useState('desc');
-            const [selectedCommentVente, setSelectedCommentVente] = useState(null);
            
             const filteredAndSortedVentes = useMemo(() => {
                 let filtered = ventes;
@@ -1537,6 +1536,7 @@ function CommentModal({ vente, onClose }) {
             const [isAuthenticating, setIsAuthenticating] = useState(true);
             const [ventes, setVentes] = useState([]);
             const [config, setConfig] = useState({
+            const [selectedCommentVente, setSelectedCommentVente] = useState(null);     
                 contrats: [],
                 typesVente: [],
                 origines: [],
@@ -1859,7 +1859,9 @@ function CommentModal({ vente, onClose }) {
                             currentUser={currentUser}
                             filters={filters}
                             onEdit={handleEditVente}
-                            onDelete={handleDeleteVente}
+                           onDelete={handleDeleteVente}
+                selectedCommentVente={selectedCommentVente}
+                setSelectedCommentVente={setSelectedCommentVente}
                         />
                     )}
 
