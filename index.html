@@ -1853,7 +1853,7 @@ function CommentModal({ vente, onClose }) {
                         />
                     )}
 
-                    {currentView === 'liste' && (
+           {currentView === 'liste' && (
                         <ListeVentes
                             ventes={filteredVentes}
                             currentUser={currentUser}
@@ -1861,17 +1861,14 @@ function CommentModal({ vente, onClose }) {
                             onEdit={handleEditVente}
                             onDelete={handleDeleteVente}
                         />
-                    })}
-                
-                {selectedCommentVente && (
-                    <CommentModal 
-                        vente={selectedCommentVente} 
-                        onClose={() => setSelectedCommentVente(null)}
-                    />
-                )}
-            </div>
-        );
-    }
+                    )}
+
+                    {selectedCommentVente && (
+                        <CommentModal 
+                            vente={selectedCommentVente} 
+                            onClose={() => setSelectedCommentVente(null)}
+                        />
+                    )}
 
                     {currentView === 'gestion' && currentUser.type === 'admin' && (
                         <GestionPage
