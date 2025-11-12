@@ -493,13 +493,6 @@ function CommentModal({ vente, onClose }) {
       // ========== DASHBOARD ==========
 
 function Dashboard({ ventes, currentUser }) {
-    const chartRefs = {
-        produits: useRef(null),
-        origines: useRef(null),
-        evolution: useRef(null),
-        taux: useRef(null)
-    };
-
     const stats = useMemo(() => {
         const totalVentes = ventes.length;
         const totalCA = ventes.reduce((sum, v) => sum + (parseFloat(v.chiffreAffaires) || 0), 0);
@@ -533,64 +526,6 @@ function Dashboard({ ventes, currentUser }) {
         return { totalVentes, totalCA, totalPNA, telVsFaceAFace, ventesParOrigine, ventesParProduit, ventesParCommercial, ventesParMois };
     }, [ventes]);
 
-   // Graphique Produits
-useEffect(() => {
-    if (chartRefs.produits.current && Object.keys(stats.ventesParProduit).length > 0) {
-        const ctx = chartRefs.produits.current;
-        if (ctx.chart) ctx.chart.destroy();
-        ctx.chart = new Chart(ctx.getContext('2d'), {
-            type: 'bar',
-            data: { labels: Object.keys(stats.ventesParProduit).slice(0, 8), datasets: [{ label: 'Ventes par Produit', data: Object.keys(stats.ventesParProduit).slice(0, 8).map(l => stats.ventesParProduit[l]), backgroundColor: '#2563eb', borderColor: '#1d4ed8', borderWidth: 1 }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } }
-        });
-    }
-    return () => { if (chartRefs.produits.current?.chart) chartRefs.produits.current.chart.destroy(); };
-}, [stats.ventesParProduit]);
-
-// Graphique Origines
-useEffect(() => {
-    if (chartRefs.origines.current && Object.keys(stats.ventesParOrigine).length > 0) {
-        const ctx = chartRefs.origines.current;
-        if (ctx.chart) ctx.chart.destroy();
-        const colors = ['#2563eb', '#059669', '#7c3aed', '#ea580c', '#dc2626', '#f59e0b'];
-        ctx.chart = new Chart(ctx.getContext('2d'), {
-            type: 'doughnut',
-            data: { labels: Object.keys(stats.ventesParOrigine), datasets: [{ data: Object.keys(stats.ventesParOrigine).map(l => stats.ventesParOrigine[l]), backgroundColor: colors, borderColor: 'white', borderWidth: 2 }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
-        });
-    }
-    return () => { if (chartRefs.origines.current?.chart) chartRefs.origines.current.chart.destroy(); };
-}, [stats.ventesParOrigine]);
-
-// Graphique Evolution
-useEffect(() => {
-    if (chartRefs.evolution.current && Object.keys(stats.ventesParMois).length > 0) {
-        const ctx = chartRefs.evolution.current;
-        if (ctx.chart) ctx.chart.destroy();
-        const mois = Object.keys(stats.ventesParMois).sort();
-        ctx.chart = new Chart(ctx.getContext('2d'), {
-            type: 'line',
-            data: { labels: mois, datasets: [{ label: 'Évolution des ventes', data: mois.map(m => stats.ventesParMois[m]), borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', tension: 0.4, fill: true, pointRadius: 5, pointBackgroundColor: '#2563eb' }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: true } } }
-        });
-    }
-    return () => { if (chartRefs.evolution.current?.chart) chartRefs.evolution.current.chart.destroy(); };
-}, [stats.ventesParMois]);
-
-// Graphique Taux
-useEffect(() => {
-    if (chartRefs.taux.current) {
-        const ctx = chartRefs.taux.current;
-        if (ctx.chart) ctx.chart.destroy();
-        ctx.chart = new Chart(ctx.getContext('2d'), {
-            type: 'pie',
-            data: { labels: Object.keys(stats.telVsFaceAFace), datasets: [{ data: Object.keys(stats.telVsFaceAFace).map(l => stats.telVsFaceAFace[l]), backgroundColor: ['#3b82f6', '#10b981'], borderColor: 'white', borderWidth: 2 }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
-        });
-    }
-    return () => { if (chartRefs.taux.current?.chart) chartRefs.taux.current.chart.destroy(); };
-}, [stats.telVsFaceAFace]);
-
     const statsData = [
         { label: 'Total ventes', value: stats.totalVentes, color: '#2563eb' },
         { label: 'CA Total', value: `${stats.totalCA.toFixed(2)}€`, color: '#059669' },
@@ -602,250 +537,224 @@ useEffect(() => {
 
     return (
         <div className="container" style={{ paddingTop: '1.5rem' }}>
-            <div className="stats-grid">{statsData.map((stat, i) => (<div key={i} className="stat-card"><div className="stat-label">{stat.label}</div><div className="stat-value" style={{ color: stat.color }}>{stat.value}</div></div>))}</div>
-            <div className="card"><h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>📊 KPIs Taux de conversion</h3><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>{Object.entries(stats.telVsFaceAFace).map(([type, count]) => { const percentage = stats.totalVentes > 0 ? ((count / stats.totalVentes) * 100).toFixed(1) : 0; return (<div key={type} style={{ padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}><div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>{type}</div><div style={{ fontSize: '1.5rem', fontWeight: '700', color: type === 'Tél' ? '#3b82f6' : '#10b981' }}>{percentage}%</div><div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>{count} ventes</div></div>); })}</div></div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
-                <div className="card"><h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>📈 Ventes par Produit</h3><canvas ref={chartRefs.produits} style={{ maxHeight: '300px' }}></canvas></div>
-                <div className="card"><h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>🎯 Origines des ventes</h3><canvas ref={chartRefs.origines} style={{ maxHeight: '300px' }}></canvas></div>
-                <div className="card"><h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>📞 Tél vs Face à face</h3><canvas ref={chartRefs.taux} style={{ maxHeight: '300px' }}></canvas></div>
+            {/* Stats principales */}
+            <div className="stats-grid">
+                {statsData.map((stat, i) => (
+                    <div key={i} className="stat-card">
+                        <div className="stat-label">{stat.label}</div>
+                        <div className="stat-value" style={{ color: stat.color }}>
+                            {stat.value}
+                        </div>
+                    </div>
+                ))}
             </div>
-            <div className="card"><h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>📊 Évolution des ventes (Mois)</h3><canvas ref={chartRefs.evolution} style={{ maxHeight: '250px' }}></canvas></div>
-            {currentUser.type === 'admin' && (<div className="card"><h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>🏆 Top 5 Commerciaux (CA)</h3><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>{topCommerciaux.map(([commercial, data], idx) => (<div key={commercial} style={{ padding: '1rem', background: idx === 0 ? '#fef3c7' : '#f9fafb', borderRadius: '0.5rem', borderLeft: `4px solid ${['#fbbf24', '#60a5fa', '#34d399', '#f87171', '#a78bfa'][idx]}` }}><div style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>{idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '  '} {commercial}</div><div style={{ fontSize: '1.125rem', fontWeight: '700', color: '#1f2937' }}>{data.ca.toFixed(2)}€</div><div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>{data.ventes} ventes | PNA: {data.pna.toFixed(2)}€</div></div>))}</div></div>)}
-            <div className="card"><h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>🎯 Statistiques détaillées par Origine</h3><div style={{ overflowX: 'auto' }}><table className="table"><thead><tr><th>Origine</th><th style={{ textAlign: 'right' }}>Ventes</th><th style={{ textAlign: 'right' }}>Pourcentage</th></tr></thead><tbody>{Object.entries(stats.ventesParOrigine).sort((a, b) => b[1] - a[1]).map(([origine, count]) => { const percentage = stats.totalVentes > 0 ? ((count / stats.totalVentes) * 100).toFixed(1) : 0; return (<tr key={origine}><td style={{ fontWeight: '500' }}>{origine}</td><td style={{ textAlign: 'right' }}>{count}</td><td style={{ textAlign: 'right', color: '#2563eb', fontWeight: '600' }}>{percentage}%</td></tr>); })}</tbody></table></div></div>
-            <div className="card"><h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>📋 Dernières ventes</h3>{ventes.length === 0 ? (<p style={{ textAlign: 'center', color: '#6b7280', padding: '1rem' }}>Aucune vente enregistrée</p>) : (<div style={{ overflowX: 'auto' }}><table className="table"><thead><tr>{currentUser.type === 'admin' && <th>Commercial</th>}<th>Client</th><th>Contrat</th><th>CA (€)</th><th>Date</th></tr></thead><tbody>{ventes.sort((a, b) => new Date(b.dateCreation || 0) - new Date(a.dateCreation || 0)).slice(0, 5).map(vente => (<tr key={vente.id}>{currentUser.type === 'admin' && (<td style={{ fontSize: '0.875rem' }}>{vente.commercial}</td>)}<td style={{ fontWeight: '500' }}>{vente.nom} {vente.prenom}</td><td>{vente.contrat}</td><td style={{ color: '#059669', fontWeight: '500' }}>{parseFloat(vente.chiffreAffaires || 0).toFixed(2)}€</td><td style={{ fontSize: '0.875rem', color: '#6b7280' }}>{new Date(vente.dateCreation).toLocaleDateString('fr-FR')}</td></tr>))}</tbody></table></div>)}
+
+            {/* KPIs Taux de conversion */}
+            <div className="card">
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                    📊 KPIs Taux de conversion
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    {Object.entries(stats.telVsFaceAFace).map(([type, count]) => {
+                        const percentage = stats.totalVentes > 0 ? ((count / stats.totalVentes) * 100).toFixed(1) : 0;
+                        return (
+                            <div key={type} style={{ padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>{type}</div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: '700', color: type === 'Tél' ? '#3b82f6' : '#10b981' }}>
+                                    {percentage}%
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                                    {count} ventes
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Ventes par Produit */}
+            <div className="card">
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                    📈 Ventes par Produit
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    {Object.entries(stats.ventesParProduit)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 9)
+                        .map(([produit, count]) => (
+                            <div key={produit} style={{ padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                <div style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', color: '#1f2937' }}>
+                                    {produit}
+                                </div>
+                                <div style={{ fontSize: '1.125rem', fontWeight: '700', color: '#2563eb' }}>
+                                    {count} ventes
+                                </div>
+                            </div>
+                        ))}
+                </div>
+            </div>
+
+            {/* Origines des ventes */}
+            <div className="card">
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                    🎯 Origines des ventes
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    {Object.entries(stats.ventesParOrigine)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([origine, count]) => {
+                            const percentage = stats.totalVentes > 0 ? ((count / stats.totalVentes) * 100).toFixed(1) : 0;
+                            return (
+                                <div key={origine} style={{ padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
+                                    <div style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', color: '#1f2937' }}>
+                                        {origine}
+                                    </div>
+                                    <div style={{ fontSize: '1.125rem', fontWeight: '700', color: '#059669' }}>
+                                        {count} ventes
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                                        {percentage}%
+                                    </div>
+                                </div>
+                            );
+                        })}
+                </div>
+            </div>
+
+            {/* Évolution par mois */}
+            <div className="card">
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                    📊 Évolution des ventes (par Mois)
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+                    {Object.entries(stats.ventesParMois)
+                        .sort((a, b) => a[0].localeCompare(b[0]))
+                        .map(([mois, count]) => (
+                            <div key={mois} style={{ padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem', textAlign: 'center' }}>
+                                <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                                    {mois}
+                                </div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#2563eb' }}>
+                                    {count}
+                                </div>
+                            </div>
+                        ))}
+                </div>
+            </div>
+
+            {/* Top commerciaux (Admin only) */}
+            {currentUser.type === 'admin' && (
+                <div className="card">
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                        🏆 Top 5 Commerciaux (CA)
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                        {topCommerciaux.map(([commercial, data], idx) => (
+                            <div key={commercial} style={{ 
+                                padding: '1rem', 
+                                background: idx === 0 ? '#fef3c7' : '#f9fafb', 
+                                borderRadius: '0.5rem',
+                                borderLeft: `4px solid ${['#fbbf24', '#60a5fa', '#34d399', '#f87171', '#a78bfa'][idx]}`
+                            }}>
+                                <div style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '  '} {commercial}
+                                </div>
+                                <div style={{ fontSize: '1.125rem', fontWeight: '700', color: '#1f2937' }}>
+                                    {data.ca.toFixed(2)}€
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                                    {data.ventes} ventes | PNA: {data.pna.toFixed(2)}€
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Statistiques détaillées par Origine */}
+            <div className="card">
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                    🎯 Statistiques détaillées par Origine
+                </h3>
+                <div style={{ overflowX: 'auto' }}>
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>Origine</th>
+                                <th style={{ textAlign: 'right' }}>Ventes</th>
+                                <th style={{ textAlign: 'right' }}>Pourcentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(stats.ventesParOrigine)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([origine, count]) => {
+                                    const percentage = stats.totalVentes > 0 ? ((count / stats.totalVentes) * 100).toFixed(1) : 0;
+                                    return (
+                                        <tr key={origine}>
+                                            <td style={{ fontWeight: '500' }}>{origine}</td>
+                                            <td style={{ textAlign: 'right' }}>{count}</td>
+                                            <td style={{ textAlign: 'right', color: '#2563eb', fontWeight: '600' }}>
+                                                {percentage}%
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Dernières ventes */}
+            <div className="card">
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                    📋 Dernières ventes
+                </h3>
+                {ventes.length === 0 ? (
+                    <p style={{ textAlign: 'center', color: '#6b7280', padding: '1rem' }}>
+                        Aucune vente enregistrée
+                    </p>
+                ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    {currentUser.type === 'admin' && <th>Commercial</th>}
+                                    <th>Client</th>
+                                    <th>Contrat</th>
+                                    <th>CA (€)</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {ventes
+                                    .sort((a, b) => new Date(b.dateCreation || 0) - new Date(a.dateCreation || 0))
+                                    .slice(0, 5)
+                                    .map(vente => (
+                                        <tr key={vente.id}>
+                                            {currentUser.type === 'admin' && (
+                                                <td style={{ fontSize: '0.875rem' }}>{vente.commercial}</td>
+                                            )}
+                                            <td style={{ fontWeight: '500' }}>
+                                                {vente.nom} {vente.prenom}
+                                            </td>
+                                            <td>{vente.contrat}</td>
+                                            <td style={{ color: '#059669', fontWeight: '500' }}>
+                                                {parseFloat(vente.chiffreAffaires || 0).toFixed(2)}€
+                                            </td>
+                                            <td style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                                                {new Date(vente.dateCreation).toLocaleDateString('fr-FR')}
+                                            </td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
- 
-        // ========== FORMULAIRE SAISIE ==========
-        
-        function SaisieVente({ currentUser, config, onSubmit, onCancel, editingVente }) {
-            const [formData, setFormData] = useState({
-                nom: '', prenom: '', age: '', numeroPersonne: '',
-                vente: '', rattachement: '', origine: '', contrat: '',
-                dateEffet: '', chiffreAffaires: '', pna: '', jourRdv: '', commentaire: ''
-            });
-
-            useEffect(() => {
-                if (editingVente) {
-                    setFormData(editingVente);
-                }
-            }, [editingVente]);
-
-            const rattachementOptions = useMemo(() => {
-                let options = [];
-                if (currentUser.type === 'commercial') {
-                    options.push(currentUser.agence);
-                    options = options.concat(currentUser.permanences || []);
-                }
-                options = options.concat(config.rattachements || []);
-                return [...new Set(options)];
-            }, [currentUser, config.rattachements]);
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                
-                const venteData = {
-                    ...formData,
-                    commercial: currentUser.name
-                };
-
-                if (editingVente) {
-                    venteData.id = editingVente.id;
-                    venteData.dateCreation = editingVente.dateCreation;
-                    venteData.dateModification = new Date().toLocaleString('fr-FR');
-                } else {
-                    venteData.id = Date.now().toString();
-                    venteData.dateCreation = new Date().toLocaleString('fr-FR');
-                }
-
-                onSubmit(venteData);
-            };
-
-            return (
-                <div className="container" style={{ paddingTop: '1.5rem' }}>
-                    <div className="card">
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1.5rem' }}>
-                            {editingVente ? 'Modifier la vente' : 'Nouvelle vente'}
-                        </h2>
-
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-grid">
-                                <div className="form-group">
-                                    <label className="form-label">Nom *</label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={formData.nom}
-                                        onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Prénom *</label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={formData.prenom}
-                                        onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Âge</label>
-                                    <input
-                                        type="number"
-                                        className="form-input"
-                                        value={formData.age}
-                                        onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Numéro personne</label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={formData.numeroPersonne}
-                                        onChange={(e) => setFormData({ ...formData, numeroPersonne: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Type de vente *</label>
-                                    <select
-                                        className="form-select"
-                                        value={formData.vente}
-                                        onChange={(e) => setFormData({ ...formData, vente: e.target.value })}
-                                        required
-                                    >
-                                        <option value="">Sélectionner</option>
-                                        {(config.typesVente || []).map(type => (
-                                            <option key={type} value={type}>{type}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Rattachement *</label>
-                                    <select
-                                        className="form-select"
-                                        value={formData.rattachement}
-                                        onChange={(e) => setFormData({ ...formData, rattachement: e.target.value })}
-                                        required
-                                    >
-                                        <option value="">Sélectionner</option>
-                                        {rattachementOptions.map(ratt => (
-                                            <option key={ratt} value={ratt}>{ratt}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Origine *</label>
-                                    <select
-                                        className="form-select"
-                                        value={formData.origine}
-                                        onChange={(e) => setFormData({ ...formData, origine: e.target.value })}
-                                        required
-                                    >
-                                        <option value="">Sélectionner</option>
-                                        {(config.origines || []).map(origine => (
-                                            <option key={origine} value={origine}>{origine}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Contrat *</label>
-                                    <select
-                                        className="form-select"
-                                        value={formData.contrat}
-                                        onChange={(e) => setFormData({ ...formData, contrat: e.target.value })}
-                                        required
-                                    >
-                                        <option value="">Sélectionner</option>
-                                        {(config.contrats || []).map(contrat => (
-                                            <option key={contrat} value={contrat}>{contrat}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Date effet *</label>
-                                    <input
-                                        type="date"
-                                        className="form-input"
-                                        value={formData.dateEffet}
-                                        onChange={(e) => setFormData({ ...formData, dateEffet: e.target.value })}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Chiffre d'affaires (€) *</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        className="form-input"
-                                        value={formData.chiffreAffaires}
-                                        onChange={(e) => setFormData({ ...formData, chiffreAffaires: e.target.value })}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">PNA (€) *</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        className="form-input"
-                                        value={formData.pna}
-                                        onChange={(e) => setFormData({ ...formData, pna: e.target.value })}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">Jour du RDV</label>
-                                    <input
-                                        type="date"
-                                        className="form-input"
-                                        value={formData.jourRdv}
-                                        onChange={(e) => setFormData({ ...formData, jourRdv: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                                    <label className="form-label">Commentaire (facultatif)</label>
-                                    <textarea
-                                        className="form-input"
-                                        style={{ minHeight: '80px', resize: 'vertical' }}
-                                        placeholder="Notes, contexte, remarques..."
-                                        value={formData.commentaire}
-                                        onChange={(e) => setFormData({ ...formData, commentaire: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-                                <button type="submit" className="btn btn-primary">
-                                    {editingVente ? 'Modifier la vente' : 'Enregistrer la vente'}
-                                </button>
-                                {editingVente && (
-                                    <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                                        Annuler
-                                    </button>
-                                )}
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            );
-        }
 
         // ========== LISTE DES VENTES ==========
         
