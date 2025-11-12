@@ -1536,14 +1536,13 @@ function CommentModal({ vente, onClose }) {
             const [isAuthenticating, setIsAuthenticating] = useState(true);
             const [ventes, setVentes] = useState([]);
             const [config, setConfig] = useState({
-            });
-            
-            const [selectedCommentVente, setSelectedCommentVente] = useState(null);
     contrats: [],
     typesVente: [],
     origines: [],
     rattachements: []
-            });
+});
+            
+            const [selectedCommentVente, setSelectedCommentVente] = useState(null);
             const [currentView, setCurrentView] = useState('dashboard');
             const [filters, setFilters] = useState({
                 commercial: 'tous',
