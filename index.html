@@ -538,7 +538,7 @@ useEffect(() => {
     if (chartRefs.produits.current && Object.keys(stats.ventesParProduit).length > 0) {
         const ctx = chartRefs.produits.current;
         if (ctx.chart) ctx.chart.destroy();
-        ctx.chart = new Chart(ctx, {
+        ctx.chart = new Chart(ctx.getContext('2d'), {
             type: 'bar',
             data: { labels: Object.keys(stats.ventesParProduit).slice(0, 8), datasets: [{ label: 'Ventes par Produit', data: Object.keys(stats.ventesParProduit).slice(0, 8).map(l => stats.ventesParProduit[l]), backgroundColor: '#2563eb', borderColor: '#1d4ed8', borderWidth: 1 }] },
             options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } }
@@ -553,7 +553,7 @@ useEffect(() => {
         const ctx = chartRefs.origines.current;
         if (ctx.chart) ctx.chart.destroy();
         const colors = ['#2563eb', '#059669', '#7c3aed', '#ea580c', '#dc2626', '#f59e0b'];
-        ctx.chart = new Chart(ctx, {
+        ctx.chart = new Chart(ctx.getContext('2d'), {
             type: 'doughnut',
             data: { labels: Object.keys(stats.ventesParOrigine), datasets: [{ data: Object.keys(stats.ventesParOrigine).map(l => stats.ventesParOrigine[l]), backgroundColor: colors, borderColor: 'white', borderWidth: 2 }] },
             options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
@@ -568,7 +568,7 @@ useEffect(() => {
         const ctx = chartRefs.evolution.current;
         if (ctx.chart) ctx.chart.destroy();
         const mois = Object.keys(stats.ventesParMois).sort();
-        ctx.chart = new Chart(ctx, {
+        ctx.chart = new Chart(ctx.getContext('2d'), {
             type: 'line',
             data: { labels: mois, datasets: [{ label: 'Évolution des ventes', data: mois.map(m => stats.ventesParMois[m]), borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', tension: 0.4, fill: true, pointRadius: 5, pointBackgroundColor: '#2563eb' }] },
             options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: true } } }
@@ -582,7 +582,7 @@ useEffect(() => {
     if (chartRefs.taux.current) {
         const ctx = chartRefs.taux.current;
         if (ctx.chart) ctx.chart.destroy();
-        ctx.chart = new Chart(ctx, {
+        ctx.chart = new Chart(ctx.getContext('2d'), {
             type: 'pie',
             data: { labels: Object.keys(stats.telVsFaceAFace), datasets: [{ data: Object.keys(stats.telVsFaceAFace).map(l => stats.telVsFaceAFace[l]), backgroundColor: ['#3b82f6', '#10b981'], borderColor: 'white', borderWidth: 2 }] },
             options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
