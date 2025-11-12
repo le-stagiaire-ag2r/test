@@ -490,8 +490,7 @@ function CommentModal({ vente, onClose }) {
             );
         }
 
-        // ========== DASHBOARD ==========
-       function Dashboard({ ventes, currentUser }) {
+        function Dashboard({ ventes, currentUser }) {
             const stats = useMemo(() => {
                 const totalVentes = ventes.length;
                 const totalCA = ventes.reduce((sum, v) => sum + (parseFloat(v.chiffreAffaires) || 0), 0);
@@ -731,9 +730,8 @@ function CommentModal({ vente, onClose }) {
                     </div>
                 </div>
             );
-        } 
-        
-
+        }
+      
         // ========== FORMULAIRE SAISIE ==========
         
         function SaisieVente({ currentUser, config, onSubmit, onCancel, editingVente }) {
