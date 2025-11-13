@@ -576,7 +576,99 @@ function CommentModal({ vente, onClose }) {
                     </div>
                 ))}
             </div>
-
+{/* Performance par Permanence/Agence */}
+<div className="card">
+    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+        Performance par Permanence/Agence
+    </h3>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+        {(() => {
+            const permanencesStats = {};
+            const agencesStats = {};
+            
+            ventes.forEach(vente => {
+                if (vente.rattachement && vente.rattachement.trim()) {
+                    const isAgence = Object.keys(currentUser.allUsers || {}).some(email => 
+                        currentUser.allUsers[email].type === 'commercial' && 
+                        currentUser.allUsers[email].agence === vente.rattachement
+                    );
+                    
+                    const pnaAmount = parseFloat(vente.pna) || 0;
+                    
+                    if (isAgence) {
+                        if (!agencesStats[vente.rattachement]) {
+                            agencesStats[vente.rattachement] = { ventes: 0, pna: 0 };
+                        }
+                        agencesStats[vente.rattachement].ventes++;
+                        agencesStats[vente.rattachement].pna += pnaAmount;
+                    } else {
+                        if (!permanencesStats[vente.rattachement]) {
+                            permanencesStats[vente.rattachement] = { ventes: 0, pna: 0 };
+                        }
+                        permanencesStats[vente.rattachement].ventes++;
+                        permanencesStats[vente.rattachement].pna += pnaAmount;
+                    }
+                }
+            });
+            
+            const agencesList = Object.keys(agencesStats).sort();
+            const permanencesList = Object.keys(permanencesStats).sort();
+            
+            return (
+                <>
+                    {agencesList.map(agence => {
+                        const data = agencesStats[agence];
+                        return (
+                            <div key={agence} style={{ 
+                                padding: '1rem', 
+                                background: '#e0f2fe', 
+                                borderRadius: '0.5rem',
+                                borderLeft: '4px solid #0277bd'
+                            }}>
+                                <div style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+                                    {agence}
+                                    <span className="badge badge-blue" style={{ marginLeft: '0.5rem' }}>Agence</span>
+                                </div>
+                                <div style={{ fontSize: '1.125rem', fontWeight: '700', color: '#1f2937' }}>
+                                    {data.ventes} ventes
+                                </div>
+                                <div style={{ fontSize: '0.875rem', color: '#0277bd', fontWeight: '500' }}>
+                                    PNA: {data.pna.toFixed(2)}€
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {permanencesList.map(permanence => {
+                        const data = permanencesStats[permanence];
+                        return (
+                            <div key={permanence} style={{ 
+                                padding: '1rem', 
+                                background: '#f9fafb', 
+                                borderRadius: '0.5rem'
+                            }}>
+                                <div style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+                                    {permanence}
+                                    <span className="badge badge-yellow" style={{ marginLeft: '0.5rem' }}>Permanence</span>
+                                </div>
+                                <div style={{ fontSize: '1.125rem', fontWeight: '700', color: '#1f2937' }}>
+                                    {data.ventes} ventes
+                                </div>
+                                <div style={{ fontSize: '0.875rem', color: '#7c3aed', fontWeight: '500' }}>
+                                    PNA: {data.pna.toFixed(2)}€
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {agencesList.length === 0 && permanencesList.length === 0 && (
+                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#6b7280', padding: '2rem' }}>
+                            Aucune vente pour cette période
+                        </div>
+                    )}
+                </>
+            );
+        })()}
+    </div>
+</div>
             {/* ===== TAUX DE CONVERSION ===== */}
             <div className="card">
                 <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1.5rem' }}>
