@@ -1964,15 +1964,16 @@ function CommentModal({ vente, onClose }) {
                         const { id, ...dataToUpdate } = venteData;
                         await db.collection('ventes').doc(venteData.id).update(dataToUpdate);
                         showNotification('Vente modifiée avec succès', 'success');
-                    } else {
-                        // Création
-                     const { id, ...dataToSave } = venteData;
-const dataWithSecurity = {
-  ...dataToSave,
-  createdByUid: currentUser.uid,
-  createdByEmail: currentUser.email
-};
-await db.collection('ventes').add(dataWithSecurity);
+                  } else {
+    // Création
+    const { id, ...dataToSave } = venteData;
+    const dataWithSecurity = {
+      ...dataToSave,
+      createdByUid: currentUser.uid,
+      createdByEmail: currentUser.email,
+      dateCreation: new Date().toISOString()
+    };
+    await db.collection('ventes').add(dataWithSecurity);
                         showNotification('Vente ajoutée avec succès', 'success');
                     }
 
