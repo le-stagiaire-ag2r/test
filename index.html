@@ -1966,8 +1966,13 @@ function CommentModal({ vente, onClose }) {
                         showNotification('Vente modifiée avec succès', 'success');
                     } else {
                         // Création
-                        const { id, ...dataToSave } = venteData;
-                        await db.collection('ventes').add(dataToSave);
+                     const { id, ...dataToSave } = venteData;
+const dataWithSecurity = {
+  ...dataToSave,
+  createdByUid: currentUser.uid,
+  createdByEmail: currentUser.email
+};
+await db.collection('ventes').add(dataWithSecurity);
                         showNotification('Vente ajoutée avec succès', 'success');
                     }
 
